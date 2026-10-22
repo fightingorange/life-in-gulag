@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""Design the character voices and record the dialogue lines in assets/manifest.json.
+
+    python3 scripts/gen_voice.py design            # create any voice that has no id yet
+    python3 scripts/gen_voice.py design --pick lev=2   # recreate Lev from preview 2
+    python3 scripts/gen_voice.py lines             # record every missing line
+    python3 scripts/gen_voice.py lines fomin_kum   # only these
+    python3 scripts/gen_voice.py lines --force     # re-record everything
+
+Voice ids are kept in assets/voice/voices.json. Previews from the design step are saved
+to assets/voice/previews/<voice>_<n>.mp3 so you can listen before picking.
+Lines are written to assets/voice/<line id>.mp3.
+"""
+import base64
+import json
+import sys
+from eleven import ASSETS, manifest, request, fail
+
+VOICE_DIR = ASSETS / "voice"
+PREVIEW_DIR = VOICE_DIR / "previews"
+VOICES_JSON = VOICE_DIR / "voices.json"
+
+# Text the design step speaks for the previews. Must be 100-1000 characters.
+SAMPLE = {
+    "lubimov": "Your number. Again. I write it down, and tomorrow I will know you. Three days. With work. Do not look at me like that, I did not make the cold.",
+    "fomin": "Nothing bad, brother, nothing bad. The kum just likes to know who people are. There is a warm place coming free. Think about it. We can all help each other a little.",
+    "pasha": "The percentage is a hundred and twenty. Do not argue with me, argue with the inspector. The quota is the quota. Somebody has to have done the measuring, and it will not be me.",
+    "lev": "They gave me five years for a paper I read aloud. Pain and suffering are always inevitable for a large intelligence and a deep heart. A man who was never hungry wrote that.",
+    "kuzma": "Downriver, three days on the ice, there is a settlement of the free ones. They feed you, and then they sell you back. Upriver there is nothing. Nothing is better, I think.",
+}
+
+
+def load_voices():
+    return json.loads(VOICES_JSON.read_text()) if VOICES_JSON.exists() else {}
+
+
+def save_voices(v):
+    VOICES_JSON.write_text(json.dumps(v, indent=2))
+
+
+def design_previews(name, spec):
+    body = {
+        "voice_description": spec["description"],
+        "text": SAMPLE[name],
+        "model_id": "eleven_multilingual_ttv_v2",
+    }
+    status, data, _ = request("POST", "/v1/text-to-voice/design", body)
+    if status == 404:  # older API name
+        status, data, _ = request("POST", "/v1/text-to-voice/create-previews", body)
+    if status != 200:
+        fail(status, data, f"design {name}")
+    previews = json.loads(data)["previews"]
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    ids = []
+    for i, p in enumerate(previews):
+        (PREVIEW_DIR / f"{name}_{i}.mp3").write_bytes(base64.b64decode(p["audio_base_64"]))
+        ids.append(p["generated_voice_id"])
+    print(f"  {name}: {len(ids)} previews -> assets/voice/previews/{name}_*.mp3")
+    return ids
+
+
+def create_voice(name, spec, generated_id):
+    body = {"voice_name": spec["name"], "voice_description": spec["description"], "generated_voice_id": generated_id}
+    status, data, _ = request("POST", "/v1/text-to-voice", body)
+    if status == 404:
+        status, data, _ = request("POST", "/v1/text-to-voice/create-voice-from-preview", body)
+    if status != 200:
+        fail(status, data, f"create voice {name}")
+    return json.loads(data)["voice_id"]
+
+
+def cmd_design(argv):
+    picks = {}
+    for a in argv:
+        if a.startswith("--pick"):
+            continue
+        if "=" in a:
+            k, v = a.split("=", 1)
+            picks[k] = int(v)
+    voices = manifest()["voices"]
+    state = load_voices()
+    for name, spec in voices.items():
+        st = state.setdefault(name, {})
+        if name in picks:
+            if "previews" not in st:
+                sys.exit(f"{name}: no previews recorded yet, run design first")
+            st["voice_id"] = create_voice(name, spec, st["previews"][picks[name]])
+            st["picked"] = picks[name]
+            print(f"  {name}: voice created from preview {picks[name]}")
+        elif "voice_id" in st:
+            print(f"  {name}: already has a voice, skipped")
+            continue
+        else:
+            st["previews"] = design_previews(name, spec)
+            st["voice_id"] = create_voice(name, spec, st["previews"][0])
+            st["picked"] = 0
+            print(f"  {name}: voice created from preview 0")
+        save_voices(state)
+    print("done")
+
+
+def record_line(line_id, line, voices, settings):
+    v = voices.get(line["voice"], {}).get("voice_id")
+    if not v:
+        sys.exit(f"{line_id}: voice '{line['voice']}' has no id yet, run: gen_voice.py design")
+    body = {
+        "text": line["text"],
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": settings.get("stability", 0.6),
+            "similarity_boost": settings.get("similarity_boost", 0.8),
+            "style": settings.get("style", 0.2),
+            "use_speaker_boost": True,
+        },
+    }
+    if line.get("lang"):
+        body["language_code"] = line["lang"]
+    status, data, ctype = request("POST", f"/v1/text-to-speech/{v}", body,
+                                  query={"output_format": "mp3_44100_128"}, accept="audio/mpeg")
+    if status != 200 or not ctype.startswith("audio"):
+        fail(status, data, f"line {line_id}")
+    (VOICE_DIR / f"{line_id}.mp3").write_bytes(data)
+    print(f"  {line_id}.mp3  {len(data)//1024} KB")
+
+
+def cmd_lines(argv):
+    force = "--force" in argv
+    only = [a for a in argv if not a.startswith("--")]
+    m = manifest()
+    voices = load_voices()
+    VOICE_DIR.mkdir(parents=True, exist_ok=True)
+    for line_id, line in m["lines"].items():
+        if only and line_id not in only:
+            continue
+        if (VOICE_DIR / f"{line_id}.mp3").exists() and not force:
+            print(f"  {line_id}.mp3  exists, skipped")
+            continue
+        record_line(line_id, line, voices, m["voices"][line["voice"]].get("settings", {}))
+    print("done")
+
+
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    if not args or args[0] not in ("design", "lines"):
+        sys.exit(__doc__)
+    (cmd_design if args[0] == "design" else cmd_lines)(args[1:])

@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ten Years</title>
+<style>
+:root{--bg:#ebe2ca;--fg:#1b1813;--mute:#6f6553;--dim:#a89c82;--line:#cbbfa2;--hot:#8b2a1a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-monospace,"IBM Plex Mono",Menlo,Consolas,monospace}
+#app{max-width:680px;margin:0 auto;padding:24px 16px 80px}
+#top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:20px;min-height:22px}
+#status{display:flex;flex-wrap:wrap;gap:4px 18px;color:var(--mute);font-size:13px}
+#status b{color:var(--fg);font-weight:500}
+#snd{all:unset;cursor:pointer;color:var(--mute);font-size:13px;white-space:nowrap}
+#snd:hover{color:var(--hot)}
+#frame{display:none;position:relative;width:100%;aspect-ratio:16/9;margin-bottom:24px;overflow:hidden;background:var(--bg)}
+#frame img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .8s ease}
+#frame canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#frame img.on{opacity:1}
+#text p{margin:0 0 1em}
+#text .q{color:var(--mute);font-style:italic;margin-left:1.5em}
+#text .ep{color:var(--mute);font-style:italic;margin:2em 0}
+#text .ep span{display:block;font-style:normal;font-size:13px;margin-top:4px}
+#text h1{font-weight:500;font-size:22px;letter-spacing:.25em;margin:0 0 4px}
+#text .small{color:var(--mute);font-size:13px}
+#choices{margin-top:28px;display:flex;flex-direction:column;gap:8px}
+#choices button{all:unset;cursor:pointer;display:block;padding:8px 10px;border:1px solid var(--line);color:var(--fg)}
+#choices button:hover,#choices button:focus{border-color:var(--hot);color:var(--hot)}
+#choices button span{color:var(--mute);margin-right:10px}
+#log{margin-top:48px;border-top:1px solid var(--line);padding-top:12px;color:var(--dim);font-size:13px}
+#log div{margin:2px 0}
+.fade{animation:f .3s ease-out}
+@keyframes f{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top"><div id="status"></div><button id="snd" title="toggle sound">sound on</button></div>
+  <div id="frame"><img id="frameImg" alt=""></div>
+  <div id="text"></div>
+  <div id="choices"></div>
+  <div id="log"></div>
+</div>
+<script src="fx.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const chance = p => Math.random() < p;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const SENTENCE = 3653; // ten years, three of them leap
+
+// ---------- assets: frames ----------
+const FRAME = (() => {
+  const box = $('#frame'), img = $('#frameImg');
+  let cur = null;
+  const missing = {};
+  if (window.FX) FX.mount(box);
+  function set(name) {
+    if (!name || name === cur || missing[name]) return;
+    cur = name;
+    img.classList.remove('on');
+    // web-sized jpeg first, the png master as fallback
+    const tryLoad = (src, onFail) => {
+      const probe = new Image();
+      probe.onload = () => {
+        if (cur !== name) return;
+        img.src = src; box.style.display = 'block';
+        requestAnimationFrame(() => { img.classList.add('on'); if (window.FX) FX.set(name); });
+      };
+      probe.onerror = onFail;
+      probe.src = src;
+    };
+    tryLoad(`assets/frames/web/${name}.jpg`, () =>
+      tryLoad(`assets/frames/${name}.png`, () => { missing[name] = true; if (cur === name) { box.style.display = 'none'; if (window.FX) FX.set(null); } }));
+  }
+  return { set };
+})();
+
+// ---------- assets: sound ----------
+// A fixed pool of audio elements, reused. Browsers cap media players per page (~75),
+// so creating one per sound would silence the game after a few hundred scenes.
+const AUDIO = (() => {
+  const web = location.protocol !== 'file:' && window.AudioContext; // file:// cannot route media through Web Audio
+  let ctx = null, lowpass = null;
+  let on = true;
+  try { on = localStorage.getItem('ten-years-sound') !== 'off'; } catch (e) {}
+  const missing = {};
+  const AMB_VOL = 0.45, SFX_VOL = 0.8, VOICE_VOL = 0.9;
+  let ambName = null, muff = 1;
+  let queue = [], speakingId = 0;
+
+  function el(loop) {
+    const a = new Audio();
+    a.loop = !!loop; a.preload = 'auto';
+    a.onerror = () => { if (a.dataset.path) missing[a.dataset.path] = true; };
+    return a;
+  }
+  const ambs = [el(true), el(true)]; let ambIdx = 0;   // two beds, alternating, for crossfades
+  const sfx = Array.from({ length: 6 }, () => el(false)); let sfxIdx = 0;
+  const voice = el(false);
+  const pulse = el(true); pulse.dataset.path = 'assets/sfx/pulse.mp3'; pulse.src = pulse.dataset.path;
+  const all = [...ambs, ...sfx, voice, pulse];
+
+  function unlock() {
+    if (web && !ctx) {
+      ctx = new AudioContext();
+      lowpass = ctx.createBiquadFilter(); lowpass.type = 'lowpass'; lowpass.frequency.value = 20000;
+      lowpass.connect(ctx.destination);
+      all.forEach(a => { try { ctx.createMediaElementSource(a).connect(lowpass); } catch (e) {} });
+    }
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+  }
+  function load(a, path) { if (a.dataset.path !== path) { a.dataset.path = path; a.src = path; } }
+  function fade(a, to, ms, then) {
+    const from = a.volume, t0 = performance.now(), token = (a._fade = (a._fade || 0) + 1);
+    (function step() {
+      if (a._fade !== token) return;
+      const k = Math.min(1, (performance.now() - t0) / ms);
+      a.volume = clamp(from + (to - from) * k, 0, 1);
+      if (k < 1) requestAnimationFrame(step); else if (then) then();
+    })();
+  }
+  // a new screen: let what the last one was saying trail off
+  function scene(o) {
+    if (!o.voice && !voice.paused) { ++speakingId; queue = []; fade(voice, 0, 1200, () => voice.pause()); }
+    for (const a of sfx) {
+      if (a.paused || !a.duration) continue;
+      if (a.duration - a.currentTime > 2.5) fade(a, 0, 1500, () => a.pause());
+    }
+  }
+  function ambient(name) {
+    if (name === ambName) return;
+    ambName = name;
+    const old = ambs[ambIdx];
+    fade(old, 0, 2500, () => old.pause());
+    if (!name) return;
+    const path = `assets/sfx/${name}.mp3`;
+    if (missing[path]) return;
+    ambIdx = 1 - ambIdx;
+    const a = ambs[ambIdx];
+    load(a, path);
+    a.volume = 0; a.currentTime = 0;
+    a.play().then(() => fade(a, on ? AMB_VOL * muff : 0, 2500)).catch(() => {});
+  }
+  function snd(name) {
+    if (!on || !name) return;
+    const path = `assets/sfx/${name}.mp3`;
+    if (missing[path]) return;
+    const a = sfx[sfxIdx]; sfxIdx = (sfxIdx + 1) % sfx.length;
+    a._fade = (a._fade || 0) + 1;   // cancel a fade-out still running on this slot
+    load(a, path);
+    a.volume = SFX_VOL * (0.4 + 0.6 * muff); a.currentTime = 0;
+    a.play().catch(() => {});
+  }
+  function say(ids) {
+    if (!ids) return;
+    queue = [].concat(ids).filter(Boolean);
+    voice.pause();
+    nextLine();
+  }
+  function nextLine() {
+    if (!on || !queue.length) return;
+    const id = queue.shift();
+    const path = `assets/voice/${id}.mp3`;
+    if (missing[path]) return nextLine();
+    const token = ++speakingId;
+    voice._fade = (voice._fade || 0) + 1;
+    load(voice, path);
+    voice.volume = VOICE_VOL; voice.currentTime = 0;
+    voice.onended = () => { if (speakingId === token) nextLine(); };
+    voice.onerror = () => { missing[path] = true; if (speakingId === token) nextLine(); };
+    setTimeout(() => { if (speakingId === token) voice.play().catch(() => { if (speakingId === token) nextLine(); }); }, 400);
+  }
+  // the body as a mixer: as strength drops the world muffles and a pulse comes up
+  function body(strength) {
+    muff = clamp((strength - 8) / 55, 0.2, 1);
+    if (lowpass) lowpass.frequency.setTargetAtTime(250 + Math.pow(muff, 2) * 18000, ctx.currentTime, 0.8);
+    const a = ambs[ambIdx];
+    if (ambName && !a.paused) a.volume = on ? AMB_VOL * muff : 0;
+    const wantPulse = strength < 25 && !missing[pulse.dataset.path];
+    if (wantPulse) {
+      pulse.volume = on ? clamp((25 - strength) / 25, 0, 1) * 0.7 : 0;
+      if (pulse.paused) pulse.play().catch(() => {});
+    } else if (!pulse.paused) pulse.pause();
+  }
+  function toggle() {
+    on = !on;
+    try { localStorage.setItem('ten-years-sound', on ? 'on' : 'off'); } catch (e) {}
+    ambs.forEach(a => { a.volume = on && a === ambs[ambIdx] ? AMB_VOL * muff : 0; });
+    if (!on) { voice.pause(); queue = []; pulse.pause(); }
+    $('#snd').textContent = on ? 'sound on' : 'sound off';
+  }
+  $('#snd').textContent = on ? 'sound on' : 'sound off';
+  $('#snd').onclick = () => { unlock(); toggle(); };
+  document.addEventListener('pointerdown', unlock, { once: true });
+  document.addEventListener('keydown', unlock, { once: true });
+  return { ambient, snd, say, body, scene };
+})();
+
+// ---------- state ----------
+let S;
+function newState() {
+  return {
+    day: 1, strength: 62, bread: 0, tobacco: 1, brigade: 0, eye: 0, extra: 0,
+    temp: -20, dead: false,
+    flags: {}, seen: {}, lev: { alive: true, helped: 0, refused: 0 },
+    today: {}, history: []
+  };
+}
+
+// ---------- rendering ----------
+function words() {
+  const st = S.strength;
+  const body = st > 70 ? 'steady' : st > 40 ? 'tired' : st > 20 ? 'thin' : 'going';
+  const b = S.brigade;
+  const bw = b >= 30 ? 'one of us' : b >= 10 ? 'useful' : b > -10 ? 'nobody' : b > -30 ? 'watched' : 'marked';
+  const e = S.eye;
+  const ew = e < 20 ? 'unnoticed' : e < 50 ? 'noted' : 'on the list';
+  return { body, bw, ew };
+}
+function status() {
+  if (!S || S.flags.title) { $('#status').innerHTML = ''; return; }
+  const w = words();
+  const total = SENTENCE + S.extra;
+  $('#status').innerHTML =
+    `<span>day <b>${S.day}</b> of ${total.toLocaleString()}</span>` +
+    `<span><b>${S.temp}°</b></span>` +
+    `<span>body <b>${w.body}</b></span>` +
+    `<span>bread <b>${S.bread} g</b></span>` +
+    `<span>tobacco <b>${S.tobacco}</b></span>` +
+    `<span>brigade <b>${w.bw}</b></span>` +
+    `<span>the eye <b>${w.ew}</b></span>`;
+}
+function renderLog() {
+  $('#log').innerHTML = S.history.slice(-12).map(h => `<div>${h}</div>`).join('');
+}
+let keyHandlers = [];
+// o: { frame, amb, sfx, voice }
+function show(paras, choices, o = {}) {
+  if (window.DEV && DEV.onShow && DEV.onShow(paras, choices, o)) return;   // capture mode: no render
+  status();
+  if (!(window.DEV && DEV.silent)) {
+    AUDIO.scene(o);
+    if (o.frame) FRAME.set(o.frame);
+    if ('amb' in o) AUDIO.ambient(o.amb);
+    if (o.sfx) AUDIO.snd(o.sfx);
+    if (o.voice) AUDIO.say(o.voice);
+    AUDIO.body(S.strength);
+  }
+  const t = $('#text');
+  t.className = 'fade';
+  t.innerHTML = paras.map(p => {
+    if (p.startsWith('> ')) return `<p class="q">${p.slice(2)}</p>`;
+    if (p.startsWith('# ')) return `<h1>${p.slice(2)}</h1>`;
+    if (p.startsWith('~ ')) return `<p class="small">${p.slice(2)}</p>`;
+    if (p.startsWith('" ')) { const [q, who] = p.slice(2).split(' || '); return `<p class="ep">${q}<span>${who}</span></p>`; }
+    return `<p>${p}</p>`;
+  }).join('');
+  const c = $('#choices');
+  c.innerHTML = '';
+  keyHandlers = [];
+  choices.forEach((ch, i) => {
+    const b = document.createElement('button');
+    b.innerHTML = `<span>${i + 1}</span>${ch.label}`;
+    b.onclick = ch.fn;
+    c.appendChild(b);
+    keyHandlers.push(ch.fn);
+  });
+  renderLog();
+  if (!(window.DEV && DEV.silent)) window.scrollTo(0, 0);
+}
+document.addEventListener('keydown', e => {
+  const n = parseInt(e.key, 10);
+  if (n >= 1 && n <= keyHandlers.length) keyHandlers[n - 1]();
+});
+
+// ---------- state helpers ----------
+function adj(d) { S.strength = clamp(S.strength + d, 0, 100); if (S.strength <= 0) S.dead = true; }
+function tob(d) { S.tobacco = Math.max(0, S.tobacco + d); if (d > 0) S.today.tobaccoGain = true; }
+function eye(d) { S.eye = clamp(S.eye + d, 0, 100); }
+function brig(d) { S.brigade = clamp(S.brigade + d, -100, 100); }
+function go(fn) { if (S.dead) return die(); fn(); }
+const QUOTES = [
+  ['Man is a creature that can get used to anything, and I think that is the best definition of him.', 'Dostoevsky, The House of the Dead'],
+  ['Money is coined liberty, and so it is ten times dearer to a man who is deprived of freedom.', 'Dostoevsky, The House of the Dead'],
+  ['Above all, don\'t lie to yourself.', 'Dostoevsky, The Brothers Karamazov'],
+];
+
+// ---------- title / intro ----------
+function title() {
+  S = newState(); S.flags.title = true;
+  show([
+    '# TEN YEARS',
+    '~ a day in the camp',
+    '" ' + QUOTES[0][0] + ' || ' + QUOTES[0][1],
+    '~ Choices with the keys 1 to 4, or click. Headphones.'
+  ], [{ label: 'Begin.', fn: intro }], { frame: 'title', amb: 'amb_wind' });
+}
+function intro() {
+  S.flags.title = false;
+  show([
+    '1951. A camp in the north, past the railhead, on a river that is ice for seven months of the year. The nearest town is four hundred kilometres away and does not want you.',
+    'Article 58-10, anti-Soviet agitation. Ten years. You said something at a table.',
+    'You stopped counting on the train. This morning you start again, from one.'
+  ], [{ label: 'Wake.', fn: startDay }], { frame: 'hut_night', amb: 'amb_hut' });
+}
+
+// ---------- the day ----------
+function startDay() {
+  S.today = { startStrength: S.strength, cells: false, bowl: false, quota: true, lost: false, tobaccoGain: false };
+  S.temp = -(17 + rnd(26));
+  adj(-(6 + Math.floor(S.day / 20)));
+  if (S.temp <= -30) adj(-3);
+  if (S.flags.cutBread) { adj(-5); S.flags.cutBread = false; }
+  if (S.dead) return die();
+  if (S.flags.pendingCells) { S.flags.pendingCells = false; return cellsDay('The inspector checked the sheet. Your name was on it.'); }
+  reveille();
+}
+
+function reveille() {
+  const cold = S.temp <= -35 ? 'The cold has a sound today: the nails in the roof.' : S.temp <= -25 ? 'The window has two fingers of ice on the inside.' : 'Not the worst morning. You distrust it.';
+  const paras = [
+    `Reveille. Somebody hits the rail outside the staff hut with a hammer. Minus ${-S.temp}. ${cold}`,
+    'In the bunk above, Senka\'s boots hang by your face. Pasha the foreman is already up, which means the brigade is going somewhere it does not want to go.'
+  ];
+  if (S.brigade <= -30 && chance(.3)) {
+    paras.push('On the way to the latrine someone\'s shoulder takes you into the door frame, and then a knee. Nobody looks. The brigade has decided something about you.');
+    adj(-10);
+  }
+  const ch = [
+    { label: 'Get up.', fn: () => go(count) },
+    { label: 'Five more minutes under the jacket.', fn: () => {
+      if (chance(.3)) {
+        cellsDay('Warder Lubimov. He does not shout. He writes your number in a book, and that is worse than shouting. "Three days. With work." You get one of them today.', 'lubimov_cells');
+      } else { adj(3); go(count); }
+    } }
+  ];
+  if (S.strength < 40) ch.push({ label: 'Lie still. Report sick.', fn: () => {
+    if (chance(.5)) sickDay();
+    else { adj(-4); show(['The medic takes two a day. You are the third. Thirty-seven and four tenths is not a temperature in here, and anyway the brigade is already forming up.'], [{ label: 'Go.', fn: () => go(count) }]); }
+  } });
+  show(paras, ch, { frame: 'hut_morning', amb: 'amb_hut', sfx: 'rail' });
+}
+
+function cellsDay(why, voice) {
+  S.today.cells = true;
+  adj(-22);
+  show([
+    why,
+    'The cells. A box of planks on bare ground, three hundred grams, hot food every third day. You sit on the edge of the bunk because the bunk is nailed up in daytime. You think about nothing, carefully, for a long time.',
+  ], [{ label: 'Let the day go.', fn: () => go(endDay) }], { frame: 'cells', amb: 'amb_cells', sfx: 'door', voice });
+}
+function sickDay() {
+  adj(14);
+  show([
+    'The medic looks at your tongue and writes you off work. The hut is empty all day. It is warm in a way it is never warm at night, and it is quiet, and you sleep like a man being paid for it.',
+    'Tomorrow the quota will have been short by one man and the brigade will remember who.'
+  ], [{ label: 'Sleep.', fn: () => { brig(-4); go(endDay); } }], { frame: 'hut_night', amb: 'amb_hut' });
+}
+
+function count() {
+  const paras = ['Count. Four hundred and some men in fives, in the dark, in the wind off the river. They count twice because the first time comes out wrong. It always comes out wrong the first time.'];
+  const searched = chance(S.eye >= 60 ? .6 : .25);
+  let voice = ['lubimov_count'];
+  if (searched) { const r = searchCheck('Lubimov walks the line opening jackets.'); paras.push(...r.out); if (r.hoard) voice = ['lubimov_hoarding']; }
+  else paras.push('Lubimov walks the line looking at faces. You keep yours the way you keep it.');
+  if (S.temp <= -41) {
+    paras.push('The thermometer by the gate says forty-one. Below forty-one they do not march you out. Nobody trusts the thermometer, but today it is on your side.');
+    return show(paras, [{ label: 'Back to the hut.', fn: () => go(breakfast) }], { frame: 'count', amb: 'amb_wind', sfx: 'boots', voice });
+  }
+  show(paras, [{ label: 'Stand.', fn: () => go(breakfast) }], { frame: 'count', amb: 'amb_wind', sfx: 'boots', voice });
+}
+
+function searchCheck(lead) {
+  const out = [lead];
+  let found = false, hoard = false;
+  if (S.bread > 0 && chance(.5)) {
+    out.push(`Your ${S.bread} grams, from the lining. He weighs it in his hand and puts it in his pocket. "Hoarding."`);
+    S.bread = 0; eye(10); found = true; hoard = true; S.today.lost = true;
+  }
+  if (S.flags.blade && chance(.3)) {
+    out.push('The blade. He holds it up so the column can see what a blade looks like. Then he looks at you for a long time, so that he will know you tomorrow.');
+    S.flags.blade = false; S.flags.pendingCells = true; eye(30); found = true; S.today.lost = true;
+  }
+  if (!found) out.push('He finds nothing, because there is nothing, or because he is cold.');
+  return { out, hoard };
+}
+
+function breakfast() {
+  const paras = [
+    'Breakfast: skilly. Hot water with a memory of cabbage and the fish bones at the bottom, which you chew. And bread, your five hundred and fifty grams, under weight as always, still warm from the bakery sledge.'
+  ];
+  const ch = [
+    { label: 'Eat all of it. Now, while it is yours.', fn: () => { adj(12); AUDIO.snd('bread'); go(afterBreakfast); } },
+    { label: 'Eat half. Sew the other half into the mattress.', fn: () => { adj(6); S.bread += 275; AUDIO.snd('bread'); go(afterBreakfast); } }
+  ];
+  if (S.lev.alive) {
+    paras.push('Lev is at the end of the table, not eating. His bread is in front of him. He is looking at it the way you look at something that belongs to someone else.');
+    ch.push({ label: 'Break off a crust for Lev.', fn: () => { adj(9); S.lev.helped++; brig(2); AUDIO.snd('bread'); go(afterBreakfast); } });
+  }
+  show(paras, ch, { frame: 'table', amb: 'amb_queue' });
+}
+function afterBreakfast() {
+  if (S.temp <= -41) return barracksDay();
+  work();
+}
+
+function barracksDay() {
+  show([
+    'A day in the hut. The stove is allowed to be lit. Men mend boots, sew numbers, pick lice, lie with their eyes open. Kuzma tells the story about the priest and the tax collector again, and it is still funny, which is a kind of miracle.'
+  ], [
+    { label: 'Sleep all day. Store it up.', fn: () => { adj(8); go(midday); } },
+    { label: 'Mend boots for the Latvians. They pay in tobacco.', fn: () => { adj(2); tob(1); go(midday); } }
+  ], { frame: 'hut_night', amb: 'amb_hut', sfx: S.flags.betrayed ? null : 'humming' });
+}
+
+const SITES = [
+  { name: 'the power station', text: 'Wall-laying at the power station, second storey, the mortar freezing as it leaves the trowel. You have to work fast or the mortar is a stone. You have to work fast anyway.' },
+  { name: 'the settlement', blade: true, text: 'The Socialist Way of Life settlement: a field of holes in frozen ground where somebody has decided a town will be. The ground has decided otherwise. A pick goes in two centimetres a swing.' },
+  { name: 'the timber', text: 'Timber from the river bank. Two men to a log, up the bank, to the sledge. The log does not care which two.' }
+];
+function work() {
+  const site = S.flags.bootmakers ? null : pick(SITES);
+  if (!site) {
+    return show([
+      'The bootmakers\' shop. Indoors, a stove, the smell of glue and wet felt. The work is nothing. The other men in the shop do not talk to you, and after a while you understand that they do not talk to each other either. Everyone in here paid for the chair.'
+    ], [{ label: 'Work.', fn: () => { adj(-3); go(midday); } }], { frame: 'hut_night', amb: 'amb_cells' });
+  }
+  show([site.text, 'Pasha counts heads and does not say anything. The quota is the quota.'], [
+    { label: 'Work. Properly.', fn: () => {
+      adj(-11); brig(8);
+      if (site.blade && !S.flags.blade && !S.seen.blade && chance(.35)) return go(foundBlade);
+      go(midday);
+    } },
+    { label: 'Work enough to be seen working.', fn: () => {
+      adj(-7); brig(-5);
+      if (chance(.35)) { S.today.quota = false; S.flags.cutBread = true; brig(-8); return show(['The brigade\'s percentage is short. Tomorrow everyone\'s bread is cut, and everyone knows whose it was.'], [{ label: 'Go on.', fn: () => go(midday) }], { voice: 'pasha_short' }); }
+      go(midday);
+    } },
+    { label: 'Find the stove in the lean-to and stay by it.', fn: () => {
+      adj(-2); brig(-8);
+      if (chance(.35)) { eye(15); return show(['The site foreman finds you. He does not shout either. He has a notebook.'], [{ label: 'Back to the pick.', fn: () => go(midday) }]); }
+      go(midday);
+    } }
+  ], { frame: 'site', amb: 'amb_site', voice: 'pasha_quota' });
+}
+function foundBlade() {
+  S.seen.blade = true;
+  show([
+    'In the sawdust by the carpenters\' shed, half a hacksaw blade. Fifteen centimetres of steel. In here it is worth more than you are. It is also three years, if it is found on you.'
+  ], [
+    { label: 'Take it. Into the boot, under the foot cloth.', fn: () => { S.flags.blade = true; eye(5); go(midday); } },
+    { label: 'Kick sawdust over it.', fn: () => go(midday) }
+  ], { frame: 'site' });
+}
+
+// ---------- midday events ----------
+function midday() {
+  if (S.flags.informer && !S.flags.named && S.day >= S.flags.informerDay + 2 && !S.seen.name) return evName();
+  if (S.flags.informer && chance(.2) && !S.seen.found) return evFoundOut();
+  if (S.lev.alive && S.lev.helped >= 2 && !S.seen.levQuote) return evLevQuote();
+  if (S.lev.alive && S.lev.refused >= 2 && chance(.5)) return evLevDeath();
+  const pool = ['fomin', 'levBread', 'tufta', 'parcel', 'senka', 'kuzma', 'letter'].filter(k => !S.seen[k]);
+  const drop = k => { const i = pool.indexOf(k); if (i >= 0) pool.splice(i, 1); };
+  if (!S.lev.alive) drop('levBread');
+  if (S.flags.betrayed) drop('kuzma');
+  if (S.flags.bootmakers) drop('tufta');
+  if (!pool.length) return show(['Noon. The soup cart does not come. Nothing happens. In here that is an event, and not a bad one.'], [{ label: 'Go on.', fn: () => go(eveningGate) }], { frame: 'noon', amb: 'amb_wind' });
+  const k = pick(pool); S.seen[k] = true;
+  ({ fomin: evFomin, levBread: evLevBread, tufta: evTufta, parcel: evParcel, senka: evSenka, kuzma: evKuzma, letter: evLetter })[k]();
+}
+const next = () => go(eveningGate);
+const NOON = { frame: 'noon', amb: 'amb_wind' };
+
+function evFomin() {
+  show([
+    'Fomin finds you at the water barrel. Fomin is a trusty, which means he works indoors and eats.',
+    '"The kum asked about you. Nothing bad. He likes to know who people are." He looks at your hands. "There is a place coming free in the bootmakers\'. Warm. He said you might be the kind who notices things."'
+  ], [
+    { label: '"I don\'t notice anything."', fn: () => { eye(10); next(); } },
+    { label: '"What would he want noticed?"', fn: () => {
+      S.flags.informer = true; S.flags.informerDay = S.day; eye(-20);
+      show(['You have not said yes. You have said something that sounds like yes to a man who only needs that much.'], [{ label: 'Go on.', fn: next }]);
+    } }
+  ], { ...NOON, voice: ['fomin_kum', 'fomin_bootmakers'] });
+}
+function evLevBread() {
+  show([
+    'Lev has stopped at the barrow. He is nineteen, from Leningrad, five years for a paper he read aloud at a seminar. He makes about half the quota now and the brigade carries the rest.',
+    'He does not ask. He looks at your pocket.'
+  ], [
+    { label: 'Give him two hundred grams.', fn: () => {
+      if (S.bread >= 200) S.bread -= 200; else adj(-5);
+      S.lev.helped++; brig(3);
+      show(['He eats it there, at the barrow, with his back to the wind, not quickly. "I will pay you back." He will not. You both know it and it does not matter.'], [{ label: 'Go on.', fn: next }], { sfx: 'bread', voice: 'lev_payback' });
+    } },
+    { label: 'Look at the barrow.', fn: () => { S.lev.refused++; next(); } }
+  ], { frame: 'site', amb: 'amb_site' });
+}
+function evTufta() {
+  show([
+    'Pasha squats by you with the work sheet. "The percentage is a hundred and twenty." It is not. It is maybe sixty.',
+    '"The inspector takes the sheet. Somebody has to have done the measuring. I need a name that is not mine." He is not asking. He is a good foreman. He is asking.'
+  ], [
+    { label: '"Put my name."', fn: () => { brig(15); if (chance(.25)) S.flags.pendingCells = true; next(); } },
+    { label: '"Put somebody else\'s."', fn: () => { brig(-15); next(); } }
+  ], { ...NOON, voice: ['pasha_percentage', 'pasha_name'] });
+}
+function evParcel() {
+  show([
+    'Fomin has a parcel. Fomin has a parcel every month: lard, sugar, tobacco, a dried fish like a shoe. He needs it carried to the hut while he signs for it. Nobody else is around.'
+  ], [
+    { label: 'Carry it. Take nothing.', fn: () => { tob(1); show(['He gives you a pinch of tobacco at the door: the price of a carrier. He counts the rest in front of you.'], [{ label: 'Go on.', fn: next }], { voice: 'fomin_carrier' }); } },
+    { label: 'Carry it. Take the fish.', fn: () => {
+      if (chance(.4)) { eye(20); brig(-5); show(['He counts the rest in front of you. He does not say anything about the fish. Fomin writes things down.'], [{ label: 'Go on.', fn: next }]); }
+      else { S.bread += 300; show(['The fish goes into the lining. It is salt and bone and it is three days of not thinking about bread.'], [{ label: 'Go on.', fn: next }]); }
+    } }
+  ], NOON);
+}
+function evSenka() {
+  show([
+    'Senka, deaf since a shell at Kursk, draws on the frost of the window with a nail: the river. A bend. A cross. Then he rubs it out with his sleeve and looks at you.',
+    'He walked out of a German camp in \'43. He is telling you he can walk out of this one.'
+  ], [
+    { label: 'Nod.', fn: () => { S.flags.partner = true; next(); } },
+    { label: 'Look away.', fn: next }
+  ], { frame: 'hut_morning', amb: 'amb_hut' });
+}
+function evKuzma() {
+  show([
+    'The noon break, by the fire that is not allowed and is lit anyway. Kuzma, fifteen years for a sack of grain off his own collective farm, talks the way other men pray.',
+    '"Downriver, three days on the ice, there is the free settlement. Released men, who cannot leave. They will feed you. Then they will sell you back, because they are hungry too. Upriver there is nothing." He thinks about it. "Nothing is better."'
+  ], [{ label: 'Remember it.', fn: () => { S.flags.river = true; next(); } }], { ...NOON, voice: ['kuzma_river', 'kuzma_nothing'] });
+}
+function evLetter() {
+  const ch = [{ label: 'Don\'t write. Nothing that is true gets through.', fn: () => { adj(-3); next(); } }];
+  if (S.tobacco > 0) ch.unshift({ label: 'Write back. Paper costs a cigarette.', fn: () => { tob(-1); adj(4); next(); } });
+  show([
+    'A letter. Four months old, a third of it blacked out. Your wife writes that the collective farm paid for the year in workdays, which is to say in nothing, and that she is painting carpets on canvas to sell at the station. Swans, mostly.',
+    'She asks if you are well. She does not ask when.'
+  ], ch, { frame: 'hut_morning', amb: 'amb_hut', sfx: 'paper' });
+}
+function evName() {
+  S.seen.name = true;
+  show([
+    'Fomin again. The kum has been patient, Fomin says, and patience is not free.',
+    '"A name. Anyone. Kuzma talks at night. Everybody hears him."'
+  ], [
+    { label: '"Kuzma."', fn: () => {
+      S.flags.betrayed = true; S.flags.named = true; S.flags.bootmakers = true; eye(-30);
+      show(['Kuzma is taken from the hut after the evening count, with his bag. His bunk is given to a Latvian who does not talk. The next morning you are told to report to the bootmakers\'.'], [{ label: 'Go on.', fn: next }], { sfx: 'door' });
+    } },
+    { label: '"I don\'t have one."', fn: () => { S.flags.informer = false; eye(30); show(['"Everyone has one," Fomin says, and goes. The kum will remember that you had the chance.'], [{ label: 'Go on.', fn: next }], { voice: 'fomin_everyone' }); } }
+  ], { ...NOON, voice: 'fomin_name' });
+}
+function evFoundOut() {
+  S.seen.found = true;
+  adj(-18); brig(-40);
+  show([
+    'Three of the brigade in the latrine, and you, and no one in the door. Nobody says the word. They do not need the word.',
+    'Afterwards you wash your face in snow. Nothing is broken. That was deliberate. Broken men go to the medic, and the medic asks.'
+  ], [{ label: 'Go on.', fn: next }], { frame: 'noon', amb: 'amb_wind', sfx: 'door' });
+}
+function evLevQuote() {
+  S.seen.levQuote = true; adj(3);
+  show([
+    'Lev sits by you at the site, out of the wind. He has colour today.',
+    '"Pain and suffering," he says, "are always inevitable for a large intelligence and a deep heart."',
+    '"Who said that."',
+    '"A man who did four years in Omsk. He wrote it afterwards, with a full stomach." He laughs, and then he coughs, and then he is quiet.'
+  ], [{ label: 'Go on.', fn: next }], { ...NOON, voice: ['lev_quote', 'lev_omsk'] });
+}
+function evLevDeath() {
+  S.lev.alive = false; S.bread += 100;
+  show([
+    'Lev did not get up. Lubimov hit the bunk with his stick, which is what you do, and then looked, and then went to get the orderly.',
+    'Lev is lighter than his jacket. Pasha keeps his bread ration for the brigade, because the dead do not eat and the office does not know yet. A hundred grams of it is yours.'
+  ], [{ label: 'Eat it.', fn: next }], { frame: 'dead', amb: 'amb_hut' });
+}
+
+// ---------- evening ----------
+function eveningGate() {
+  const paras = ['The column back. At the gates the warders search, because the gates are where things cross. Jackets open in the wind, hands up.'];
+  let voice = null;
+  if (chance(S.eye >= 60 ? .7 : .35)) { const r = searchCheck('Your turn.'); paras.push(...r.out); if (r.hoard) voice = 'lubimov_hoarding'; }
+  else paras.push('The warders are cold too. The line goes through.');
+  show(paras, [{ label: 'Into the zone.', fn: () => go(dinner) }], { frame: 'gate', amb: 'amb_march', sfx: 'boots', voice });
+}
+function dinner() {
+  const ch = [
+    { label: 'Eat your bowl and get out.', fn: () => { adj(9); go(night); } },
+    { label: 'Work the queue for a second bowl.', fn: () => {
+      if (S.brigade >= 10 && chance(.6)) { adj(16); S.today.bowl = true; show(['The cook\'s helper is Pasha\'s man. A second bowl slides across. Nobody saw.'], [{ label: 'Eat.', fn: () => go(night) }]); }
+      else { adj(-2); eye(3); show(['The cook\'s ladle, flat, across the knuckles. The queue laughs. You go back to the bench.'], [{ label: 'Sit.', fn: () => go(night) }], { sfx: 'ladle' }); }
+    } }
+  ];
+  if (S.tobacco > 0) ch.push({ label: 'A cigarette to the cook for a bowl from the bottom.', fn: () => { tob(-1); adj(14); S.today.bowl = true; go(night); } });
+  show(['Dinner: skilly again, and a ladle of groats if the cook\'s hand does not shake. The queue has its own law and the law has a ladle.'], ch, { frame: 'table', amb: 'amb_queue' });
+}
+function night() {
+  const paras = ['Night. Two hundred men breathing in a hut built for a hundred. The stove is embers. Senka\'s boots again.'];
+  const ch = [{ label: 'Sleep.', fn: () => go(endDay) }];
+  if (S.tobacco > 0) ch.unshift({ label: 'Smoke.', fn: () => { tob(-1); adj(3); go(endDay); } });
+  ch.push({ label: 'Mend boots for the Latvians.', fn: () => {
+    adj(-2);
+    if (chance(.5)) { tob(1); show(['Two pairs, by the light of the stove door. The Latvian turns them over, looks at the stitching, and pays: a pinch of tobacco, as agreed.'], [{ label: 'Sleep.', fn: () => go(endDay) }]); }
+    else show(['One pair, and the thread runs out halfway through the second. The Latvian takes his boots back and says nothing. Nothing is what he pays.'], [{ label: 'Sleep.', fn: () => go(endDay) }]);
+  } });
+  if (planItems() > 0 && S.strength > 35) ch.push({ label: 'Think about the wire.', fn: plan });
+  show(paras, ch, { frame: 'hut_night', amb: 'amb_hut', sfx: chance(.3) ? 'dogs' : null });
+}
+
+// ---------- the wire ----------
+function planItems() { return (S.flags.blade ? 1 : 0) + (S.bread >= 600 ? 1 : 0) + (S.flags.partner ? 1 : 0) + (S.flags.river ? 1 : 0); }
+function planChance() {
+  let p = .04;
+  if (S.flags.blade) p += .10;
+  if (S.bread >= 600) p += .10;
+  if (S.flags.partner) p += .12;
+  if (S.flags.river) p += .12;
+  return Math.min(p, .45);
+}
+function plan() {
+  const yn = v => v ? 'yes' : 'no';
+  const p = planChance();
+  const verdict = p < .15 ? 'This is not a plan. This is a way of dying outside the fence.' : p < .3 ? 'Men have gone with less. Most of them are in the ground by the river.' : 'It is possible. That is the most that can be said about anything here.';
+  show([
+    'The wire. You lie and count what you have.',
+    `> a blade: ${yn(S.flags.blade)}`,
+    `> bread for three days: ${yn(S.bread >= 600)} (${S.bread} g)`,
+    `> Senka: ${yn(S.flags.partner)}`,
+    `> the river, from Kuzma: ${yn(S.flags.river)}`,
+    verdict
+  ], [
+    { label: 'Not tonight.', fn: () => go(endDay) },
+    { label: 'Tonight.', fn: escape }
+  ], { frame: 'wire', amb: 'amb_wind', sfx: 'searchlight' });
+}
+function escape() {
+  const p = planChance();
+  if (!S.flags.blade && chance(.7)) {
+    return finish([
+      'Without a blade there is only the gap under the wire by the latrine, and the gap under the wire by the latrine is known. The searchlight finds you four metres out. It is not even a decision for the man in the tower.',
+      `~ Day ${S.day}. ${S.day === 1 ? 'The first one.' : ''}`
+    ], 2, { frame: 'wire', amb: null, sfx: 'shot' });
+  }
+  if (chance(p)) {
+    return finish([
+      'You go through at the place Senka showed you, where the post is rotten. Nobody shoots. Nobody shoots because nobody sees, and nobody sees because it is minus thirty-four and the man in the tower is inside his coat.',
+      S.flags.partner ? 'Senka walks in front. He does not look back once in three days, and you learn to be grateful for that.' : 'You walk alone, on the river, downstream, because downstream is where Kuzma said the smoke was.',
+      'On the fourth day you see the smoke. A settlement of the free ones: released men, in a place they cannot leave. They give you soup. The man with the soup looks at your boots, then at the telephone on the wall. He does not pick it up. Not today.',
+      `~ Day ${S.day}. You are not in the camp. That is all that can be said.`
+    ], 0, { frame: 'river', amb: 'amb_wind' });
+  }
+  const bad = rnd(S.flags.partner ? 3 : 2);
+  if (bad === 2) {
+    S.flags.partner = false; eye(20); adj(-5);
+    return show([
+      'Senka goes first through the gap. The light finds him, not you. You are back in your bunk before the count, with your heart going like a man who ran.',
+      'Senka is laid by the gate for three days so that the column can see what a man looks like who tried. On the fourth day there is a thaw, and they move him.'
+    ], [{ label: 'Say nothing. Ever.', fn: () => go(endDay) }], { frame: 'gate', amb: 'amb_hut', sfx: 'shot' });
+  }
+  if (bad === 1) {
+    return finish([
+      'Two nights on the ice. On the third you sit down to rest for a minute, with your back to a log, out of the wind, and the minute is comfortable in a way nothing has been for a long time.',
+      'In the spring a surveyor finds the boots.',
+      `~ Day ${S.day}.`
+    ], 1, { frame: 'river', amb: 'amb_wind' });
+  }
+  S.extra += SENTENCE; S.strength = 15; S.eye = 100; brig(10); S.flags.blade = false; S.bread = 0; S.today.cells = true;
+  show([
+    'On the second day, the dogs. They do not hurry. The guards bring you back in a lorry and the whole camp is turned out at the gates to look at you, so that everyone can see what a person looks like who tried.',
+    'Ten more years, read out at the count. You are no longer counting. The brigade, for some reason, thinks more of you.'
+  ], [{ label: 'Let the day go.', fn: () => go(endDay) }], { frame: 'gate', amb: 'amb_march', sfx: 'dogs', voice: 'lubimov_tenmore' });
+}
+
+// ---------- end of day ----------
+function endDay() {
+  if (S.dead) return die();
+  const t = S.today;
+  let pts = 0;
+  if (!t.cells) pts++;
+  if (t.bowl) pts++;
+  if (S.bread > 0 && !t.lost) pts++;
+  if (t.tobaccoGain) pts++;
+  if (t.quota) pts++;
+  if (!t.lost) pts++;
+  if (S.strength - t.startStrength >= -4) pts++;
+  const verdict = pts >= 6 ? 'A good day. Almost a happy one.' : pts >= 4 ? 'Not a bad day.' : pts >= 2 ? 'A day. Another one struck off.' : 'A bad day. There will be others.';
+  S.history.push(`day ${S.day} — ${verdict.toLowerCase()}`);
+  const total = SENTENCE + S.extra;
+  const left = total - S.day;
+  const paras = [verdict];
+  if (S.day === 1) paras.push(`Day one of ${total.toLocaleString()}. ${left.toLocaleString()} to go. The three extra days are for the leap years.`);
+  else if (S.extra > 0) paras.push(`Day ${S.day}. There is no number worth saying.`);
+  else paras.push(`Day ${S.day} of ${total.toLocaleString()}. ${left.toLocaleString()} to go.`);
+  show(paras, [{ label: 'Sleep.', fn: () => { S.day++; startDay(); } }], { frame: 'hut_night', amb: 'amb_hut' });
+}
+
+function die() {
+  finish([
+    'You do not get up at reveille. Lubimov hits the bunk with his stick. The hut goes out to the count without you.',
+    'In the evening Kuzma takes your spoon. The dead do not need spoons and the living do.',
+    `~ Day ${S.day}.`
+  ], 0, { frame: 'dead', amb: 'amb_cells', voice: S.flags.betrayed ? null : 'kuzma_spoon' });
+}
+function finish(paras, q, o) {
+  S.dead = true;
+  const quote = QUOTES[q];
+  show([...paras, '" ' + quote[0] + ' || ' + quote[1]], [{ label: 'Again.', fn: title }], o);
+}
+
+title();
+</script>
+<script src="dev.js"></script>
+</body>
+</html>

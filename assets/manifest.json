@@ -1,0 +1,81 @@
+{
+  "voices": {
+    "lubimov": {
+      "name": "Lubimov (warder)",
+      "description": "A man of about forty with a thick Russian accent speaking English. Flat, quiet, bureaucratic, never raises his voice. Slightly nasal. Speaks slowly, as if writing each word down.",
+      "settings": { "stability": 0.7, "similarity_boost": 0.8, "style": 0.1 }
+    },
+    "fomin": {
+      "name": "Fomin (trusty)",
+      "description": "A well-fed man in his thirties with a Russian accent speaking English. Smooth, friendly, slightly oily, the voice of someone who eats indoors. Confidential, close to the microphone, a little too pleasant.",
+      "settings": { "stability": 0.55, "similarity_boost": 0.8, "style": 0.3 }
+    },
+    "pasha": {
+      "name": "Pasha (foreman)",
+      "description": "A man in his fifties with a heavy Russian accent speaking English. Deep, hoarse, tired, a working man's voice worn by cold and shouting. Direct and unsentimental, but not cruel.",
+      "settings": { "stability": 0.6, "similarity_boost": 0.8, "style": 0.2 }
+    },
+    "lev": {
+      "name": "Lev (student)",
+      "description": "A young man of nineteen with a soft Russian accent speaking English. Thin, educated, Leningrad intelligentsia, weak from hunger, a slight rasp and occasional breathlessness. Gentle, ironic, no self-pity.",
+      "settings": { "stability": 0.5, "similarity_boost": 0.8, "style": 0.35 }
+    },
+    "kuzma": {
+      "name": "Kuzma (peasant)",
+      "description": "An old peasant in his sixties with a thick rural Russian accent speaking English. Warm, slow, storytelling cadence, gravelly, missing teeth. Sounds like he is talking to a stove.",
+      "settings": { "stability": 0.6, "similarity_boost": 0.8, "style": 0.3 }
+    }
+  },
+
+  "lines": {
+    "lubimov_cells":     { "voice": "lubimov", "text": "Three days. With work." },
+    "lubimov_hoarding":  { "voice": "lubimov", "text": "Hoarding." },
+    "lubimov_count":     { "voice": "lubimov", "lang": "ru", "text": "Пять. Десять. Пятнадцать. Двадцать. Двадцать пять... Ещё раз. Сначала." },
+    "lubimov_tenmore":   { "voice": "lubimov", "text": "Ten years. Additional. Read and signed." },
+
+    "fomin_kum":         { "voice": "fomin", "text": "The kum asked about you. Nothing bad. He likes to know who people are." },
+    "fomin_bootmakers":  { "voice": "fomin", "text": "There is a place coming free in the bootmakers'. Warm. He said you might be the kind who notices things." },
+    "fomin_name":        { "voice": "fomin", "text": "A name. Anyone. Kuzma talks at night. Everybody hears him." },
+    "fomin_everyone":    { "voice": "fomin", "text": "Everyone has one." },
+    "fomin_carrier":     { "voice": "fomin", "text": "For carrying. Don't spend it all." },
+
+    "pasha_percentage":  { "voice": "pasha", "text": "The percentage is a hundred and twenty." },
+    "pasha_name":        { "voice": "pasha", "text": "The inspector takes the sheet. Somebody has to have done the measuring. I need a name that is not mine." },
+    "pasha_quota":       { "voice": "pasha", "text": "The quota is the quota." },
+    "pasha_short":       { "voice": "pasha", "text": "We are short. Everyone's bread is cut tomorrow. Everyone knows why." },
+
+    "lev_payback":       { "voice": "lev", "text": "I will pay you back." },
+    "lev_quote":         { "voice": "lev", "text": "Pain and suffering are always inevitable for a large intelligence and a deep heart." },
+    "lev_omsk":          { "voice": "lev", "text": "A man who did four years in Omsk. He wrote it afterwards, with a full stomach." },
+
+    "kuzma_river":       { "voice": "kuzma", "text": "Downriver, three days on the ice, there is the free settlement. Released men, who cannot leave. They will feed you. Then they will sell you back, because they are hungry too. Upriver there is nothing." },
+    "kuzma_nothing":     { "voice": "kuzma", "text": "Nothing is better." },
+    "kuzma_spoon":       { "voice": "kuzma", "text": "The dead do not need spoons. The living do." }
+  },
+
+  "sfx": {
+    "amb_wind":      { "loop": true, "seconds": 22, "text": "Constant cold wind blowing over a frozen river at night, open tundra, low howling with distant creaking of ice, no music, no voices" },
+    "amb_hut":       { "loop": true, "seconds": 22, "text": "Inside a crowded wooden barracks at night, two hundred men breathing and snoring softly, a wood stove ticking as it cools, wind faint outside, no music" },
+    "amb_site":      { "loop": true, "seconds": 22, "text": "Outdoor work site in deep winter: pickaxes striking frozen ground, distant shouted orders, wind, a saw, creaking sledges, no music" },
+    "amb_queue":     { "loop": true, "seconds": 22, "text": "A crowded camp mess hall: iron bowls clanking, a ladle scraping a large pot, low murmur of many men, boots on wooden floor, no music" },
+    "amb_cells":     { "loop": true, "seconds": 22, "text": "Near silence inside a small unheated wooden cell: a slow water drip, faint wind through a crack, a distant dog once, room tone" },
+    "amb_march":     { "loop": true, "seconds": 22, "text": "A column of hundreds of men marching on packed snow in the dark, crunching boots in rhythm, wind, a guard dog barking far away, no music" },
+
+    "rail":          { "loop": false, "seconds": 4,  "text": "A hammer striking a hanging iron rail three times outdoors in freezing air, harsh metallic clang with long cold echo" },
+    "boots":         { "loop": false, "seconds": 3,  "text": "A few footsteps of heavy felt boots on packed dry snow, close, crunching" },
+    "ladle":         { "loop": false, "seconds": 2,  "text": "A heavy iron ladle struck flat against a wooden table, single sharp hit" },
+    "door":          { "loop": false, "seconds": 3,  "text": "A heavy wooden barracks door slammed shut with an iron latch, wind cut off" },
+    "dogs":          { "loop": false, "seconds": 6,  "text": "Two guard dogs barking far away across snow at night, distant, echoing" },
+    "shot":          { "loop": false, "seconds": 5,  "text": "A single rifle shot at night from a wooden tower, sharp crack, long echo over flat frozen land, then silence" },
+    "lorry":         { "loop": false, "seconds": 8,  "text": "An old Soviet lorry engine idling in the cold and pulling away on snow, 1950s truck" },
+    "paper":         { "loop": false, "seconds": 3,  "text": "A folded letter being unfolded slowly, old thin paper, close" },
+    "bread":         { "loop": false, "seconds": 2,  "text": "A small loaf of dense rye bread being torn in half by hand, close, crust cracking" },
+    "humming":       { "loop": false, "seconds": 12, "text": "An old man humming a slow sad Russian folk melody very quietly to himself, no words, gravelly voice, intimate" },
+    "pulse":         { "loop": true,  "seconds": 10, "text": "A slow heavy human heartbeat heard from inside the body, muffled, around fifty beats per minute, with faint high ringing in the ears" },
+    "searchlight":   { "loop": false, "seconds": 6,  "text": "A large electric searchlight humming and slowly sweeping, mechanical rotation creak, buzzing arc lamp, outdoors at night" }
+  },
+
+  "frames": [
+    "title", "hut_morning", "count", "table", "site", "noon", "gate", "hut_night", "cells", "wire", "river", "dead"
+  ]
+}
