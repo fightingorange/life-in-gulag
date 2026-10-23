@@ -300,6 +300,12 @@ const FX = (() => {
     ctx.fillRect(-160, -160, W + 320, H + 320); ctx.restore();
   }
 
-  return { mount, set, resize, state: () => ({ name, cfg: !!cfg, running: !!raf, W, H, snow: snow.length, puffs: puffs.length, t: Math.round(t) }) };
+  // where the eye goes in this picture: the first effect placed by hand on it (fire, lamp, window, tower)
+  function focusOf(key) {
+    const c = configFor(key);
+    const e = c.ember || (c.glow && c.glow[0]) || c.sweep || c.smoke || (c.breath && c.breath[0]);
+    return e ? [e.x, e.y] : null;
+  }
+  return { mount, set, resize, focusOf, state: () => ({ name, cfg: !!cfg, running: !!raf, W, H, snow: snow.length, puffs: puffs.length, t: Math.round(t) }) };
 })();
 window.FX = FX;

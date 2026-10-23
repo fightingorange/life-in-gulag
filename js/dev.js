@@ -171,6 +171,17 @@ const DEV = (() => {
     }
     if (q.has('variant')) FRAME.variant(Number(q.get('variant')));
     if (q.has('frame')) FRAME.set(q.get('frame'));   // look at one frame, with its living overlay
+    // ?glpair: after the picture has loaded, render the living print with the camera panned left and
+    // right (same zoom, same boil state) and put both renders in the page, for checking parallax headlessly
+    if (q.has('glpair')) setTimeout(() => {
+      const c = document.getElementById('gl');
+      if (!c || !GLFRAME.active()) { document.body.insertAdjacentHTML('beforeend', '<pre id="glpair">no webgl</pre>'); return; }
+      const shots = [];
+      for (const x of [-6, 6]) { GLFRAME.draw({ s: 1.16, x, y: 0 }, 0); shots.push(c.toDataURL('image/png')); }
+      for (const t of [125, 250]) { GLFRAME.draw({ s: 1.16, x: -6, y: 0 }, t); shots.push(c.toDataURL('image/png')); }   // the other boil states
+      const cam = [];
+      document.body.insertAdjacentHTML('beforeend', `<pre id="glpair">${shots.join('\n')}\nCAM ${JSON.stringify(FRAME.cam())}</pre>`);
+    }, 3500);
     // ?frame=x&fxcheck: after three seconds, write the overlay's coverage as a 6×4 grid into the page,
     // for checking effects without eyes (headless Chrome --dump-dom). Each cell: mean alpha, and how many warm pixels.
     if (q.has('fxcheck')) setTimeout(() => {
