@@ -116,3 +116,58 @@ edits of it.
     buried in snow, the frozen river behind.
 36. **site_timber_2** — The same bank: a stack of logs grown taller than a man.
 37. **site_timber_3** — The same bank: a great stack; the river ice grey and cracked, open water in places.
+
+## Fourth set: layers and moments (v4)
+
+So far a scene is one still picture. From here some scenes are **composited**: a background plate, with
+figures drawn separately and moved over it by the game (js/sprites.js), or a short **sequence** of
+pictures the game cycles while the screen is up (js/frames.js). Same style prefix and rules as before.
+
+Rules for plates and figures:
+- A **plate** is the scene with the moving figures removed, everything else identical (an edit of the
+  existing picture). Leave the ground where the figures were plausible: tracks in the snow, nothing
+  conspicuous.
+- A **figure** is drawn alone on plain cream paper, nothing else in the picture: no ground, no horizon, no
+  frame. Only a small contact shadow under the feet. Same scale, angle and light as in the scene it
+  belongs to, so it can be laid over the plate. The game blends figures with *multiply*, so the paper
+  vanishes and only the ink remains: keep the figure's own light areas as carved paper inside a clear
+  ink outline. Save figures as `assets/frames/figures/<name>.png` (PNG, at least 1200 px wide).
+- A **sequence** is several edits of one picture that differ only in what happens. Keep everything else
+  identical, down to the line.
+
+### The count, inside the camp
+
+38. **count_camp** — The morning count happens inside the zone, not in a field. Night, before dawn. A
+    street of trampled snow between two long barracks; the prisoners stand in rows of five down the
+    middle of it, backs to us, breath rising; lamps on poles throw pools of light on the snow; at the
+    end of the street the wire and a watchtower with its searchlight; a guard with a lantern and a
+    board walks along the front row. (Replaces `count`, which is in an open field.)
+
+### The gate in the evening: three beats — edits of `gate.png`
+
+The game cycles these while the gate screen is up: a man searched, the spot empty and a guard calling
+"Next!", the next man stepping up. They must match exactly except for the people at the search spot.
+
+39. **gate_search** — a prisoner with his jacket open and arms out, a guard patting him down, another
+    watching (as in the current picture).
+40. **gate_empty** — the search spot empty: the two guards waiting, one beckoning with a raised hand
+    towards the column; the column waits behind as before.
+41. **gate_next** — the next prisoner has stepped up to the spot, arms half raised, opening his jacket;
+    the guards turning to him.
+
+### The timber bank: the haulers really haul
+
+42. **site_timber_plate_1**, **site_timber_plate_2**, **site_timber_plate_3** — edits of
+    `site_timber_1/2/3` with the two men and their log removed: the slope with the drag track in the
+    snow, the stack and the river as in each stage.
+43. **figure: haulers_a** and **figure: haulers_b** — the two men hauling the log up the bank by ropes,
+    seen exactly as in `site_timber_1`, on plain paper; two poses of the same effort (a: leaning into it,
+    one foot forward; b: the next step, ropes taut), same scale and position in the drawing, so the game
+    can alternate them as it moves the pair up the slope.
+
+### Optional, if there is time
+
+44. **figure: guard_lantern** — the guard with the lantern and board from `count_camp`, alone on paper,
+    to walk along the front row.
+45. **figure: column_man_a/b** — one prisoner in a padded jacket walking, seen from behind, two steps,
+    for the column moving through the gate.

@@ -89,7 +89,8 @@ function remember(text, major) { if (S.today) S.today.notes.push({ t: text, majo
 function cue(name) { FLOW.cues.push(name); }
 
 // screen options (o): frame, amb, sfx, voice, routine (true | habit key), title, ending,
-// ledger, plan, record. Choices: { label, fn, id?, hint?, habit? }.
+// ledger, plan, record; cam (a camera move, ASSETS.cams), seq (a picture sequence, ASSETS.sequences),
+// scape (the place's sound layers when not the ambience's own, js/soundscapes.js). Choices: { label, fn, id?, hint?, habit? }.
 function show(paras, choices, o = {}) {
   if (o.story === undefined && FLOW.story && !o.routine) o.story = true;
   const scr = { paras, choices, o, day: S ? S.day : 0 };

@@ -105,7 +105,7 @@ function finish(kind) {
   if (STORE) STORE.clear();
   show([...E.text(), epigraph(E.quote())], [{ id: 'again', label: 'Again.', fn: title }], {
     frame: E.frame, amb: E.amb, sfx: E.sfx || null, voice: E.voice ? E.voice() : null,
-    record: recordFor(kind), ending: kind, story: true,
+    record: recordFor(kind), ending: kind, story: true, cam: 'still',
   });
 }
 function die() { finish('died'); }

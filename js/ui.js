@@ -114,8 +114,8 @@ const UI = (() => {
     renderTop(o);
     AUDIO.scene(o);
     if (S && !o.title) FRAME.mood(S.day, S.strength);
-    if (o.frame) FRAME.set(o.frame);
-    if ('amb' in o) AUDIO.ambient(o.amb);
+    FRAME.screen(o);   // the picture, its camera move (o.cam) and any sequence (o.seq)
+    if ('amb' in o) AUDIO.ambient(o.amb, o.scape);   // o.scape: the place's layers, when not the ambience's own
     if (o.sfx) AUDIO.snd(o.sfx);
     for (const c of scr.cues || []) AUDIO.snd(c);
     // a story screen holds its choices until the voice has finished, or for a short reading time

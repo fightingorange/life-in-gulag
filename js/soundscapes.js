@@ -2,48 +2,66 @@
 // The sound of each place, in layers. A scene names its main ambience (amb_*); this adds what plays
 // under and around it:
 //   beds   looping layers at a given volume (relative to the main ambience), faded in and out
-//   spots  one-off sounds dropped in at random intervals [min, max] seconds, placed left or right
+//   spots  one-off sounds dropped in at random intervals [min, max] seconds, placed left or right;
+//          a list of files plays one of them each time (the Russian voices: assets/sfx/ru_list.json).
+//          Only small sounds of the place belong here. A single event (the man crying, the prayer) is
+//          heard once, when the text says so (the s: field in js/content/lines.js); js/audio.js skips
+//          any that end up in a list here (ONCE).
+// A screen can name its place apart from its ambience (o.scape): the count is outside like noon, but
+// only the count has guards shouting the fives.
 // All of them muffle with the body and go silent with the sound switch.
 const SCAPES = {
-  // the hut at night: snoring (amb_hut), the wind on the walls, the stove
+  // the hut at night: slow breathing (amb_hut), the wind on the walls, the stove
   amb_hut: {
     beds: [['bed_wind_walls', .45], ['bed_stove', .3]],
-    spots: [['spot_creak', [6, 16], .45], ['cough', [16, 40], .3], ['spot_gust', [14, 32], .22], ['spot_door_far', [30, 70], .2]],
+    spots: [['spot_creak', [10, 24], .3], ['cough', [20, 45], .25], ['spot_gust', [14, 32], .22], ['spot_door_far', [30, 70], .2]],
   },
   // the hut at reveille: men waking (amb_hut_morning), the wind, the bulb
   amb_hut_morning: {
     beds: [['bed_wind_walls', .4], ['bed_bulb', .35]],
-    spots: [['spot_creak', [5, 12], .45], ['cough', [8, 22], .35], ['spot_door_far', [14, 36], .3]],
+    spots: [['spot_creak', [8, 18], .3], ['cough', [8, 22], .35], ['spot_door_far', [14, 36], .3],
+      [['ru_hut_up', 'ru_hut_up2', 'ru_hut_ration', 'ru_hut_brigade'], [4, 10], .4],
+      [['ru_hut_mutter', 'ru_hut_minute', 'ru_hut_boots'], [7, 16], .25]],
   },
   // outside in the open: the wind (amb_wind), snow hissing, gusts, the camp far off
   amb_wind: {
     beds: [['bed_wind_snow', .5]],
-    spots: [['spot_gust', [6, 14], .5], ['spot_shout_far', [14, 34], .3], ['dogs', [28, 60], .25], ['spot_door_far', [20, 45], .2], ['spot_ice_crack', [35, 80], .25]],
+    spots: [['spot_gust', [6, 14], .5], ['spot_shout_far', [14, 34], .3], ['dogs', [28, 60], .25], ['spot_door_far', [20, 45], .2], ['spot_ice_crack', [35, 80], .25], ['spot_snow_steps', [30, 70], .25]],
   },
-  // the column marching and the gate
+  // the morning count, inside the wire: the wind, the guards counting the fives
+  count: {
+    beds: [['bed_wind_snow', .5]],
+    spots: [[['ru_count_form', 'ru_count_hats', 'ru_count_fives', 'ru_count_fives2', 'ru_count_again', 'ru_count_form2'], [4, 10], .45],
+      ['spot_gust', [8, 18], .4], ['dogs', [25, 55], .2], ['cough', [10, 24], .25]],
+  },
+  // the column marching and the gate: the search, the men muttering in the line
   amb_march: {
     beds: [['bed_wind_snow', .45]],
-    spots: [['spot_shout_far', [8, 20], .4], ['dogs', [12, 28], .3], ['spot_gust', [10, 24], .4]],
+    spots: [['spot_shout_far', [10, 24], .3], ['dogs', [14, 30], .3], ['spot_gust', [10, 24], .4],
+      [['ru_gate_hands', 'ru_gate_unbutton', 'ru_gate_pass', 'ru_gate_hands2', 'ru_gate_next2'], [5, 12], .35],
+      [['ru_gate_grumble', 'ru_gate_grumble2', 'ru_gate_grumble3'], [9, 20], .22]],
   },
   // the work site
   amb_site: {
     beds: [['bed_wind_snow', .4]],
-    spots: [['spot_pick', [3, 8], .4], ['spot_shout_far', [10, 25], .35], ['spot_gust', [10, 22], .4], ['spot_crow', [25, 60], .25]],
+    spots: [['spot_pick', [3, 8], .4], ['spot_shout_far', [14, 30], .3], ['spot_gust', [10, 22], .4], ['spot_crow', [25, 60], .25],
+      [['ru_site_davai', 'ru_site_move', 'ru_site_nostand', 'ru_site_heave', 'ru_site_heave2', 'ru_site_davai2'], [7, 16], .3]],
   },
   // the mess hut: the queue (amb_queue), spoons on tin, the stove; the door letting the cold in
   amb_queue: {
-    beds: [['bed_spoons', .55], ['bed_stove', .2]],
-    spots: [['spot_door_far', [12, 30], .3], ['cough', [10, 26], .3], ['ladle', [9, 20], .3]],
+    beds: [['bed_spoons', .55], ['bed_stove', .2], ['ru_mess_murmur', .3]],
+    spots: [['spot_door_far', [12, 30], .3], ['cough', [10, 26], .3], ['ladle', [9, 20], .3],
+      [['ru_mess_thick', 'ru_mess_move', 'ru_mess_spoon', 'ru_mess_shove', 'ru_mess_bowl', 'ru_mess_thick2'], [8, 18], .28]],
   },
   // the cells: almost nothing, which is the point
   amb_cells: {
     beds: [['bed_wind_walls', .3]],
-    spots: [['drip', [6, 15], .35], ['spot_creak', [22, 45], .25], ['spot_door_far', [30, 60], .2]],
+    spots: [['drip', [6, 15], .35], ['spot_creak', [22, 45], .2], ['spot_door_far', [30, 60], .2]],
   },
   // a blizzard on the walls
   amb_blizzard: {
     beds: [['bed_wind_walls', .6]],
-    spots: [['spot_gust', [3, 8], .55], ['spot_creak', [8, 18], .35]],
+    spots: [['spot_gust', [3, 8], .55], ['spot_creak', [10, 22], .25]],
   },
   // May: the thaw
   amb_spring: {

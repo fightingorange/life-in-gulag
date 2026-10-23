@@ -163,7 +163,7 @@ function count() {
   } else paras.push(L('countQuiet'));
   if (S.temp <= -41) paras.push('The thermometer by the gate says forty-one. Below forty-one they do not march you out. Nobody trusts the thermometer, but today it is on your side.');
   show(paras, [{ label: S.temp <= -41 ? 'Back to the hut.' : 'Stand.', fn: () => go(breakfast) }],
-    { frame: 'count', amb: 'amb_wind', sfx: 'boots', voice, routine: found ? null : true });
+    { frame: 'count_camp', amb: 'amb_wind', scape: 'count', sfx: 'boots', voice, routine: found ? null : true });
 }
 
 // ---------- bread ----------
@@ -283,7 +283,7 @@ function noon() {
 }
 function quietNoon() {
   show([L('quiet')], [{ label: 'Go on.', fn: afterNoon }],
-    { frame: S.today.inside ? 'stove' : 'noon', amb: S.today.inside ? 'amb_hut' : 'amb_wind', routine: true });
+    { frame: S.today.inside ? 'stove' : 'noon', amb: S.today.inside ? 'amb_hut' : 'amb_wind', sfx: S.today.inside ? null : 'ru_site_smoke', routine: true });
 }
 function afterNoon() { FLOW.story = false; go(S.today.inside ? dinner : eveningGate); }
 
@@ -308,7 +308,7 @@ function eveningGate() {
     if (r.hoard) voice = 'lubimov_hoarding';
   } else paras.push(L('gateQuiet'));
   show(paras, [{ label: 'Into the zone.', fn: () => go(dinner) }],
-    { frame: 'gate', amb: 'amb_march', sfx: 'boots', voice, routine: found ? null : true });
+    { frame: 'gate', seq: 'gate_search', amb: 'amb_march', sfx: 'boots', voice, routine: found ? null : true });
 }
 function dinner() {
   const ch = [

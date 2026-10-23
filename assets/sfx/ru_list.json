@@ -1,0 +1,290 @@
+[
+ {
+  "file": "ru_count_form.mp3",
+  "situation": "count",
+  "text": "Стройся по пятёркам!",
+  "english": "Form up in fives!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_count_hats.mp3",
+  "situation": "count",
+  "text": "Шапки снять!",
+  "english": "Caps off!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_count_fives.mp3",
+  "situation": "count",
+  "text": "Первая пятёрка! Вторая! Третья!",
+  "english": "First five! Second! Third!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_count_fives2.mp3",
+  "situation": "count",
+  "text": "Четвёртая! Пятая!",
+  "english": "Fourth! Fifth!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_count_again.mp3",
+  "situation": "count",
+  "text": "Ещё раз! Сначала!",
+  "english": "Once more! From the start!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_count_form2.mp3",
+  "situation": "count",
+  "text": "Стройся по пятёркам!",
+  "english": "Form up in fives!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_next.mp3",
+  "situation": "gate",
+  "text": "Следующий!",
+  "english": "Next!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_hands.mp3",
+  "situation": "gate",
+  "text": "Руки!",
+  "english": "Hands!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_unbutton.mp3",
+  "situation": "gate",
+  "text": "Расстегнись!",
+  "english": "Unbutton!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_pass.mp3",
+  "situation": "gate",
+  "text": "Проходи!",
+  "english": "Go on through!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_next2.mp3",
+  "situation": "gate",
+  "text": "Следующий!",
+  "english": "Next!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_hands2.mp3",
+  "situation": "gate",
+  "text": "Руки в стороны!",
+  "english": "Arms out!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_grumble.mp3",
+  "situation": "gate",
+  "text": "Да нет ничего, гражданин начальник.",
+  "english": "There's nothing, citizen chief.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_grumble2.mp3",
+  "situation": "gate",
+  "text": "Холодно же, руки не гнутся.",
+  "english": "It's cold, my hands won't bend.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_gate_grumble3.mp3",
+  "situation": "gate",
+  "text": "Всё, всё, иду уже.",
+  "english": "All right, all right, I'm going.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_site_davai.mp3",
+  "situation": "site",
+  "text": "Давай, давай!",
+  "english": "Come on, come on!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_site_move.mp3",
+  "situation": "site",
+  "text": "Шевелись!",
+  "english": "Get moving!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_site_nostand.mp3",
+  "situation": "site",
+  "text": "Не стоять!",
+  "english": "No standing about!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_site_heave.mp3",
+  "situation": "site",
+  "text": "Раз, два — взяли!",
+  "english": "One, two, lift!",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_site_heave2.mp3",
+  "situation": "site",
+  "text": "Ещё взяли!",
+  "english": "Lift again!",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_site_davai2.mp3",
+  "situation": "site",
+  "text": "Давай, ребята, давай!",
+  "english": "Come on, lads, come on!",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_site_smoke.mp3",
+  "situation": "site",
+  "text": "Перекур!",
+  "english": "Smoke break!",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_mess_thick.mp3",
+  "situation": "mess",
+  "text": "Мне без гущи не надо.",
+  "english": "Not for me without the thick of it.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_mess_move.mp3",
+  "situation": "mess",
+  "text": "Двигай!",
+  "english": "Shove over!",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_mess_spoon.mp3",
+  "situation": "mess",
+  "text": "Ложку дай.",
+  "english": "Give me a spoon.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_mess_shove.mp3",
+  "situation": "mess",
+  "text": "Подвинься, сесть негде.",
+  "english": "Move up, there's nowhere to sit.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_mess_bowl.mp3",
+  "situation": "mess",
+  "text": "Миску верни!",
+  "english": "Give the bowl back!",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_mess_thick2.mp3",
+  "situation": "mess",
+  "text": "Мне без гущи не надо.",
+  "english": "Not for me without the thick of it.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_hut_up.mp3",
+  "situation": "hut",
+  "text": "Подъём!",
+  "english": "Get up!",
+  "role": "orderly",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_hut_up2.mp3",
+  "situation": "hut",
+  "text": "Подъём, говорю! Вставай!",
+  "english": "Get up, I said! On your feet!",
+  "role": "orderly",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_hut_ration.mp3",
+  "situation": "hut",
+  "text": "Кто не встанет, тому без пайки!",
+  "english": "Whoever doesn't get up goes without his ration!",
+  "role": "orderly",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_hut_brigade.mp3",
+  "situation": "hut",
+  "text": "Подъём, бригада, на развод!",
+  "english": "Up, brigade, out to the work parade!",
+  "role": "orderly",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_hut_mutter.mp3",
+  "situation": "hut",
+  "text": "Ох, господи... опять.",
+  "english": "Oh Lord... again.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_hut_minute.mp3",
+  "situation": "hut",
+  "text": "Ещё бы минутку.",
+  "english": "Just one more minute.",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_hut_boots.mp3",
+  "situation": "hut",
+  "text": "Где мои валенки?",
+  "english": "Where are my felt boots?",
+  "role": "prisoner",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_mess_murmur.mp3",
+  "situation": "mess",
+  "text": "(неразборчивый гул голосов за столами)",
+  "english": "indistinct murmur of men talking at the tables; a seamless 20 s loop",
+  "role": "crowd",
+  "kind": "bed"
+ }
+]

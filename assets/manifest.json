@@ -286,7 +286,8 @@
     "amb_hut": {
       "loop": true,
       "seconds": 22,
-      "text": "Inside a crowded wooden barracks at night, two hundred men breathing and snoring softly, a wood stove ticking as it cools, wind faint outside, no music"
+      "text": "Inside a large dark wooden barracks at night, many men asleep: slow, deep, quiet breathing all around, calm and even, very rarely one soft snore far away across the room, a wood stove ticking faintly, no loud snoring, no voices, no music",
+      "highpass": 80
     },
     "amb_site": {
       "loop": true,
@@ -310,8 +311,9 @@
     },
     "rail": {
       "loop": false,
-      "seconds": 4,
-      "text": "A hammer striking a hanging iron rail three times outdoors in freezing air, harsh metallic clang with long cold echo"
+      "seconds": 10,
+      "text": "Prison camp wake-up signal before dawn: a man beats a hammer on a length of iron rail hanging from a post, clang, clang, clang, a dozen slow even blows one after another, about one a second, continuing the whole time, each blow ringing like a cracked bell, heard from a little distance through a wooden hut wall in frosty air, no voices, no music",
+      "influence": 0.7
     },
     "boots": {
       "loop": false,
@@ -456,7 +458,8 @@
     "spot_creak": {
       "loop": false,
       "seconds": 3,
-      "text": "A rough wooden bunk creaking under a man turning over in his sleep, one slow creak"
+      "text": "A soft distant creak of an old wooden bunk somewhere across a dark barracks as a sleeper shifts, one low gentle creak, muffled, far away, quiet",
+      "highpass": 80
     },
     "spot_door_far": {
       "loop": false,
@@ -482,6 +485,26 @@
       "loop": false,
       "seconds": 4,
       "text": "Two crows calling far off over a snowy field, faint"
+    },
+    "log_drag": {
+      "loop": false,
+      "seconds": 8,
+      "text": "Two men dragging a heavy wet log on a rope over packed snow and frozen ground outdoors: the log scraping and bumping, the rope creaking taut, both men grunting and breathing hard with effort, boots crunching in snow, cold wind, no music"
+    },
+    "bed_fire_out": {
+      "loop": true,
+      "seconds": 22,
+      "text": "An open wood fire burning outdoors on snow in winter wind: logs crackling and popping, flames fluttering and roaring softly as the wind gusts, steady, no voices, no music"
+    },
+    "pat_down": {
+      "loop": false,
+      "seconds": 3,
+      "text": "A guard quickly searching a man: hands slapping and patting down a thick padded quilted cotton jacket and trousers, fast muffled pats on heavy fabric, close, no voices"
+    },
+    "spot_snow_steps": {
+      "loop": false,
+      "seconds": 4,
+      "text": "A few slow footsteps crunching on dry packed snow outdoors, one person in felt boots approaching from a little distance and stopping, cold still air"
     }
   },
   "frames": [

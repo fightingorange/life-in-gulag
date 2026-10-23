@@ -1,0 +1,79 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: Ю-81 · 20 May 1951 · −2°
+      - generic [ref=e6]:
+        - 'button "test mode: nothing saved" [ref=e7]'
+        - button "sound off" [ref=e8] [cursor=pointer]
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic "Your strength. Bread, soup, warmth and sleep put it back; cold, work and the cells take it." [ref=e11]:
+          - generic [ref=e12]: body
+          - emphasis [ref=e15]: steady
+        - generic "What the brigade thinks of you. Men they like get second bowls and help." [ref=e16]:
+          - generic [ref=e17]: brigade
+          - emphasis [ref=e20]: one of us
+        - generic "How much the warders notice you. The more they notice, the more they search." [ref=e21]:
+          - generic [ref=e22]: the eye
+          - emphasis [ref=e24]: unnoticed
+        - generic "Bread kept back. Food for a bad day, or for three days on the ice." [ref=e25]: kept 900 g
+        - generic "The camp's money." [ref=e26]: tobacco 26
+        - 'generic "The wire: what an escape needs" [ref=e27]':
+          - text: the wire
+          - generic [ref=e28]:
+            - 'generic "a blade: yes" [ref=e29]'
+            - 'generic "600 g of bread: yes" [ref=e30]'
+            - 'generic "someone who has done it: yes" [ref=e31]'
+            - 'generic "the way: yes" [ref=e32]'
+      - 'generic "The winter, one mark a day. Black: a good day. Red: a bad one." [ref=e33]'
+      - generic [ref=e172]:
+        - generic [ref=e173]: Jan
+        - generic [ref=e174]: Feb
+        - generic [ref=e175]: Mar
+        - generic [ref=e176]: Apr
+        - generic [ref=e177]: May · the ice goes out
+  - generic [ref=e178]:
+    - figure [ref=e179]
+    - generic [ref=e182]:
+      - generic [ref=e183]:
+        - generic [ref=e184]: Лагерное дело · camp record
+        - generic [ref=e185]: Ю-81
+      - generic [ref=e186]:
+        - term [ref=e187]: Prisoner
+        - definition [ref=e188]: Ю-81
+        - term [ref=e189]: Article
+        - definition [ref=e190]: 58-10, anti-Soviet agitation
+        - term [ref=e191]: Sentence
+        - definition [ref=e192]: ten years
+        - term [ref=e193]: Date
+        - definition [ref=e194]: 20 May 1951
+        - term [ref=e195]: Days served
+        - definition [ref=e196]: "138"
+        - term [ref=e197]: Days remaining
+        - definition [ref=e198]: 3,515
+      - generic [ref=e199]: Alive at the breaking of the ice.
+      - generic [ref=e200]: ЖИВ
+  - generic [ref=e202]:
+    - main [ref=e203]:
+      - paragraph [ref=e204]: "In the night the river makes a sound like artillery, a long way off. In the morning the ice is moving: grey plates the size of huts, turning, shouldering each other, going north to the sea."
+      - paragraph [ref=e205]: The whole column stops on the bank to watch, and the guards let it, because they are watching too.
+      - paragraph [ref=e206]: The worst of it is over, the old men say. The old men said that last year.
+      - paragraph [ref=e207]: Tomorrow is day 139. There are 3,515 to go.
+      - generic [ref=e208]:
+        - generic [ref=e209]: What the record does not say
+        - list [ref=e210]:
+          - listitem [ref=e211]: You never gave anyone your bread. Nobody here could say you should have.
+          - listitem [ref=e212]: Lev died on 20 January.
+          - listitem [ref=e213]: Kuzma’s cough went the way it came.
+          - listitem [ref=e214]: 1,600 grams of your bread went into other men’s pockets.
+          - listitem [ref=e215]: Four days in the cells.
+          - listitem [ref=e216]: 51 good days. Almost happy ones.
+          - listitem [ref=e217]: The best day was 1 May. A bird at reveille. Something green in the skilly. Half of Kuzma’s song. A second bowl. The Latvian paid, as agreed.
+      - blockquote [ref=e218]:
+        - text: Man is a creature that can get used to anything, and I think that is the best definition of him.
+        - generic [ref=e219]: Dostoevsky, The House of the Dead
+    - navigation [ref=e220]:
+      - text: · · ·
+      - button "1 Again.":
+        - generic: "1"
+        - generic: Again.

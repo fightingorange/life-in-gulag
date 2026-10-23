@@ -1,0 +1,49 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e22]: Ю-81 · 3 January 1951 · −30°
+      - generic [ref=e5]:
+        - 'button "saving: this tab" [ref=e6] [cursor=pointer]'
+        - button "sound on" [ref=e7] [cursor=pointer]
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic "Your strength. Bread, soup, warmth and sleep put it back; cold, work and the cells take it." [ref=e25]:
+          - generic [ref=e26]: body
+          - emphasis [ref=e29]: tired
+        - generic "What the brigade thinks of you. Men they like get second bowls and help." [ref=e30]:
+          - generic [ref=e31]: brigade
+          - emphasis [ref=e34]: nobody
+        - generic "How much the warders notice you. The more they notice, the more they search." [ref=e35]:
+          - generic [ref=e36]: the eye
+          - emphasis [ref=e38]: unnoticed
+        - generic "Bread kept back. Food for a bad day, or for three days on the ice." [ref=e39]: kept 0 g
+        - generic "The camp's money." [ref=e40]: tobacco 1
+        - 'generic "The wire: what an escape needs" [ref=e41]':
+          - text: the wire
+          - generic [ref=e42]:
+            - 'generic "a blade: not yet" [ref=e43]'
+            - 'generic "600 g of bread: not yet" [ref=e44]'
+            - 'generic "someone who has done it: not yet" [ref=e45]'
+            - 'generic "the way: not yet" [ref=e46]'
+      - 'generic "The winter, one mark a day. Black: a good day. Red: a bad one." [ref=e47]'
+      - generic [ref=e186]:
+        - generic [ref=e187]: Jan
+        - generic [ref=e188]: Feb
+        - generic [ref=e189]: Mar
+        - generic [ref=e190]: Apr
+        - generic [ref=e191]: May · the ice goes out
+  - figure [ref=e9]
+  - generic [ref=e12]:
+    - main [ref=e13]:
+      - paragraph [ref=e192]: 1951. A camp in the north, past the railhead, on a river that is ice for seven months of the year. The nearest town is four hundred kilometres away and does not want you.
+      - paragraph [ref=e193]: Article 58-10, anti-Soviet agitation. Ten years. You said something at a table.
+      - paragraph [ref=e194]: "Ten years is not a thing a man can hold in his head. The old ones say: do not count the years, count the winter. When the ice goes out on the river in May, the worst of it is over."
+      - paragraph [ref=e195]: "There is another way out: through the wire, and down the river on the ice. Most men who take it are found in the spring."
+      - paragraph [ref=e196]: "The old ones say something else as well. Learn to see a good day: a second bowl, dry foot cloths, eleven minutes of sun. A man who can still tell a good day from a bad one is not finished."
+      - paragraph [ref=e197]: You stopped counting on the train. This morning you start again, from one.
+      - paragraph [ref=e198]: Each day you choose how to eat, how to work and how to spend the night. Once you have lived a day, the days can run on their own, the way you lived it, until something happens.
+    - navigation [ref=e18]:
+      - text: · · ·
+      - button "1 Wake.":
+        - generic: "1"
+        - generic: Wake.

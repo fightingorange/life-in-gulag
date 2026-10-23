@@ -1,0 +1,14 @@
+[     444ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/favicon.ico:0
+[    7305ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/favicon.ico:0
+[   33394ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/sfx/ru_hut_up,ru_hut_up2,ru_hut_ration,ru_hut_brigade.mp3:0
+[   35599ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/sfx/ru_hut_mutter,ru_hut_minute,ru_hut_boots.mp3:0
+[   37992ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/web/count_camp.jpg:0
+[   37995ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/count_camp.png:0
+[   44475ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/sfx/ru_mess_thick,ru_mess_move,ru_mess_spoon,ru_mess_shove,ru_mess_bowl,ru_mess_thick2.mp3:0
+[   58032ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/web/gate_search.jpg:0
+[   58032ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/web/gate_empty.jpg:0
+[   58033ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/web/gate_next.jpg:0
+[   58034ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/gate_empty.png:0
+[   58034ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/gate_search.png:0
+[   58034ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/gate_next.png:0
+[  167412ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/sfx/ru_site_davai,ru_site_move,ru_site_nostand,ru_site_heave,ru_site_heave2,ru_site_davai2.mp3:0

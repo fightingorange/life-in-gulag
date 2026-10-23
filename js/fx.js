@@ -1,6 +1,7 @@
 'use strict';
 // Living stills: the print stays still, and light and weather are composited over it.
-// Three layers, each a canvas over the picture:
+// Four layers, each a canvas over the picture:
+//   cut       drawn normally, under the others: pieces of the print itself, recut live (the flames)
 //   light     blended with 'screen', so it really brightens the print: window shafts, lamp cones,
 //             searchlights, firelight and its spill, glows
 //   shade     blended with 'multiply', so it really darkens it: cloud shadows drifting over the snow,
@@ -10,6 +11,8 @@
 // thing in the game. Positions are fractions of the frame (0..1).
 const FX = (() => {
   const PAPER = '235,226,202', INK = '27,24,19', WARM = '214,160,90';
+  // the print's own inks, measured off the drawings: what a flame is cut from and covered with
+  const P_PAPER = '237,220,192', P_INK = '35,33,29', P_CORE = '241,207,150';
   const col = c => c === 'paper' ? PAPER : c === 'warm' ? WARM : INK;
   const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -27,9 +30,16 @@ const FX = (() => {
                    smoke: { x: .92, y: .215, color: 'ink', a: .10, r: [6, 30], life: 4.5, rate: 1.2, drift: [14, -28], spread: 8 },
                    clouds: { n: 4, a: .19, speed: 10 } },
     noon:        { snow: { n: 90, color: 'ink', wind: 70, speed: [35, 60], size: [.7, 1.5], streak: true },
-                   ember: { x: .53, y: .775, r: .08, sparks: true },
-                   spill: { x: .53, y: .75, r: .26, a: .16 },
-                   smoke: { x: .53, y: .72, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 14 },
+                   // the fire between the men: the drawn flame is inked over and cut again, live
+                   flame: { x: .53, y: .787, w: .052, h: .12, embers: 3,
+                            cover: [[.501, .792], [.503, .762], [.508, .738], [.513, .716], [.517, .694], [.52, .664], [.527, .668], [.531, .69], [.536, .71], [.543, .728], [.55, .748], [.556, .765], [.559, .79], [.54, .794]],
+                            base: [[.48, .80], [.502, .792], [.52, .783], [.535, .778], [.55, .781], [.575, .79]] },
+                   firelight: { x: .53, y: .735, r: .2, a: .26, sq: .85,
+                            ground: { x: .53, y: .80, rx: .19, ry: .045, a: .2 },
+                            // the hands held out to it, and the two faces turned to it
+                            touch: [{ x: .503, y: .688, r: .02, a: .4 }, { x: .553, y: .675, r: .024, a: .4 }, { x: .368, y: .532, r: .016, a: .35 }, { x: .617, y: .54, r: .016, a: .35 }] },
+                   dark: { x: .53, y: .72, r: .42, a: .12 },
+                   smoke: { x: .528, y: .665, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 10 },
                    breath: [B(.375, .56, 'ink', .7), B(.625, .585, 'ink', .7)],
                    clouds: { n: 3, a: .17, speed: 12 } },
     gate:        { snow: { n: 60, color: 'ink', wind: 20, speed: [18, 40], size: [.6, 1.3], streak: true },
@@ -79,7 +89,9 @@ const FX = (() => {
                    glow: [{ x: .265, y: .27, r: .06, color: 'warm', a: .3, flicker: .1 }],
                    motes: { n: 10, region: [.25, .25, .25, .25] } },
     // ---- the third set: pictures that follow the day
-    reveille:    { glow: [{ x: .275, y: .22, r: .07, color: 'warm', a: .45, flicker: .35 }, { x: .03, y: .34, r: .06, color: 'warm', a: .25, flicker: .1 }],
+    reveille:    { flame: { x: .2775, y: .254, w: .008, h: .03, kind: 'lamp' },     // the lantern on the post, inside its glass
+                   firelight: { x: .2775, y: .235, r: .1, a: .2, sq: 1.1, bands: 3 },
+                   glow: [{ x: .275, y: .22, r: .07, color: 'warm', a: .38, flicker: .35 }, { x: .03, y: .34, r: .06, color: 'warm', a: .25, flicker: .1 }],
                    spill: { x: .29, y: .32, r: .38, a: .13 },
                    sweep: { x: .945, y: .41, a0: 184, a1: 204, period: 13, len: .38, spread: 7 },
                    snow: { n: 70, color: 'paper', wind: -20, speed: [18, 40], size: [.6, 1.4] },
@@ -98,8 +110,10 @@ const FX = (() => {
     site_timber_1: { snow: { n: 40, color: 'ink', wind: 30, speed: [15, 32], size: [.6, 1.2], streak: true },
                    breath: [B(.385, .48, 'ink', .6), B(.69, .36, 'ink', .6)],
                    clouds: { n: 4, a: .17, speed: 11 } },
-    easter:      { ember: { x: .852, y: .575, r: .07, floor: { x: .82, y: .66, rx: .16, ry: .04 } },
-                   spill: { x: .84, y: .6, r: .3, a: .12 },
+    easter:      { flame: { x: .853, y: .657, w: .017, h: .109, kind: 'candle', cover: true, under: [-.03, 0], base: [[.82, .658], [.89, .658]] },
+                   firelight: { x: .853, y: .62, r: .13, a: .2, sq: 1, bands: 3,
+                            ground: { x: .84, y: .735, rx: .14, ry: .035, a: .16 }, touch: [{ x: .77, y: .70, r: .03, a: .14 }] },
+                   spill: { x: .84, y: .6, r: .3, a: .09 },
                    dark: { x: .84, y: .6, r: .55, a: .2 },
                    beam: { x: .23, y: .24, w: .05, angle: 95, spread: 18, len: .3, a: .08 } },
   };
@@ -112,8 +126,22 @@ const FX = (() => {
     'table-03': { smoke: { x: .56, y: .33, color: 'ink', a: .08, r: [8, 24], life: 3, rate: .8, drift: [6, -22], spread: 26 } },
     'site-01': { smoke: { x: .04, y: .13, color: 'ink', a: .10, r: [6, 28], life: 4.5, rate: 1.2, drift: [14, -28], spread: 8 } },
     'site-03': { smoke: { x: .965, y: .07, color: 'ink', a: .10, r: [6, 28], life: 4.5, rate: 1.2, drift: [14, -28], spread: 8 } },
-    'noon-01': { ember: { x: .55, y: .72, r: .06, sparks: true }, smoke: { x: .55, y: .67, color: 'ink', a: .07, r: [8, 30], life: 4, rate: 1, drift: [18, -30], spread: 14 } },
-    'noon-03': { ember: { x: .50, y: .71, r: .07, sparks: true }, smoke: { x: .50, y: .66, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 14 } },
+    // noon-01: a small fire on open snow, its tongues cut in ink
+    'noon-01': { flame: { x: .525, y: .752, w: .042, h: .085, style: 'ink', lick: .6, embers: 2,
+                          cover: [[.502, .748], [.504, .705], [.508, .688], [.514, .672], [.52, .656], [.527, .662], [.531, .69], [.535, .705], [.537, .735], [.532, .75]],
+                          base: [[.48, .78], [.505, .765], [.525, .757], [.545, .75], [.57, .745]] },
+                 firelight: { x: .525, y: .71, r: .17, a: .2, sq: .8, ground: { x: .525, y: .76, rx: .17, ry: .04, a: .18 },
+                          touch: [{ x: .56, y: .66, r: .022, a: .22 }, { x: .49, y: .68, r: .02, a: .18 }] },
+                 dark: { x: .525, y: .7, r: .42, a: .1 },
+                 smoke: { x: .525, y: .64, color: 'ink', a: .07, r: [8, 30], life: 4, rate: 1, drift: [18, -30], spread: 10 } },
+    // noon-03: the big one, close, between the coats
+    'noon-03': { flame: { x: .482, y: .69, w: .066, h: .165, embers: 4,
+                          cover: [[.452, .69], [.453, .66], [.458, .645], [.463, .625], [.464, .59], [.466, .56], [.469, .543], [.472, .543], [.476, .56], [.484, .58], [.492, .6], [.5, .603], [.506, .62], [.513, .64], [.517, .668], [.516, .69]],
+                          base: [[.43, .71], [.452, .69], [.468, .676], [.478, .667], [.49, .672], [.505, .682], [.52, .69], [.54, .70]] },
+                 firelight: { x: .482, y: .62, r: .24, a: .26, sq: .85, ground: { x: .48, y: .73, rx: .22, ry: .05, a: .2 },
+                          touch: [{ x: .425, y: .6, r: .035, a: .22 }, { x: .545, y: .6, r: .035, a: .22 }, { x: .52, y: .44, r: .03, a: .18 }, { x: .25, y: .36, r: .025, a: .14 }] },
+                 dark: { x: .48, y: .62, r: .45, a: .12 },
+                 smoke: { x: .47, y: .5, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 10 } },
     'gate-02': { sweep: { x: .80, y: .08, a0: 125, a1: 190, period: 11, len: .9, spread: 14, color: 'warm' } },
     'gate-03': { sweep: { x: .79, y: .25, a0: 140, a1: 205, period: 11, len: .9, spread: 14, color: 'warm' } },
     'hut_night-02': { ember: { x: .265, y: .60, r: .05, floor: { x: .27, y: .72, rx: .11, ry: .03 } } },
@@ -129,15 +157,23 @@ const FX = (() => {
     'blizzard-02': { snow: { n: 90, color: 'paper', wind: -120, speed: [140, 230], size: [.6, 1.4], streak: true, len: 9, clip: [.225, .17, .18, .36] } },
     'office-01': { glow: [{ x: .86, y: .14, r: .2, color: 'warm', a: .12, flicker: .12 }] },
     'office-02': { glow: [{ x: .27, y: .17, r: .2, color: 'warm', a: .12, flicker: .12 }] },
-    'easter-01': { ember: { x: .578, y: .64, r: .05, floor: { x: .56, y: .72, rx: .1, ry: .03 } } },
-    'easter-03': { ember: { x: .69, y: .57, r: .05, floor: { x: .67, y: .66, rx: .1, ry: .03 } } },
+    'easter-01': { flame: { x: .5862, y: .603, w: .022, h: .107, kind: 'candle', cover: true, under: [.036, 0], base: [[.55, .604], [.62, .604]] },
+                   firelight: { x: .586, y: .56, r: .13, a: .2, sq: 1, bands: 3, ground: { x: .58, y: .69, rx: .14, ry: .035, a: .16 }, touch: [{ x: .44, y: .62, r: .035, a: .14 }] } },
+    'easter-03': { flame: { x: .6958, y: .601, w: .019, h: .118, kind: 'candle', cover: true, under: [.03, 0], base: [[.66, .602], [.73, .602]] },
+                   firelight: { x: .696, y: .55, r: .13, a: .2, sq: 1, bands: 3, ground: { x: .68, y: .70, rx: .14, ry: .035, a: .16 }, touch: [{ x: .56, y: .66, r: .035, a: .14 }] } },
+    // the other two drawings of reveille (not in the rotation yet): the lantern on the hut wall
+    'reveille-01': { flame: { x: .186, y: .393, w: .007, h: .026, kind: 'lamp' }, firelight: { x: .186, y: .375, r: .1, a: .2, sq: 1.1, bands: 3 },
+                     glow: [{ x: .186, y: .37, r: .07, color: 'warm', a: .38, flicker: .35 }] },
+    'reveille-03': { flame: { x: .19, y: .295, w: .008, h: .028, kind: 'lamp' }, firelight: { x: .19, y: .275, r: .1, a: .2, sq: 1.1, bands: 3 },
+                     glow: [{ x: .19, y: .27, r: .07, color: 'warm', a: .38, flicker: .35 }] },
   };
 
   let canvas, ctx, box, W = 0, H = 0, s = 1, cfg = null, name = null;
-  let ctxP, ctxL, ctxS, layers = [];
+  let ctxP, ctxL, ctxS, ctxC, layers = [];
   let clouds = [], passAt = 0, passT = -1;
   let snow = [], puffs = [], sparks = [], motes = [], breathTimers = [], smokeAcc = 0, sparkAcc = 0;
   let raf = null, last = 0, t = 0, grain = [], grainIdx = 0, grainAt = 0;
+  let flames = [], fireF = 1, cutDirty = false;
 
   function mount(frameBox) {
     box = frameBox;
@@ -149,9 +185,12 @@ const FX = (() => {
       layers.push(c);
       return c.getContext('2d');
     };
+    ctxC = layer('fx-cut', null);        // cut-outs of the print itself (flames), under the light and shade
+    ctxC.canvas.style.transition = 'opacity 1.1s ease';   // they come in with their picture
     ctxS = layer('fx-shade', 'multiply');
     ctxL = layer('fx-light', 'screen');
     ctxP = layer('fx', null);
+    layers.shift();                      // layers[0..2] stay shade, light, particles
     canvas = layers[2];
     ctx = ctxP;
     for (let i = 0; i < 3; i++) grain.push(makeGrain());
@@ -172,9 +211,11 @@ const FX = (() => {
     if (!r.width) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     W = r.width; H = r.height; s = W / 680;
-    for (const [c, g] of [[layers[0], ctxS], [layers[1], ctxL], [layers[2], ctxP]]) {
-      c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (const [c, g] of [[layers[0], ctxS], [layers[1], ctxL], [layers[2], ctxP], [ctxC.canvas, ctxC]]) {
+      // the cut-outs of the print (flames) are as sharp as the print
+      const d = g === ctxC ? Math.min(window.devicePixelRatio || 1, 2) : dpr;
+      c.width = Math.round(W * d); c.height = Math.round(H * d);
+      g.setTransform(d, 0, 0, d, 0, 0);
     }
     seed();
   }
@@ -190,6 +231,7 @@ const FX = (() => {
     clouds = [];
     if (cfg.clouds) for (let i = 0; i < cfg.clouds.n; i++) clouds.push(cloud(cfg.clouds, true));
     passAt = rnd(8, 20); passT = -1;
+    flames = [].concat(cfg.flame || []).map(makeFlame);
   }
   function cloud(c, anywhere) {
     const r = rnd(.25, .5) * W;
@@ -204,7 +246,7 @@ const FX = (() => {
 
   // A variant drawing ("noon-03") uses its own entry if there is one (merged over the master's);
   // otherwise it keeps only what does not depend on where things are in the picture.
-  const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool', 'liquid'];
+  const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool', 'liquid', 'flame', 'firelight'];
   // pictures that are edits of another share its effects: the breadless table is the table
   const ALIAS = {
     table_nobread: 'table', breakfast_400: 'table', breakfast_550: 'table', breakfast_650: 'table', supper: 'table', supper_b: 'table',
@@ -222,8 +264,14 @@ const FX = (() => {
   }
   function set(frameName) {
     name = frameName;
+    // the print now on screen, for cutting its drawn flames out
+    printImg = box ? [...box.querySelectorAll('img.on')].find(i => !i.classList.contains('twin')) || null : null;
     cfg = frameName ? configFor(frameName) : null;   // an unconfigured frame still gets the grain
     if (reduced) cfg = null;
+    if (ctxC) {
+      ctxC.clearRect(0, 0, W, H); cutDirty = false;
+      const st = ctxC.canvas.style; st.opacity = 0; requestAnimationFrame(() => requestAnimationFrame(() => { st.opacity = 1; }));
+    }
     if (cfg) { resize(); start(); } else { stop(); for (const g of [ctxP, ctxL, ctxS]) if (g) g.clearRect(0, 0, W, H); }
   }
   function start() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } }
@@ -233,13 +281,23 @@ const FX = (() => {
     raf = requestAnimationFrame(tick);
     let dt = (now - last) / 1000;
     if (dt < 1 / 32) return;           // ~30 fps is plenty for a print
-    last = now; dt = Math.min(dt, .1); t += dt;
+    last = now; dt = Math.min(dt, .1);
+    frame(dt, now);
+  }
+  function frame(dt, now) {
+    t += dt;
     if (!cfg || !W) return;
     ctxP.clearRect(0, 0, W, H); ctxL.clearRect(0, 0, W, H); ctxS.clearRect(0, 0, W, H);
+    if (cutDirty) { ctxC.clearRect(0, 0, W, H); cutDirty = false; }
+    fireF = flames.length ? fireLevel() : flick(5.5, .45);
+    // cut-outs
+    ctx = ctxC;
+    for (const fl of flames) { cutFlame(fl); cutDirty = true; }
     // shade
     ctx = ctxS;
     if (cfg.clouds) drawClouds(cfg.clouds, dt);
     if (cfg.dark) drawDark(cfg.dark);
+    if (cfg.firelight) drawFireTint(cfg.firelight);
     if (cfg.pool && cfg.pool.shade) drawPool(cfg.pool);
     if (cfg.liquid) drawRipples(cfg.liquid, dt);
     if (cfg.sweep && cfg.sweep.color === 'warm') drawSweep(cfg.sweep);
@@ -252,8 +310,10 @@ const FX = (() => {
     if (cfg.glow) cfg.glow.forEach(drawGlow);
     if (cfg.spill) drawSpill(cfg.spill);
     if (cfg.ember) drawEmber(cfg.ember, dt);
+    if (cfg.firelight) drawFireGlow(cfg.firelight);
     // particles
     ctx = ctxP;
+    for (const fl of flames) drawSparksOf(fl, dt);
     if (cfg.ember && cfg.ember.sparks) drawSparks(cfg.ember, dt);
     if (cfg.smoke) stepSmoke(cfg.smoke, dt);
     if (cfg.breath) stepBreath(cfg.breath, dt);
@@ -353,9 +413,215 @@ const FX = (() => {
     }
   }
 
+  // ---- open flame. Where the print has its flame drawn (a fire, a candle), that drawn flame is
+  // cut out of the print (the 'cover' outline) and recut live: the cover is inked over, and the cut-out
+  // is laid back on in thin slices, each pushed sideways and up by a wave that climbs the flame, so the
+  // tongues lick, stretch and change shape. Where no flame is drawn (the lantern's glass), a small
+  // flame is cut from scratch: paper, edged in ink. Logs, wax or the burner in front stay in front
+  // (the flame shows only above 'base'). Bits tear off the tips and embers go up.
+  //   flame: { x, y: the foot of the flame; w, h: its size (fractions of the frame);
+  //            kind: 'fire' | 'candle' | 'lamp'; style: 'paper' (light flame on dark) or 'ink' (dark
+  //            tongues on snow); cover: the drawn flame's outline [[x,y]..], or true for a candle's
+  //            teardrop; base: polyline [[x,y]..] left to right; embers, flakes: per second }
+  // The cut changes twelve times a second, like a block recut for every frame, never smoothly.
+  const CUT = 12;
+  let printImg = null;
+  function makeFlame(c) {
+    const calm = c.kind === 'candle' || c.kind === 'lamp';
+    const outline = c.cover === true ? teardrop(c) : c.cover || null;
+    return { c, calm, outline, sprite: outline ? cutOut(outline, c.under) : null, p: [rnd(0, 6.3), rnd(0, 6.3), rnd(0, 6.3)], flakes: [], embers: [], eAcc: 0, fAcc: rnd(0, 1) };
+  }
+  // a candle's drawn flame: a teardrop a little larger than it
+  function teardrop(c) {
+    const L = [], R = [];
+    for (let k = 0; k <= 10; k++) {
+      const v = k / 10, hw = c.w * .62 * Math.pow(1 - v, .75) * Math.min(1, (v + .15) * 3), y = c.y + c.h * .02 - v * c.h * 1.08;
+      L.push([c.x - hw, y]); R.push([c.x + hw, y]);
+    }
+    return L.concat(R.reverse());
+  }
+  // the drawn flame, cut out of the print at the canvas's resolution
+  function cutOut(pts, under) {
+    const img = printImg;
+    if (!img || !img.complete || !img.naturalWidth || !W) return null;
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    const x0 = Math.min(...xs) * W - 2, y0 = Math.min(...ys) * H - 2, w = (Math.max(...xs) - Math.min(...xs)) * W + 4, h = (Math.max(...ys) - Math.min(...ys)) * H + 4;
+    const dpr = ctxC.canvas.width / W, sc = document.createElement('canvas');
+    sc.width = Math.ceil(w * dpr); sc.height = Math.ceil(h * dpr);
+    const g = sc.getContext('2d'), nw = img.naturalWidth, nh = img.naturalHeight;
+    const k = Math.max(W / nw, H / nh), ox = (W - nw * k) / 2, oy = (H - nh * k) / 2;   // object-fit: cover
+    g.drawImage(img, (x0 - ox) / k, (y0 - oy) / k, w / k, h / k, 0, 0, sc.width, sc.height);
+    g.globalCompositeOperation = 'destination-in';
+    g.beginPath();
+    pts.forEach(([x, y], i) => { const px = (x * W - x0) * dpr, py = (y * H - y0) * dpr; if (i) g.lineTo(px, py); else g.moveTo(px, py); });
+    g.closePath(); g.fill();
+    // what lies under the drawn flame is not known; 'under' takes it from beside it in the print
+    let bed = null;
+    if (under) {
+      bed = document.createElement('canvas'); bed.width = sc.width; bed.height = sc.height;
+      const b = bed.getContext('2d'), bx = x0 + under[0] * W, by = y0 + under[1] * H;
+      b.drawImage(img, (bx - ox) / k, (by - oy) / k, w / k, h / k, 0, 0, sc.width, sc.height);
+      b.globalCompositeOperation = 'destination-in'; b.drawImage(sc, 0, 0);
+      b.globalCompositeOperation = 'source-over';    // where the cut-out was see-through, keep the print's ink
+    }
+    return { sc, bed, x0, y0, w, h, dpr };
+  }
+  // how bright the fire is now: the light, the dark around it and the glows all follow this
+  function fireLevel() {
+    const q = Math.floor(t * CUT) / CUT;
+    return .5 + .5 * (Math.sin(q * 7.3) * .5 + Math.sin(q * 12.9 + 1) * .3 + Math.sin(q * 23.1 + 2) * .2);
+  }
+  // the shape of the flame at cut-time q: how tall (st), and how far each height is pushed (off) and widened (sq)
+  function flameAt(F, q) {
+    const p = F.p;
+    if (F.calm) {   // a candle mostly stands still, sways a little and now and then gutters
+      const gust = Math.max(0, Math.sin(q * .8 + p[1]) - .85) * 5;
+      return { st: 1 + .035 * Math.sin(q * 2.3 + p[0]) + .025 * Math.sin(q * 6.7) - .1 * gust,
+        off: v => F.c.w * W * (.07 * Math.pow(v, 1.6) * Math.sin(q * 1.6 + p[2]) + .3 * gust * v * v * Math.sin(q * 11)),
+        sq: v => 1 + .06 * Math.sin(q * 3.1 + p[1]) * v + .15 * gust };
+    }
+    return { st: 1 + .13 * (F.c.lick || 1) * (Math.sin(q * 7.1 + p[0]) * .6 + Math.sin(q * 11.3 + 1) * .4),
+      off: v => F.c.w * W * (F.c.lick || 1) * (.14 * Math.pow(v, 1.3) * Math.sin(v * 7 - q * 8.5 + p[1]) + .06 * Math.pow(v, 1.8) * Math.sin(q * 3.7 + p[2])),
+      sq: v => 1 + .2 * (F.c.lick || 1) * v * Math.sin(q * 5.9 + v * 5 + p[0]) };
+  }
+  // a flame cut from scratch: wide low down, pointed, the tip thrown aside
+  function tonguePath(x0, y0, hh, bw, lean) {
+    const N = 9, L = [], R = [], l = bw / 2;
+    for (let k = 0; k <= N; k++) {
+      const v = k / N, y = y0 - hh * v, cx = x0 + lean * Math.pow(v, 1.6);
+      const hw = l * Math.pow(1 - v, .8) * Math.min(1, (v + .1) * 3.2);
+      L.push([cx - hw, y]); R.push([cx + hw, y]);
+    }
+    const pts = L.concat(R.reverse().slice(1));
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let k = 1; k < pts.length - 1; k++) {
+      const [ax, ay] = pts[k], [bx, by] = pts[k + 1];
+      if (k === N) ctx.lineTo(ax, ay); else ctx.quadraticCurveTo(ax, ay, (ax + bx) / 2, (ay + by) / 2);
+    }
+    ctx.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+    ctx.closePath();
+  }
+  function poly(pts) {
+    ctx.beginPath();
+    pts.forEach(([x, y], i) => i ? ctx.lineTo(x * W, y * H) : ctx.moveTo(x * W, y * H));
+    ctx.closePath();
+  }
+  function cutFlame(F) {
+    const c = F.c, X = c.x * W, Y = c.y * H, w = c.w * W, h = c.h * H;
+    const q = Math.floor(t * CUT) / CUT, ink = c.style === 'ink', sh = flameAt(F, q);
+    const other = ink ? P_PAPER : P_INK;
+    if (F.outline && !F.sprite) F.sprite = cutOut(F.outline, c.under);
+    ctx.save();
+    if (c.base) {   // only above the logs, the wax, the lamp's burner
+      const b = c.base;
+      ctx.beginPath(); ctx.moveTo(b[0][0] * W, 0);
+      for (const [x, y] of b) ctx.lineTo(x * W, y * H);
+      ctx.lineTo(b[b.length - 1][0] * W, 0); ctx.closePath(); ctx.clip();
+    }
+    if (F.sprite) {
+      const S = F.sprite, rows = Math.ceil(S.h), sw = S.sc.width;
+      ctx.fillStyle = `rgb(${other})`; poly(F.outline); ctx.fill();     // ink over the drawn flame,
+      if (S.bed) ctx.drawImage(S.bed, S.x0, S.y0, S.w, S.h);            // or the print from beside it
+      for (let r = 0; r < rows; r++) {                                  // and the flame laid back on, slice by slice
+        const yr = S.y0 + r, v = (Y - yr) / h;
+        if (v <= 0) { ctx.drawImage(S.sc, 0, r * S.dpr, sw, S.dpr, S.x0, yr, S.w, 1); continue; }
+        const k = sh.sq(v), x = X + (S.x0 - X) * k + sh.off(v), y = Y - (Y - yr) * sh.st;
+        ctx.drawImage(S.sc, 0, r * S.dpr, sw, S.dpr, x, y - .08, S.w * k, sh.st + .16);
+      }
+    } else {        // nothing drawn: cut a small flame, its dark heart and the wick
+      const hh = h * sh.st, lean = sh.off(1);
+      ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(.6, .6 * s); ctx.strokeStyle = `rgb(${P_INK})`;
+      tonguePath(X, Y, hh, w * sh.sq(.5), lean); ctx.fillStyle = `rgb(${P_CORE})`; ctx.fill(); ctx.stroke();
+      tonguePath(X, Y, hh * .62, w * .55, lean * .5); ctx.fillStyle = `rgb(${P_PAPER})`; ctx.fill();
+      tonguePath(X, Y + 1, hh * .28, w * .3, lean * .2); ctx.fillStyle = `rgb(${P_INK})`; ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawSparksOf(F, dt) {
+    const c = F.c, X = c.x * W, Y = c.y * H, w = c.w * W, h = c.h * H;
+    const q = Math.floor(t * CUT) / CUT, ink = c.style === 'ink', sh = flameAt(F, q), fill = ink ? P_INK : P_PAPER;
+    // bits of flame that tear off the tips, and embers going up
+    if (c.flakes || !F.calm) {
+      F.fAcc += dt * (c.flakes || 1.6);
+      while (F.fAcc >= 1) {
+        F.fAcc -= 1;
+        const u = rnd(-.3, .3), v = rnd(.75, 1);
+        F.flakes.push({ x: X + u * w + sh.off(v), y: Y - h * sh.st * v, vx: rnd(-.3, .5) * w, vy: -h * rnd(1.1, 1.7), r: w * rnd(.05, .09), age: 0, life: rnd(.25, .5) });
+      }
+    }
+    ctx.lineWidth = .6 * s; ctx.strokeStyle = `rgb(${P_INK})`; ctx.fillStyle = `rgb(${fill})`;
+    for (let i = F.flakes.length - 1; i >= 0; i--) {
+      const p = F.flakes[i]; p.age += dt;
+      if (p.age >= p.life) { F.flakes.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      const step = Math.floor(p.age * CUT) / CUT, r = p.r * (1 - step / p.life * .8);   // they shrink in cuts too
+      tonguePath(p.x, p.y, r * 2.6, r * 1.3, Math.sin(p.age * 20) * r * .6);
+      ctx.fill(); if (!ink) ctx.stroke();
+    }
+    if (c.embers) {
+      F.eAcc += dt * c.embers;
+      while (F.eAcc >= 1) {
+        F.eAcc -= 1;
+        F.embers.push({ x: X + rnd(-.4, .4) * w, y: Y - h * rnd(.3, .9), vx: rnd(-6, 10) * s, vy: -rnd(18, 34) * s, age: 0, life: rnd(1, 2.4), ph: rnd(0, 6.3), sz: rnd(.9, 1.6), warm: Math.random() < .6 });
+      }
+    }
+    for (let i = F.embers.length - 1; i >= 0; i--) {
+      const p = F.embers[i]; p.age += dt;
+      if (p.age >= p.life) { F.embers.splice(i, 1); continue; }
+      p.x += (p.vx + Math.sin(t * 5 + p.ph) * 9 * s) * dt; p.y += p.vy * dt; p.vy *= 1 - .4 * dt;
+      ctx.globalAlpha = Math.min(1, (1 - p.age / p.life) * 1.6) * (Math.sin(t * 17 + p.ph) > -.6 ? .95 : .3);
+      ctx.fillStyle = `rgb(${ink ? P_INK : p.warm ? P_CORE : P_PAPER})`;
+      const z = p.sz * s;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y - z); ctx.lineTo(p.x + z * .6, p.y); ctx.lineTo(p.x, p.y + z * .8); ctx.lineTo(p.x - z * .6, p.y); ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- firelight, as a second plate would print it: a warm tint overprinted (multiply) on the
+  // paper round the fire, the snow, the white cuts of hands and faces, in a few hard-edged carved
+  // steps, not a photographic glow; the black stays black. Close to the flame a little warm light
+  // is screened in too, so the nearest coats come up out of the dark. All of it swells and shrinks
+  // with the fire.
+  //   firelight: { x, y, r, a, sq, bands, ground: { x, y, rx, ry, a }, touch: [{ x, y, r, a }],
+  //                lift: alpha of the screened light near the flame, glow: its radius (fraction of r) }
+  const TINT = '246,196,128';
+  function blob(x, y, r, sq, seed, jag) {
+    ctx.beginPath();
+    for (let i = 0; i <= 36; i++) {
+      const a = i / 36 * 6.2832;
+      const d = 1 + jag * (Math.sin(a * 3 + seed + t * .35) * .5 + Math.sin(a * 7 - seed * 2 + t * .6) * .3 + Math.sin(a * 13 + seed * 3) * .2);
+      const px = x + Math.cos(a) * r * d, py = y + Math.sin(a) * r * d * sq;
+      if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+    }
+    ctx.closePath();
+  }
+  function steps(x, y, r, sq, a, n, seed, f, jag) {
+    for (let k = 0; k < n; k++) {
+      ctx.globalAlpha = a / n * (.55 + .45 * f);
+      blob(x, y, r * (1 - k / (n + .4)) * (.88 + .14 * f), sq, seed + k * 1.7, jag === undefined ? .1 : jag);
+      ctx.fill();
+    }
+  }
+  function drawFireTint(fl) {           // shade layer, multiply
+    const f = fireF;
+    ctx.fillStyle = `rgb(${TINT})`;
+    steps(fl.x * W, fl.y * H, fl.r * W, fl.sq || .85, fl.a, fl.bands || 4, 0, f);
+    if (fl.ground) { const g = fl.ground; steps(g.x * W, g.y * H, g.rx * W, g.ry * H / (g.rx * W), g.a, 3, 2, f); }
+    if (fl.touch) fl.touch.forEach((p, i) => steps(p.x * W, p.y * H, p.r * W, p.sq || 1, p.a, 2, i * 3.1, f));
+    ctx.globalAlpha = 1;
+  }
+  function drawFireGlow(fl) {           // light layer, screen
+    const f = fireF;
+    ctx.fillStyle = `rgb(${WARM})`;
+    steps(fl.x * W, fl.y * H, fl.r * W * (fl.glow || .45), fl.sq || .85, fl.lift === undefined ? .16 : fl.lift, 3, 5, f, .04);
+    if (fl.touch) fl.touch.forEach((p, i) => p.lit && steps(p.x * W, p.y * H, p.r * W, p.sq || 1, p.lit, 1, i * 2.3, f, .06));
+    ctx.globalAlpha = 1;
+  }
+
   // ---- glow: a window, a lantern, a slit of grey light
   function drawGlow(gl) {
-    const f = gl.flicker ? flick(4, gl.flicker) : 1, x = gl.x * W, y = gl.y * H, r = gl.r * W;
+    const f = !gl.flicker ? 1 : gl.color === 'warm' && flames.length ? 1 - gl.flicker + gl.flicker * fireF : flick(4, gl.flicker);
+    const x = gl.x * W, y = gl.y * H, r = gl.r * W;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, `rgba(${col(gl.color)},${gl.a * f})`); g.addColorStop(1, `rgba(${col(gl.color)},0)`);
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.3); ctx.fill();
@@ -401,14 +667,14 @@ const FX = (() => {
   }
   // ---- firelight on everything near it: a wide, warm, flickering spill
   function drawSpill(sp) {
-    const f = flick(5.5, .45), x = sp.x * W, y = sp.y * H, r = sp.r * W;
+    const f = fireF, x = sp.x * W, y = sp.y * H, r = sp.r * W;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, `rgba(${WARM},${sp.a * f})`); g.addColorStop(.5, `rgba(${WARM},${sp.a * .4 * f})`); g.addColorStop(1, `rgba(${WARM},0)`);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
   // ---- the dark of a firelit room, breathing against the fire: when it flares, the corners recede
   function drawDark(d) {
-    const f = flick(5.5, .45), x = d.x * W, y = d.y * H, r = d.r * W;
+    const f = fireF, x = d.x * W, y = d.y * H, r = d.r * W;
     const g = ctx.createRadialGradient(x, y, r * .25, x, y, r * 1.6);
     g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, `rgba(${INK},${d.a * (1.25 - f * .5)})`);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -519,9 +785,13 @@ const FX = (() => {
   // where the eye goes in this picture: the first effect placed by hand on it (fire, lamp, window, tower)
   function focusOf(key) {
     const c = configFor(key);
+    const fl = c.flame && [].concat(c.flame)[0];
+    if (fl) return [fl.x, fl.y - fl.h * .5];
     const e = c.ember || (c.glow && c.glow[0]) || c.sweep || c.smoke || (c.breath && c.breath[0]);
     return e ? [e.x, e.y] : null;
   }
-  return { mount, set, resize, focusOf, state: () => ({ name, cfg: !!cfg, running: !!raf, W, H, snow: snow.length, puffs: puffs.length, t: Math.round(t) }) };
+  // advance(secs): stop the clock and step the overlay by hand, for looking at it headlessly
+  function advance(secs) { stop(); const n = Math.round(secs * 30); for (let i = 0; i < n; i++) frame(1 / 30, performance.now()); }
+  return { mount, set, resize, focusOf, advance, state: () => ({ name, cfg: !!cfg, running: !!raf, W, H, snow: snow.length, puffs: puffs.length, flames: flames.length, t: Math.round(t) }) };
 })();
 window.FX = FX;

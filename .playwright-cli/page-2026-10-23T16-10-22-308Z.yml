@@ -1,0 +1,48 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: Ю-81 · 12 April 1951 · −30°
+      - generic [ref=e6]:
+        - 'button "test mode: nothing saved" [ref=e7]'
+        - button "sound off" [ref=e8] [cursor=pointer]
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic "Your strength. Bread, soup, warmth and sleep put it back; cold, work and the cells take it." [ref=e11]:
+          - generic [ref=e12]: body
+          - emphasis [ref=e15]: tired
+        - generic "What the brigade thinks of you. Men they like get second bowls and help." [ref=e16]:
+          - generic [ref=e17]: brigade
+          - emphasis [ref=e20]: nobody
+        - generic "How much the warders notice you. The more they notice, the more they search." [ref=e21]:
+          - generic [ref=e22]: the eye
+          - emphasis [ref=e24]: unnoticed
+        - generic "Bread kept back. Food for a bad day, or for three days on the ice." [ref=e25]: kept 0 g
+        - generic "The camp's money." [ref=e26]: tobacco 1
+        - 'generic "The wire: what an escape needs" [ref=e27]':
+          - text: the wire
+          - generic [ref=e28]:
+            - 'generic "a blade: not yet" [ref=e29]'
+            - 'generic "600 g of bread: not yet" [ref=e30]'
+            - 'generic "someone who has done it: not yet" [ref=e31]'
+            - 'generic "the way: not yet" [ref=e32]'
+      - 'generic "The winter, one mark a day. Black: a good day. Red: a bad one." [ref=e33]'
+      - generic [ref=e172]:
+        - generic [ref=e173]: Jan
+        - generic [ref=e174]: Feb
+        - generic [ref=e175]: Mar
+        - generic [ref=e176]: Apr
+        - generic [ref=e177]: May · the ice goes out
+  - figure [ref=e179]
+  - generic [ref=e182]:
+    - main [ref=e183]:
+      - paragraph [ref=e184]: A second letter. The censor has left almost all of it, which tells you what kind of letter it is before you read it.
+      - paragraph [ref=e185]: Tanya has finished school. They will not take her at the institute with a father like hers. The man at the district office says that if your wife divorces you, it will be as if Tanya had no father, and then they will take her.
+      - paragraph [ref=e186]: She does not ask you to agree. She sends the form, already signed, and asks you to forgive her.
+    - navigation [ref=e187]:
+      - text: · · ·
+      - button "1 Sign it.":
+        - generic: "1"
+        - generic: Sign it.
+      - button "2 Put it inside your jacket, unsigned.":
+        - generic: "2"
+        - generic: Put it inside your jacket, unsigned.

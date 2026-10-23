@@ -1,0 +1,6 @@
+[   58948ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/web/gate_empty.jpg:0
+[   58948ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/web/gate_search.jpg:0
+[   58948ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/web/gate_next.jpg:0
+[   58950ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/gate_empty.png:0
+[   58951ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/gate_search.png:0
+[   58952ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8077/assets/frames/gate_next.png:0
