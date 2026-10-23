@@ -1,6 +1,6 @@
 # Ten Years — shared production direction
 
-This supplements the locked prefix and twelve shot descriptions in `frames.md`.
+This supplements the locked prefix and both shot sets in `frames.md` (nineteen frames).
 
 ## Visual continuity
 
@@ -14,10 +14,12 @@ This supplements the locked prefix and twelve shot descriptions in `frames.md`.
 
 ## Shared barracks design
 
-For `hut_morning`, `hut_night`, and `dead`: rough two-tier plank bunks, thick square uprights, three long boards per sleeping platform, a simple diagonal brace. Narrow central aisle, horizontal plank walls, low ceiling beams. A small rectangular ice-clouded window at the far end. No mattresses, pillows, decorative furnishings, or readable signs. Keep the same construction across all three images. In `dead`, focus closely on an empty lower bunk made this way, with a single wooden spoon on its boards and the place beneath it empty of boots.
+For `hut_morning`, `hut_night`, `dead`, `stove`, `letter`, `blizzard`, and `easter`: rough two-tier plank bunks, thick square uprights, three long boards per sleeping platform, a simple diagonal brace. Narrow central aisle, horizontal plank walls, low ceiling beams. A small rectangular ice-clouded window at the far end. No mattresses, pillows, decorative furnishings, or readable signs. Keep the same construction across the barracks images. In `dead`, focus closely on an empty lower bunk made this way, with a single wooden spoon on its boards and the place beneath it empty of boots.
 
 ## Variant strategy
 
 Produce three separate image files per shot. The scene and medium stay fixed; vary only the placement, distance, and distribution of black ink versus open paper. Every variant must include all required narrative objects. Choose the clearest, quietest version and copy it to `assets/frames/<name>.png`.
+
+If a selected composition needs a targeted correction, preserve that correction as a fourth variant. The second set's inspection scene uses this to clarify the ranks of five. Export selected masters to `assets/frames/web/<name>.jpg` with `sips -s format jpeg -s formatOptions 82 assets/frames/<name>.png --out assets/frames/web/<name>.jpg`.
 
 Record the exact generation prompts and original output paths in each group's production JSON under `assets/frames/production/`. Preserve the three variants under `assets/frames/variants/` so selections remain reviewable.

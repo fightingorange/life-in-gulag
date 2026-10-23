@@ -58,13 +58,13 @@ node tests/run.js dump > script.txt  # the whole script, for reading
 
 The bots: **random** clicks anything; **careful** keeps the default habits and lets the days run; **smart** plays the economy; **escaper** goes through the wire when the odds are tolerable. Current balance: random never sees the spring, careful about 40%, smart about 75%, escaper gets out about a third of the time.
 
-In the browser, `index.html?dev` or the backtick key opens a panel to jump to any scene with any state, skip to a day, run the bots, dump the script, and check that every screen fits the window ("does it fit?", or `DEV.fit()` in the console; resize the window and run it again). Everything the panel does is in test mode, so it never touches a saved game. Deep links work too: `?scene=event:lev_barrow`, `?skip=60`, `?seed=7`, `?state={"strength":20}`, `?still` (no animation).
+In the browser, `index.html?dev` or the backtick key opens a panel to jump to any scene with any state, skip to a day, run the bots, dump the script, and check that every screen fits the window ("does it fit?", or `DEV.fit()` in the console; resize the window and run it again). Everything the panel does is in test mode, so it never touches a saved game. Deep links work too: `?scene=event:lev_barrow`, `?skip=60`, `?seed=7`, `?state={"strength":20}`, `?still` (no animation), `?frame=stove` (one frame with its living overlay; add `&fxcheck` to print where the overlay draws, for headless checks).
 
 ## Assets
 
 Everything the game loads is listed in `assets/manifest.json`.
 
-- `assets/frames/` — linocut stills (PNG masters) and `web/` JPEG copies the game loads. Prompts and the locked style in `prompts/frames.md`. Seven frames of the second set are written but not drawn yet; the game shows a stand-in for each until the file appears (see `js/assets.js`). After adding a master: `sips -s format jpeg -s formatOptions 82 assets/frames/<name>.png --out assets/frames/web/<name>.jpg`.
+- `assets/frames/` — nineteen selected linocut stills (PNG masters) and `web/` JPEG copies the game loads. Prompts and the locked style in `prompts/frames.md`; shared art direction in `prompts/frames-production.md`. Open `assets/frames/review.html` for the collection and all 58 variants; exact generation prompts and source paths are in `assets/frames/production/`. Stand-ins remain available in `js/assets.js` if a frame is missing. After adding a master: `sips -s format jpeg -s formatOptions 82 assets/frames/<name>.png --out assets/frames/web/<name>.jpg`.
 - `assets/sfx/` — ambient loops and one-shots, from `scripts/gen_sfx.py`.
 - `assets/voice/` — dialogue, from `scripts/gen_voice.py`. Ten characters, Russian-accented English; the Easter lines and the count are in Russian.
 

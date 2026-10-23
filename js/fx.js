@@ -34,6 +34,18 @@ const FX = (() => {
                    smoke: { x: .82, y: .29, color: 'ink', a: .07, r: [4, 16], life: 5, rate: 1.4, drift: [30, -6], spread: 6 },
                    breath: [B(.31, .40, 'ink', .35)] },
     dead:        { motes: { n: 8, region: [.7, .2, .28, .6] }, glow: [{ x: .875, y: .215, r: .07, color: 'paper', a: .07, flicker: .1 }] },
+    // the second set
+    stove:       { ember: { x: .366, y: .545, r: .07, floor: { x: .40, y: .67, rx: .16, ry: .035 } },
+                   motes: { n: 10, region: [.28, .3, .3, .35] } },
+    blizzard:    { snow: { n: 90, color: 'paper', wind: -120, speed: [140, 230], size: [.6, 1.4], streak: true, len: 9, clip: [.64, .225, .167, .305] },
+                   glow: [{ x: .725, y: .38, r: .12, color: 'paper', a: .07, flicker: .2 }] },
+    letter:      { motes: { n: 14, region: [.05, .08, .4, .5] }, glow: [{ x: .14, y: .06, r: .26, color: 'paper', a: .08, flicker: .05 }] },
+    office:      { glow: [{ x: .34, y: .30, r: .2, color: 'warm', a: .12, flicker: .12 }], motes: { n: 10, region: [.28, .2, .2, .2] } },
+    easter:      { ember: { x: .852, y: .62, r: .05, floor: { x: .83, y: .73, rx: .12, ry: .035 } } },
+    inspection:  { snow: { n: 40, color: 'ink', wind: 25, speed: [14, 32], size: [.5, 1.1], streak: true },
+                   breath: [B(.565, .25, 'ink', .45), B(.635, .25, 'ink', .45), B(.675, .25, 'ink', .45), B(.735, .27, 'ink', .45), B(.785, .22, 'ink', .45)] },
+    ice_out:     { snow: { n: 25, color: 'ink', wind: 55, speed: [10, 24], size: [.5, 1], streak: true },
+                   smoke: { x: .76, y: .23, color: 'ink', a: .06, r: [4, 14], life: 5, rate: 1.2, drift: [26, -5], spread: 6 } },
   };
 
   let canvas, ctx, box, W = 0, H = 0, s = 1, cfg = null, name = null;
@@ -78,8 +90,11 @@ const FX = (() => {
     }
     if (cfg.breath) breathTimers = cfg.breath.map(() => rnd(.5, 3));
   }
+  // the area snow falls in: the whole frame, or a clip region such as a window
+  function area(c) { const [x, y, w, h] = c.clip || [0, 0, 1, 1]; return { x: x * W, y: y * H, w: w * W, h: h * H }; }
   function flake(c, anywhere) {
-    return { x: Math.random() * W, y: anywhere ? Math.random() * H : -4, vy: rnd(c.speed[0], c.speed[1]) * s, r: rnd(c.size[0], c.size[1]) * s, ph: rnd(0, 6.3), a: rnd(.5, 1) };
+    const A = area(c);
+    return { x: A.x + Math.random() * A.w, y: anywhere ? A.y + Math.random() * A.h : A.y - 4, vy: rnd(c.speed[0], c.speed[1]) * s, r: rnd(c.size[0], c.size[1]) * s, ph: rnd(0, 6.3), a: rnd(.5, 1) };
   }
 
   function set(frameName) {
@@ -111,16 +126,17 @@ const FX = (() => {
 
   // ---- snow: paper flakes over dark skies, ink specks over light ones
   function drawSnow(c, dt) {
-    const color = col(c.color), base = c.color === 'paper' ? .75 : .45;
+    const color = col(c.color), base = c.color === 'paper' ? .75 : .45, A = area(c);
     ctx.lineCap = 'round';
+    if (c.clip) { ctx.save(); ctx.beginPath(); ctx.rect(A.x, A.y, A.w, A.h); ctx.clip(); }
     for (const f of snow) {
       const wob = Math.sin(t * 1.3 + f.ph) * 9 * s;
       f.y += f.vy * dt; f.x += (c.wind * s + wob) * dt;
-      if (f.y > H + 4) { Object.assign(f, flake(c, false)); }
-      if (f.x < -6) f.x += W + 12; else if (f.x > W + 6) f.x -= W + 12;
+      if (f.y > A.y + A.h + 4) { Object.assign(f, flake(c, false)); }
+      if (f.x < A.x - 6) f.x += A.w + 12; else if (f.x > A.x + A.w + 6) f.x -= A.w + 12;
       ctx.globalAlpha = base * f.a;
       if (c.streak) {
-        const vx = c.wind * s, vy = f.vy, L = 3 * s;
+        const vx = c.wind * s, vy = f.vy, L = (c.len || 3) * s;
         const n = Math.hypot(vx, vy) || 1;
         ctx.strokeStyle = `rgb(${color})`; ctx.lineWidth = f.r;
         ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x - vx / n * L, f.y - vy / n * L); ctx.stroke();
@@ -130,6 +146,7 @@ const FX = (() => {
       }
     }
     ctx.globalAlpha = 1;
+    if (c.clip) ctx.restore();
   }
 
   // ---- puffs: breath, steam, chimney smoke

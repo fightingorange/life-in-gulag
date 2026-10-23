@@ -169,6 +169,27 @@ const DEV = (() => {
       const sc = TESTKIT.scenes()[q.get('scene')];
       if (sc) { if (sc.setup) sc.setup(); FLOW.auto = null; drive(sc.run); } else print('no scene ' + q.get('scene'));
     }
+    if (q.has('frame')) FRAME.set(q.get('frame'));   // look at one frame, with its living overlay
+    // ?frame=x&fxcheck: after three seconds, write the overlay's coverage as a 6×4 grid into the page,
+    // for checking effects without eyes (headless Chrome --dump-dom). Each cell: mean alpha, and how many warm pixels.
+    if (q.has('fxcheck')) setTimeout(() => {
+      const c = document.getElementById('fx'), g = c.getContext('2d'), cols = 6, rows = 4, grid = [];
+      for (let r = 0; r < rows; r++) {
+        const line = [];
+        for (let k = 0; k < cols; k++) {
+          const w = Math.floor(c.width / cols), h = Math.floor(c.height / rows);
+          const d = g.getImageData(k * w, r * h, w, h).data;
+          let a = 0, warm = 0;
+          for (let i = 0; i < d.length; i += 4) { a += d[i + 3]; if (d[i] > d[i + 2] + 40 && d[i + 3] > 8) warm++; }
+          line.push(`${(a / (d.length / 4)).toFixed(1)}/${warm}`.padStart(9));
+        }
+        grid.push(line.join(' '));
+      }
+      const st = FX.state(), pre = document.createElement('pre');
+      pre.id = 'fxcheck';
+      pre.textContent = `FXCHECK ${st.name} ${Math.round(st.W)}x${Math.round(st.H)} snow ${st.snow} puffs ${st.puffs} t ${st.t}\n` + grid.join('\n') + '\nEND';
+      document.body.appendChild(pre);
+    }, 3000);
     if (q.has('dev')) toggle();
   }, 0);
 
