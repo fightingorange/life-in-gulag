@@ -8,20 +8,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const typeset = s => String(s).replace(/"([^"]*)"/g, '“$1”').replace(/'/g, '’');
 const tx = s => esc(typeset(s));   // typeset, then escape
 
-STORE = (() => {
-  const KEY = 'ten-years-save';
-  return {
-    load() {
-      try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); return s && s.v === 2 && !s.ended ? s : null; }
-      catch (e) { return null; }
-    },
-    save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} },
-    clear() { try { localStorage.removeItem(KEY); } catch (e) {} },
-  };
-})();
-
 const UI = (() => {
-  const top = $('#top'), text = $('#text'), choicesEl = $('#choices'), snd = $('#snd');
+  const top = $('#top'), text = $('#text'), cards = $('#cards'), choicesEl = $('#choices'), snd = $('#snd'), keep = $('#keep');
   let current = null, last = {}, lockUntil = 0;
 
   // ---------- status ----------
@@ -102,11 +90,17 @@ const UI = (() => {
       + p.items.map(it => `<li class="${it.have ? 'have' : ''}"><b>${it.have ? '☒' : '☐'}</b>${tx(it.name)}<small>${tx(it.where)}</small></li>`).join('')
       + `</ul><div class="odds"><span>The fence: <em>${esc(p.fence)}</em></span><span>The ice: <em>${esc(p.ice)}</em></span></div></div>`;
   }
+  function offerHtml() {
+    return `<div class="card keep-offer" style="--i:1"><p>Keep your place in this browser? Then you can close the page and come back to the same morning. It stays on this computer.</p>`
+      + `<div class="opts"><button type="button" data-keep="browser">Keep my place</button><button type="button" data-keep="tab">Only while this tab is open</button></div></div>`;
+  }
   function recordHtml(r) {
     return `<div class="card record record-${r.kind}" style="--i:0"><div class="hd"><span>Лагерное дело · camp record</span><span>${esc(NUMBER)}</span></div>`
       + `<dl>${r.fields.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`
-      + `<div class="outcome">${esc(r.outcome)}</div><div class="stamp">${esc(r.stamp)}</div>`
-      + `<div class="sub">What the record does not say</div><ul>${r.unsaid.map(u => `<li>${tx(u)}</li>`).join('')}</ul></div>`;
+      + `<div class="outcome">${esc(r.outcome)}</div><div class="stamp">${esc(r.stamp)}</div></div>`;
+  }
+  function unsaidHtml(r, i) {
+    return `<div class="unsaid" style="--i:${i}"><div class="sub">What the record does not say</div><ul>${r.unsaid.map(u => `<li>${tx(u)}</li>`).join('')}</ul></div>`;
   }
 
   // ---------- a screen ----------
@@ -125,21 +119,51 @@ const UI = (() => {
     if (o.voice) AUDIO.say(o.voice);
     if (S) AUDIO.body(S.strength);
 
+    // documents go under the picture: what the days that ran left behind, the record, the night's account, the wire
+    const docs = [];
+    if (scr.run) docs.push(runHtml(scr.run));
+    if (o.record) docs.push(recordHtml(o.record));
+    if (o.ledger) docs.push(ledgerHtml(o.ledger));
+    if (o.ledger && STORE.mode() === null && S.day <= 3) docs.push(offerHtml());
+    if (o.plan) docs.push(planHtml(o.plan));
+    cards.innerHTML = docs.join('');
+    // the prose goes beside it
     const parts = [];
     let i = 0;
-    if (scr.run) parts.push(runHtml(scr.run));
     for (const n of scr.notes || []) parts.push(`<p class="note" style="--i:${i++}">${tx(n)}</p>`);
-    if (o.record) parts.push(recordHtml(o.record));
-    if (o.ledger) parts.push(ledgerHtml(o.ledger));
-    if (o.plan) parts.push(planHtml(o.plan));
-    for (const p of scr.paras) parts.push(paraHtml(p, i++));
+    const paras = scr.paras.slice();
+    const quote = o.record && paras.length && paras[paras.length - 1].startsWith('" ') ? paras.pop() : null;
+    for (const p of paras) parts.push(paraHtml(p, i++));
+    if (o.record) parts.push(unsaidHtml(o.record, i++));
+    if (quote) parts.push(paraHtml(quote, i++));
     text.innerHTML = parts.join('');
 
     choicesEl.innerHTML = scr.choices.map((c, k) =>
       `<button type="button" data-k="${k}" class="${c.id === 'go' ? 'danger' : ''}" style="--i:${k}"><span class="k">${k + 1}</span>`
       + `<span class="l">${tx(c.label)}${c.hint ? `<small>${tx(c.hint)}</small>` : ''}</span></button>`).join('');
     window.scrollTo(0, 0);
+    fit();
   }
+
+  // ---------- every screen fits the window on a desktop ----------
+  // Two columns fill the window. The picture gives up height to the documents under it; if a column
+  // still does not fit, its contents are scaled down a little at a time, to no less than 70%.
+  const left = $('#left'), right = $('#right'), flow = $('#flow');
+  const wide = () => matchMedia('(min-width: 960px) and (min-height: 560px)').matches;
+  function shrink(box, inner) {
+    inner.style.zoom = '';
+    if (!wide()) return 1;
+    let k = 1;
+    while (box.scrollHeight > box.clientHeight + 6 && k > .8) { k = Math.round((k - .04) * 100) / 100; inner.style.zoom = k; }
+    return k;
+  }
+  function fit() {
+    const kr = shrink(right, flow), kl = shrink(left, cards);
+    document.body.dataset.fit = `${kl} ${kr}`;
+  }
+  addEventListener('resize', () => { clearTimeout(fit.t); fit.t = setTimeout(fit, 80); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+
   function pickChoice(k) {
     if (!current || performance.now() < lockUntil) return;
     const ch = current.choices[k];
@@ -156,10 +180,37 @@ const UI = (() => {
     if (n >= 1 && n <= 9) { e.preventDefault(); pickChoice(n - 1); }
     else if (e.key === 'Enter' && current && current.choices.length === 1 && !(e.target && e.target.tagName === 'BUTTON')) pickChoice(0);
   });
+  // ---------- keeping your place ----------
+  const KEEP_LABEL = {
+    browser: ['saving: this browser', 'Your place is kept in this browser at the start of each day. Click to keep it only while this tab is open.'],
+    tab: ['saving: this tab', 'Your place is kept only while this tab is open. Click to keep it in this browser, so you can come back later.'],
+    test: ['test mode: nothing saved', 'Opened with a dev link or the dev panel, so this page reads and writes no saves.'],
+  };
+  function keepLabel() {
+    const m = STORE.mode() || 'tab';
+    keep.textContent = KEEP_LABEL[m][0];
+    keep.title = KEEP_LABEL[m][1];
+    keep.classList.toggle('test', m === 'test');
+  }
+  function setKeep(m) {
+    STORE.setMode(m);
+    keepLabel();
+  }
+  keep.addEventListener('click', () => { const m = STORE.mode(); if (m !== 'test') setKeep(m === 'browser' ? 'tab' : 'browser'); });
+  cards.addEventListener('click', e => {
+    const b = e.target.closest('button[data-keep]');
+    if (!b) return;
+    setKeep(b.dataset.keep);
+    b.closest('.keep-offer').innerHTML = `<p>${b.dataset.keep === 'browser'
+      ? 'Kept in this browser. You can close the page and come back.'
+      : 'Kept only while this tab is open.'} You can change this at the top of the page.</p>`;
+  });
+  keepLabel();
+
   const sndLabel = () => { snd.textContent = AUDIO.isOn() ? 'sound on' : 'sound off'; };
   snd.addEventListener('click', () => { AUDIO.unlock(); AUDIO.toggle(); sndLabel(); });
   sndLabel();
 
-  return { present, refresh: () => current && present(current) };
+  return { present, keepLabel, fit, refresh: () => current && present(current) };
 })();
 RENDER = UI.present;

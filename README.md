@@ -5,10 +5,20 @@ A text game about one winter in a Soviet labour camp, 1951. Ten years is too lon
 ## Play
 
 ```bash
-python3 -m http.server 8077
+python3 scripts/serve.py
 ```
 
-Then open http://localhost:8077. Opening `index.html` directly also works, but the strength-dependent muffling of the sound needs the server. Keys 1 to 9 or click. Headphones. The game saves at the start of every day, and the title screen offers to continue.
+Then open http://localhost:8077. The server tells the browser not to cache, so an updated file is always picked up. Opening `index.html` directly also works, but the strength-dependent muffling of the sound needs the server. Keys 1 to 9 or click. Headphones.
+
+On a desktop every screen fits the window without scrolling: the picture and its documents (the night's account, the wire, the camp record) on the left, the prose and choices on the right. A screen that is still too tall shrinks a little, never below 80%. Phones get a single scrolling column.
+
+### Keeping your place
+
+The game saves at the start of each day, and only on this computer.
+
+- **By default it is kept only while the tab is open.** A reload continues; closing the tab forgets.
+- **Keeping it in the browser is opt-in.** The first nights' accounts offer it, and the switch at the top of the page ("saving: this tab / this browser") changes it at any time. Switching it off removes the copy from the browser at once.
+- **Test mode saves nothing.** Any dev link (`?dev`, `?test`, `?scene=`, `?skip=`, `?seed=`, `?state=`, `?still`) or opening the dev panel puts the page in test mode: it reads no save and writes none, and the top of the page says so.
 
 ## How it plays
 
@@ -31,6 +41,7 @@ js/content/calendar.js  the winter's beats: the cold snap, letters, the commissi
 js/content/escape.js  the wire and the ice
 js/content/story.js   title, opening, endings, the camp record
 js/assets.js          stand-ins for frames not yet drawn
+js/store.js           keeping your place: this tab, this browser, or test mode
 js/audio.js, js/frames.js, js/fx.js, js/ui.js   the page: sound, stills, living overlay, rendering
 js/testkit.js, js/dev.js, tests/run.js          testing without playing
 ```
@@ -47,7 +58,7 @@ node tests/run.js dump > script.txt  # the whole script, for reading
 
 The bots: **random** clicks anything; **careful** keeps the default habits and lets the days run; **smart** plays the economy; **escaper** goes through the wire when the odds are tolerable. Current balance: random never sees the spring, careful about 40%, smart about 75%, escaper gets out about a third of the time.
 
-In the browser, `index.html?dev` or the backtick key opens a panel to jump to any scene with any state, skip to a day, run the bots and dump the script. Deep links work too: `?scene=event:lev_barrow`, `?skip=60`, `?seed=7`, `?state={"strength":20}`, `?still` (no animation).
+In the browser, `index.html?dev` or the backtick key opens a panel to jump to any scene with any state, skip to a day, run the bots, dump the script, and check that every screen fits the window ("does it fit?", or `DEV.fit()` in the console; resize the window and run it again). Everything the panel does is in test mode, so it never touches a saved game. Deep links work too: `?scene=event:lev_barrow`, `?skip=60`, `?seed=7`, `?state={"strength":20}`, `?still` (no animation).
 
 ## Assets
 

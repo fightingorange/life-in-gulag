@@ -6,6 +6,8 @@ const DEV = (() => {
   const NUMS = ['day', 'strength', 'bread', 'tobacco', 'brigade', 'eye'];
   const FLAGS = ['blade', 'partner', 'river', 'map', 'baptist', 'informer', 'betrayed', 'bootmakers', 'senkaGone'];
   const print = msg => { if (out) out.textContent = msg; console.log(msg); return msg; };
+  // the dev tools never touch the player's save
+  const testing = () => { STORE.testMode(); if (typeof UI !== 'undefined') UI.keepLabel(); };
 
   function readState() {
     if (!panel) return;
@@ -23,6 +25,7 @@ const DEV = (() => {
   }
 
   function jump(name) {
+    testing();
     const sc = TESTKIT.scenes()[name];
     if (!sc) return print('no scene ' + name);
     if (!S || S.flags.title) TESTKIT.fresh();
@@ -36,6 +39,7 @@ const DEV = (() => {
   }
   // play on, headlessly, with a bot, until the given day; then show where it stopped
   function skip(day, bot = 'smart') {
+    testing();
     if (!S || S.flags.title) { TESTKIT.fresh(); drive(startDay); }
     const prev = RENDER;
     let scr = FLOW.screen, n = 0;
@@ -46,9 +50,45 @@ const DEV = (() => {
     fillState();
     return print(`skipped to day ${S.day} (${fmtDate(S.day)}), playing ${bot}${scr && scr.o.ending ? ': the winter ended (' + scr.o.ending + ')' : ''}`);
   }
-  const walk = () => print(TESTKIT.walk().report);
-  const sim = (bot, n) => print(TESTKIT.sim(bot, n).report);
+  // does every screen fit the window? Renders every scene and the heaviest screens of 42 winters,
+  // and reports any that overflow and how far the page had to shrink. Resize the window and run again.
+  function fit() {
+    testing();
+    const shots = TESTKIT.walk().seen.map(x => ({ name: x.scene, scr: x.scr, state: null }));
+    const heavy = [], prevR = RENDER, prevS = S;
+    RENDER = s => heavy.push({ name: 'day ' + S.day, scr: s, state: JSON.stringify(S),
+      size: JSON.stringify([s.paras, s.notes, s.choices.map(c => c.label + (c.hint || '')), s.o.ledger, s.o.plan, s.o.record, s.run && s.run.days.length]).length });
+    try {
+      for (const bot of ['smart', 'escaper', 'careful']) for (let r = 0; r < 14; r++) {
+        seed(900 + r * 13); FLOW.auto = null; drive(title);
+        let n = 0;
+        while (FLOW.screen && !FLOW.screen.o.ending && n++ < 3000) choose(TESTKIT.BOTS[bot](FLOW.screen) || FLOW.screen.choices[0]);
+      }
+    } finally { unseed(); RENDER = prevR; }
+    heavy.sort((a, b) => b.size - a.size);
+    const all = shots.concat(heavy.slice(0, 120));
+    const right = document.getElementById('right'), left = document.getElementById('left');
+    let shrunk = 0, low = 1;
+    const over = [];
+    for (const x of all) {
+      S = x.state ? JSON.parse(x.state) : newState();
+      if (!S.today) S.today = blankToday();
+      UI.present(x.scr);
+      const [kl, kr] = (document.body.dataset.fit || '1 1').split(' ').map(Number);
+      const o = Math.max(right.scrollHeight - right.clientHeight, left.scrollHeight - left.clientHeight, document.documentElement.scrollHeight - innerHeight);
+      if (kl < 1 || kr < 1) shrunk++;
+      low = Math.min(low, kl, kr);
+      if (o > 6) over.push(`${x.name}: ${o}px over at ${Math.round(Math.min(kl, kr) * 100)}%`);
+    }
+    S = prevS;
+    if (FLOW.screen) UI.present(FLOW.screen);
+    return print(`fit at ${innerWidth}×${innerHeight}: ${all.length} screens, ${shrunk} shrunk (smallest ${Math.round(low * 100)}%), ${over.length} overflow`
+      + (over.length ? '\n  ' + [...new Set(over)].slice(0, 12).join('\n  ') : ''));
+  }
+  const walk = () => { testing(); return print(TESTKIT.walk().report); };
+  const sim = (bot, n) => { testing(); return print(TESTKIT.sim(bot, n).report); };
   function dump() {
+    testing();
     const text = TESTKIT.dump();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
@@ -84,7 +124,7 @@ const DEV = (() => {
   <button data-a="smart">smart ×100</button>
   <button data-a="escaper">escaper ×100</button>
   <button data-a="dump">dump script</button>
-  <button data-a="clear">clear save</button>
+  <button data-a="fit">does it fit?</button>
   <button data-a="close">close</button>
 </div>
 <div class="row">${NUMS.map(k => `<label>${k} <input type="number" name="${k}"></label>`).join('')}
@@ -99,9 +139,8 @@ const DEV = (() => {
       const run = {
         jump: () => jump(panel.querySelector('[name=scene]').value),
         skip: () => skip(Number(panel.querySelector('[name=skipto]').value)),
-        read: fillState, walk, dump,
+        read: fillState, walk, dump, fit,
         random: () => sim('random', 100), careful: () => sim('careful', 100), smart: () => sim('smart', 100), escaper: () => sim('escaper', 100),
-        clear: () => { STORE.clear(); print('save cleared'); },
         close: toggle,
       }[a];
       if (run) setTimeout(run, 0);
@@ -110,6 +149,7 @@ const DEV = (() => {
     fillState();
   }
   function toggle() {
+    testing();
     if (!panel) return build();
     panel.style.display = panel.style.display === 'none' ? '' : 'none';
     if (panel.style.display === '') fillState();
@@ -132,6 +172,6 @@ const DEV = (() => {
     if (q.has('dev')) toggle();
   }, 0);
 
-  return { walk, sim, dump, jump, skip, toggle, scenes: () => Object.keys(TESTKIT.scenes()) };
+  return { walk, sim, dump, jump, skip, toggle, fit, scenes: () => Object.keys(TESTKIT.scenes()) };
 })();
 window.DEV = DEV;

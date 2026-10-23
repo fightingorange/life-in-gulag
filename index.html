@@ -12,16 +12,23 @@
 <body class="title">
 <div id="app">
   <header id="top" class="bare">
-    <div class="row"><div id="idline"></div><button id="snd" type="button" title="sound">sound on</button></div>
+    <div class="row"><div id="idline"></div><div class="tools"><button id="keep" type="button"></button><button id="snd" type="button" title="sound">sound on</button></div></div>
     <div id="detail">
       <div id="meters"></div>
       <div id="strip" title="The winter, one mark a day. Black: a good day. Red: a bad one."></div>
       <div id="months"></div>
     </div>
   </header>
-  <figure id="frame"><img alt=""><img alt=""></figure>
-  <main id="text" aria-live="polite"></main>
-  <nav id="choices"></nav>
+  <section id="left">
+    <figure id="frame"><img alt=""><img alt=""></figure>
+    <div id="cards"></div>
+  </section>
+  <section id="right">
+    <div id="flow">
+      <main id="text" aria-live="polite"></main>
+      <nav id="choices"></nav>
+    </div>
+  </section>
 </div>
 <!-- the game: engine and content (no page access) -->
 <script src="js/util.js"></script>
@@ -32,6 +39,7 @@
 <script src="js/content/calendar.js"></script>
 <script src="js/content/escape.js"></script>
 <script src="js/content/story.js"></script>
+<script src="js/store.js"></script>
 <!-- the page -->
 <script src="js/audio.js"></script>
 <script src="js/fx.js"></script>

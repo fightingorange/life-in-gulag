@@ -28,8 +28,10 @@ body {
 .red { color: var(--red); }
 
 /* ---------- sound toggle ---------- */
-#snd { all: unset; flex: none; cursor: pointer; font: 12px/1.4 var(--mono); color: var(--mute); letter-spacing: .02em; }
-#snd:hover, #snd:focus-visible { color: var(--red); }
+#top .tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 16px; flex: none; }
+#snd, #keep { all: unset; flex: none; cursor: pointer; font: 12px/1.4 var(--mono); color: var(--mute); letter-spacing: .02em; }
+#keep.test { color: var(--red); cursor: default; }
+#snd:hover, #snd:focus-visible, #keep:hover, #keep:focus-visible { color: var(--red); }
 
 /* ---------- status ---------- */
 #top { font: 13px/1.45 var(--mono); color: var(--mute); padding: 0 0 10px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
@@ -121,8 +123,10 @@ body.title #text .small { font: 15px/1.4 var(--display); letter-spacing: .3em; c
 .record dt { color: var(--mute); }
 .record dd { margin: 0; color: var(--ink); border-bottom: 1px dotted var(--line); }
 .record .outcome { font: italic 19px/1.4 var(--serif); color: var(--ink); margin: 12px 0 4px; }
-.record .sub { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 14px 0 4px; border-top: 1px solid var(--line); padding-top: 10px; }
-.record ul { margin: 0; padding-left: 18px; }
+.unsaid { margin: 1.1em 0 .4em; }
+.unsaid .sub { font: 11.5px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin-bottom: 6px; }
+.unsaid ul { margin: 0; padding-left: 18px; font-size: .94em; }
+.unsaid li { margin: 1px 0; }
 .stamp {
   position: absolute; right: 20px; top: 46px; color: var(--red); border: 3px double var(--red); padding: 3px 12px 2px;
   font: 700 22px/1.2 var(--display); letter-spacing: .1em; opacity: .85; mix-blend-mode: multiply;
@@ -130,6 +134,13 @@ body.title #text .small { font: 15px/1.4 var(--display); letter-spacing: .3em; c
 }
 @keyframes stamp { from { transform: rotate(-11deg) scale(2.3); opacity: 0; } to { transform: rotate(-11deg) scale(1); opacity: .85; } }
 .record-spring .stamp, .record-escaped .stamp { color: var(--ink2); border-color: var(--ink2); }
+
+.keep-offer { background: transparent; box-shadow: none; border-style: dashed; font-size: 13px; }
+.keep-offer p { margin: 0 !important; }
+.keep-offer .opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.keep-offer button { all: unset; cursor: pointer; padding: 4px 12px; border: 1px solid var(--ink2); color: var(--ink); font: 13px/1.5 var(--mono); }
+.keep-offer button:first-child { background: var(--ink); color: var(--paper); }
+.keep-offer button:hover, .keep-offer button:focus-visible { border-color: var(--red); }
 
 /* ---------- choices ---------- */
 #choices { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
@@ -145,6 +156,47 @@ body.title #text .small { font: 15px/1.4 var(--display); letter-spacing: .3em; c
 #choices button:hover .k, #choices button:focus-visible .k { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 #choices button.danger .k { color: var(--red); border-color: var(--red); }
 #choices button.danger:hover .k { background: var(--red); color: var(--paper); }
+
+/* ---------- desktop: two columns that fill the window, nothing to scroll ---------- */
+#cards:empty { display: none; }
+@media (min-width: 960px) and (min-height: 560px) {
+  html, body { height: 100%; overflow: hidden; }
+  #app {
+    max-width: 1400px; height: 100vh; height: 100dvh; padding: 16px 32px 20px;
+    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(400px, 1fr); grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 44px;
+  }
+  #top { grid-column: 1 / -1; margin-bottom: 18px; }
+  #top.bare { margin-bottom: 10px; }
+  #left { display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 2px 4px 14px; margin: -2px -4px 0; }
+  #frame { flex: 0 1 auto; min-height: 130px; margin: 0; }
+  #cards { flex: none; }
+  #cards .card, #cards .run { margin: 0 0 12px; }
+  #right { min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+  #choices { margin-top: 18px; padding-bottom: 6px; }
+  body.title #right, body.ending #right { display: flex; flex-direction: column; justify-content: center; }
+  body.title #left { justify-content: center; }
+  body.title #text h1 { font-size: 58px; }
+}
+@media (min-width: 960px) and (min-height: 560px) and (max-height: 820px) {
+  #frame { min-height: 100px; }
+  body { font-size: 16px; }
+  #text p { margin-bottom: .7em; }
+  #choices { gap: 6px; }
+  #choices button { padding: 8px 12px 8px 9px; font-size: 15px; }
+  .card { padding: 11px 16px 12px; font-size: 13px; }
+}
+
+@media (min-width: 960px) and (min-height: 560px) and (max-height: 700px) {
+  #app { padding-top: 12px; padding-bottom: 14px; }
+  #top { margin-bottom: 12px; padding-bottom: 8px; }
+  #strip { margin-top: 8px; }
+  body { font-size: 15px; line-height: 1.6; }
+  .ep { margin: 1em 0 .8em; }
+  .unsaid { margin: .8em 0 .2em; }
+  #choices { margin-top: 12px; }
+  #left { gap: 12px; }
+}
 
 /* ---------- small screens, and people who prefer stillness ---------- */
 @media (max-width: 520px) {

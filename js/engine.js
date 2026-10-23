@@ -42,7 +42,7 @@ function rollTemp(day) {
   return Math.round(lo + RNG() * (hi - lo));
 }
 function tempWords(t = S.temp) { return t < 0 ? `Minus ${-t}` : t === 0 ? 'Zero' : `Plus ${t}`; }
-function tempShort(t = S.temp) { return t < 0 ? `−${-t}°` : `${t}°`; }
+function tempShort(t = S.temp) { return t < 0 ? `−${-t}°` : t > 0 ? `+${t}°` : '0°'; }
 
 // ---------- words for numbers ----------
 const BODY_WORDS = [[70, 'steady'], [45, 'tired'], [25, 'thin'], [10, 'going'], [-1, 'nearly gone']];
