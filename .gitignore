@@ -1,0 +1,8 @@
+# Source art and takes the game never loads: kept on disk, not in git (the game loads assets/frames/web/,
+# figures/, motion/ and depth/). Back these up some other way.
+/assets/frames/*.png
+/assets/frames/variants/
+/assets/frames/production/
+/assets/voice/previews/
+/assets/sfx/candidates/
+.DS_Store
