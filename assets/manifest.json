@@ -422,6 +422,66 @@
       "loop": false,
       "seconds": 4,
       "text": "A single raven croaking twice in cold still winter air, outdoors, at a little distance"
+    },
+    "bed_wind_walls": {
+      "loop": true,
+      "seconds": 22,
+      "text": "Heard from inside a wooden barracks at night: a steady winter wind pressing on the log walls, low rumble, the occasional rattle of a loose window pane, no voices, no music"
+    },
+    "bed_wind_snow": {
+      "loop": true,
+      "seconds": 22,
+      "text": "Outdoors on an open frozen plain: a steady cold wind with fine dry snow hissing over a hard crust, no voices, no music"
+    },
+    "bed_stove": {
+      "loop": true,
+      "seconds": 22,
+      "text": "A small iron wood stove burning close by in a quiet room: soft crackling, the hiss of damp wood, occasional pop and tick of hot metal, no voices, no music"
+    },
+    "bed_bulb": {
+      "loop": true,
+      "seconds": 20,
+      "text": "A single bare electric light bulb humming faintly on a long wire in a quiet room, a very soft steady electrical buzz"
+    },
+    "bed_spoons": {
+      "loop": true,
+      "seconds": 22,
+      "text": "Many tin spoons scraping and knocking on tin bowls in a crowded hall, close, steady, with low murmuring, no music"
+    },
+    "spot_gust": {
+      "loop": false,
+      "seconds": 5,
+      "text": "A single strong gust of winter wind howling past the corner of a wooden building and dying away"
+    },
+    "spot_creak": {
+      "loop": false,
+      "seconds": 3,
+      "text": "A rough wooden bunk creaking under a man turning over in his sleep, one slow creak"
+    },
+    "spot_door_far": {
+      "loop": false,
+      "seconds": 3,
+      "text": "A wooden door banging shut somewhere far away across a camp in the wind, distant"
+    },
+    "spot_shout_far": {
+      "loop": false,
+      "seconds": 4,
+      "text": "A guard shouting a short order far away outdoors in the cold, indistinct words, echoing faintly"
+    },
+    "spot_ice_crack": {
+      "loop": false,
+      "seconds": 6,
+      "text": "River ice cracking far away on a frozen river, a deep low boom that rolls and fades"
+    },
+    "spot_pick": {
+      "loop": false,
+      "seconds": 3,
+      "text": "A single pickaxe striking frozen ground nearby, a hard dull ring, outdoors"
+    },
+    "spot_crow": {
+      "loop": false,
+      "seconds": 4,
+      "text": "Two crows calling far off over a snowy field, faint"
     }
   },
   "frames": [

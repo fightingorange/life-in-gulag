@@ -18,7 +18,7 @@ gains = {}
 for f in sorted((ROOT / "assets/sfx").glob("*.mp3")):
     name = f.stem
     mean, peak = measure(f)
-    bed = name.startswith("amb_") or name == "pulse"
+    bed = name.startswith(("amb_", "bed_")) or name == "pulse"
     if name in QUIET_ON_PURPOSE:
         g = 10 ** (12 / 20)       # lift it a little, but keep it quiet
     elif bed:

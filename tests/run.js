@@ -35,6 +35,12 @@ function auditFiles(T, A) {
   for (const s of need.sfx) {
     if (!fs.existsSync(path.join(ROOT, `assets/sfx/${s}.mp3`))) missing.push(`sfx ${s}${manifest.sfx[s] ? '' : ' (not in manifest)'}`);
   }
+  // the soundscapes' layers and one-shots
+  const scapes = fs.readFileSync(path.join(ROOT, 'js/soundscapes.js'), 'utf8');
+  for (const [, f] of scapes.matchAll(/\['([a-z_]+)',/g)) {
+    need.sfx.includes(f) || need.sfx.push(f);
+    if (!fs.existsSync(path.join(ROOT, `assets/sfx/${f}.mp3`))) missing.push(`sfx ${f} (soundscape)`);
+  }
   for (const v of need.voice) {
     if (!fs.existsSync(path.join(ROOT, `assets/voice/${v}.mp3`))) missing.push(`voice ${v}${manifest.lines[v] ? '' : ' (not in manifest)'}`);
   }

@@ -10,6 +10,11 @@ const LEVELS = {
   "amb_site": 1.318,
   "amb_spring": 6.0,
   "amb_wind": 1.035,
+  "bed_bulb": 6.0,
+  "bed_spoons": 0.716,
+  "bed_stove": 4.898,
+  "bed_wind_snow": 0.804,
+  "bed_wind_walls": 0.684,
   "boots": 1.603,
   "bread": 1.109,
   "cough": 0.582,
@@ -29,5 +34,12 @@ const LEVELS = {
   "rail": 0.562,
   "raven": 0.562,
   "searchlight": 1.396,
-  "shot": 0.562
+  "shot": 0.562,
+  "spot_creak": 0.562,
+  "spot_crow": 0.562,
+  "spot_door_far": 1.365,
+  "spot_gust": 0.582,
+  "spot_ice_crack": 0.589,
+  "spot_pick": 0.562,
+  "spot_shout_far": 1.189
 };
