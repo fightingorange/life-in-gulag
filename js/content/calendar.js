@@ -16,7 +16,7 @@ BEAT('cold_snap', 22, 'morning', () => {
   show([
     'The thermometer by the gate stops at forty-five and stays there. The rail is struck at reveille, and then the order comes down that nobody goes out.',
     'Below forty-one they do not march you. For a week it will not be above forty-one. The stove is lit all day: two hundred men, one stove.',
-  ], [{ label: 'Go on.', fn: () => go(count) }], { frame: 'hut_morning', amb: 'amb_blizzard', sfx: 'rail' });
+  ], [{ label: 'Go on.', fn: () => go(count) }], { frame: morningFrame(), amb: 'amb_blizzard', sfx: 'rail' });
 });
 BEAT('stove', 24, 'noon', () => {
   const ch = [

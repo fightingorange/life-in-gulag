@@ -45,7 +45,7 @@ const FRAME = (() => {
     const sel = ASSETS.variants[name] && ASSETS.variants[name].selected;
     if (v !== null && v !== sel) out.push([`${name}-0${v}`, `assets/frames/web/variants/${name}-0${v}.jpg`, false]);
     const names = [name];
-    if (ASSETS.fallback[name]) names.push(ASSETS.fallback[name]);
+    for (let n = ASSETS.fallback[name]; n && !names.includes(n); n = ASSETS.fallback[n]) names.push(n);
     for (const n of names.filter(n => !missing[n])) out.push([n, `assets/frames/web/${n}.jpg`, false], [n, `assets/frames/${n}.png`, true]);
     return out;
   }
@@ -63,9 +63,33 @@ const FRAME = (() => {
     };
     if (living) GLFRAME.show(key, src);
     loop(key);
+    alternate(key, src);
     focus = (ASSETS.focus && ASSETS.focus[key]) || (window.FX && FX.focusOf(key)) || null;
     if (back.decode) back.decode().then(swap, swap); else swap();
   }
+  // ---------- two-picture motion ----------
+  // If a picture has a twin that differs only in a hand or a spoon (ASSETS.alternate), the page fades
+  // slowly to the twin and back, holding each a few seconds, so the hand seems to move.
+  let altTimer = null;
+  function alternate(key, src) {
+    clearTimeout(altTimer);
+    stage.classList.remove('alt');
+    const twin = ASSETS.alternate && ASSETS.alternate[key];
+    let el = stage.querySelector('img.twin');
+    if (!twin || still()) { if (el) el.classList.remove('on'); return; }
+    const tsrc = `assets/frames/web/${twin}.jpg`;
+    const probe = new Image();
+    probe.onload = () => {
+      if (shown !== key) return;
+      if (!el) { el = document.createElement('img'); el.className = 'twin'; el.alt = ''; stage.insertBefore(el, stage.querySelector('#fx-shade')); }
+      el.src = tsrc;
+      let up = false;
+      const flip = () => { if (shown !== key) { el.classList.remove('on'); return; } up = !up; el.classList.toggle('on', up); altTimer = setTimeout(flip, (up ? 2.2 : 3.5 + Math.random() * 3) * 1000); };
+      altTimer = setTimeout(flip, 2500);
+    };
+    probe.src = tsrc;
+  }
+
   // ---------- the camera ----------
   // A slow, continuous pan and zoom over the print, like a camera held by someone patient. It runs here,
   // frame by frame, so the living print (glframe.js) knows exactly where it is and can show depth.

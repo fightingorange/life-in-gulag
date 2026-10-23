@@ -156,5 +156,5 @@ function levDeath() {
   show([
     'Lev did not get up. Lubimov hit the bunk with his stick, which is what you do, and then looked, and then went to get the orderly.',
     'Lev is lighter than his jacket. Pasha keeps his bread ration for the brigade, because the dead do not eat and the office does not know yet. A hundred grams of it is yours.',
-  ], [{ label: 'Keep it.', fn: () => go(count) }], { frame: 'dead', amb: 'amb_hut', sfx: 'rail', story: true });
+  ], [{ label: 'Keep it.', fn: () => go(count) }], { frame: 'dead', amb: 'amb_hut_morning', sfx: 'rail', story: true });
 }

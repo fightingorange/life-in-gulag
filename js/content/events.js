@@ -75,13 +75,14 @@ EV('kuzma_cough', {
         note('Kuzma laughed, and the laugh turned into the cough.', true);
         afterNoon();
       } },
-    ], { ...noonFrame(), voice: 'kuzma_cough' });
+    ], { ...noonFrame(), sfx: 'cough', voice: 'kuzma_cough' });
   },
 });
 EV('kuzma_worse', {
   once: true, force: () => S.kuzma.here && S.kuzma.coughDay && !S.kuzma.helped && S.day >= S.kuzma.coughDay + 4,
   setup: () => { S.kuzma.coughDay = S.day - 4; },
   run() {
+    cue('cough');
     show(['Kuzma is worse. He has stopped telling stories, which in Kuzma is like a stove going out. At noon he holds his soup and does not drink it, only holds it, for the warmth.'], [
       { id: 'give', label: S.bread >= 200 ? 'Give him two hundred grams.' : 'Give him your soup.', fn: () => {
         giveFood(200); S.kuzma.helped = true;
@@ -120,7 +121,7 @@ EV('lev_barrow', {
         note(S.lev.refused >= 2 ? 'Lev has stopped asking with his eyes. That is worse.' : 'Lev looked at the barrow too.');
         afterNoon();
       } },
-    ], { frame: 'site', amb: 'amb_site' });
+    ], { frame: siteFrame(null), amb: 'amb_site' });
   },
 });
 EV('lev_quote', {
@@ -238,7 +239,7 @@ EV('tufta', {
       { id: 'other', say: 'prisoner_other', label: '"Put somebody else\'s."', fn: () => {
         brig(-15); note('Pasha wrote another name. He did not look at you while he wrote it.', true); afterNoon();
       } },
-    ], { frame: 'site', amb: 'amb_site', voice: ['pasha_percentage', 'pasha_name'] });
+    ], { frame: siteFrame(null), amb: 'amb_site', voice: ['pasha_percentage', 'pasha_name'] });
   },
 });
 EV('wood_stick', {
@@ -247,7 +248,7 @@ EV('wood_stick', {
     show(['At the end of the shift Pasha points at the scrap pile by the carpenters\' shed. "One stick each. Whoever carries nothing sits by the door tonight."'], [
       { id: 'carry', label: 'Carry a stick back.', hint: 'the gate may take it, and notice you', fn: () => { S.today.wood = true; afterNoon(); } },
       { id: 'none', label: 'Carry nothing.', fn: () => { brig(-3); note('You carried nothing. You will sit by the door.'); afterNoon(); } },
-    ], { frame: 'site', amb: 'amb_site', voice: 'pasha_stove' });
+    ], { frame: siteFrame(null), amb: 'amb_site', voice: 'pasha_stove' });
   },
 });
 

@@ -60,6 +60,14 @@ function kuzmaDaily() {
   }
 }
 
+// ---------- which picture ----------
+// The picture follows what is happening: the month's light at reveille, the size of the ration,
+// which work site and how far it has got. Pictures not drawn yet show their stand-ins (js/assets.js).
+function morningFrame() { const m = monthOf(S.day); return m <= 1 ? 'hut_morning_dark' : m === 2 ? 'hut_morning_grey' : 'hut_morning_sun'; }
+function breakfastFrame(g) { return g <= 400 ? 'breakfast_400' : g >= 650 ? 'breakfast_650' : 'breakfast_550'; }
+function siteStage() { return S.day < 40 ? 1 : S.day < 90 ? 2 : 3; }
+function siteFrame(site) { return `site_${site ? site.key : 'settlement'}_${siteStage()}`; }
+
 // ---------- morning ----------
 
 function reveille() {
@@ -68,6 +76,7 @@ function reveille() {
     : t >= 30 ? 'The window has two fingers of ice on the inside.'
     : t >= 15 ? 'Not the worst morning. You distrust it.'
     : 'Water drips somewhere in the roof. You had forgotten that water could do that.';
+  if (t < 15) cue('drip');
   const paras = [`Reveille. Somebody hits the rail outside the staff hut with a hammer. ${tempWords()}. ${feel} ${L('light')}`.trim()];
   paras.push(S.day === 1
     ? 'In the bunk above, Senka\'s boots hang by your face. Pasha the foreman is already up, which means the brigade is going somewhere it does not want to go.'
@@ -82,7 +91,7 @@ function reveille() {
     { id: 'lie', habit: false, label: 'Five more minutes under the jacket.', hint: 'warm, if Lubimov is counting someone else', fn: lieIn },
   ];
   if (S.strength < 40) ch.push({ id: 'sick', habit: false, label: 'Lie still. Report sick.', hint: 'the medic takes two a day', fn: reportSick });
-  show(paras, ch, { frame: 'hut_morning', amb: 'amb_hut', sfx: 'rail', routine: 'morning' });
+  show(paras, ch, { frame: 'reveille', amb: 'amb_hut_morning', sfx: 'rail', routine: 'morning' });
 }
 function lieIn() {
   if (chance(.3)) return cellsDay('Warder Lubimov. He does not shout. He writes your number in a book, and that is worse than shouting. "Three days. With work." You get one of them today.', 'lubimov_cells');
@@ -113,7 +122,7 @@ function sickDay() {
   show([
     L('sick'),
     'Tomorrow the quota will have been short by one man, and the brigade will remember who.',
-  ], [{ label: 'Sleep.', fn: () => go(endDay) }], { frame: 'hut_night', amb: 'amb_hut' });
+  ], [{ label: 'Sleep.', fn: () => go(endDay) }], { frame: morningFrame(), amb: 'amb_cells' });   // the hut empty all day
 }
 
 // ---------- the count, and searches ----------
@@ -194,7 +203,7 @@ function breakfast() {
     mercy('Lev, eating slowly.', 0);
     go(afterBreakfast);
   } });
-  show(paras, ch, { frame: 'table', amb: 'amb_queue', routine: 'bread' });
+  show(paras, ch, { frame: breakfastFrame(g), amb: 'amb_queue', routine: 'bread' });
 }
 function afterBreakfast() {
   if (S.temp <= -41) return barracksDay();
@@ -240,13 +249,13 @@ function work() {
       else note('Nobody saw. Pasha knows anyway.');
       go(noon);
     } },
-  ], { frame: 'site', amb: 'amb_site', voice: S.day === 1 ? 'pasha_quota' : null, routine: 'work' });
+  ], { frame: siteFrame(site), amb: 'amb_site', voice: S.day === 1 ? 'pasha_quota' : null, routine: 'work' });
 }
 function foundBlade() {
   show(['In the sawdust by the carpenters\' shed, half a hacksaw blade. Fifteen centimetres of steel. In here it is worth more than you are. It is also three years, if it is found on you.'], [
     { id: 'take', label: 'Take it. Into the boot, under the foot cloth.', hint: 'the wire needs a blade', fn: () => { S.flags.blade = true; S.flags.bladeDay = S.day; eye(5); note('The blade is in your boot. You walk differently. You must stop walking differently.', true); go(noon); } },
     { id: 'leave', label: 'Kick sawdust over it.', fn: () => go(noon) },
-  ], { frame: 'site' });
+  ], { frame: siteFrame(SITES[1]) });
 }
 function barracksDay() {
   S.today.inside = true; S.today.warm = true;
@@ -261,7 +270,7 @@ function barracksDay() {
 function infirmary() {
   S.today.inside = true; S.today.warm = true;
   show(['Floors. The water is warm when you start and cold when you finish. Men die in the beds around you, politely, without much noise. The orderly gives you the end of somebody\'s soup.'],
-    [{ label: 'Work.', fn: () => { adj(6); mercy('Warm water, and the end of somebody\'s soup.', 0); go(noon); } }], { frame: 'hut_morning', amb: 'amb_cells', routine: true });
+    [{ label: 'Work.', fn: () => { adj(6); mercy('Warm water, and the end of somebody\'s soup.', 0); go(noon); } }], { frame: morningFrame(), amb: 'amb_cells', routine: true });
 }
 
 // ---------- noon ----------
@@ -321,7 +330,7 @@ function dinner() {
     mercy('The thick part, from the bottom of the pot.', 0);
     go(night);
   } });
-  show([S.day === 1 ? LINES.dinner[0].t : L('dinner')], ch, { frame: 'table', amb: 'amb_queue', routine: 'dinner' });
+  show([S.day === 1 ? LINES.dinner[0].t : L('dinner')], ch, { frame: 'supper', amb: 'amb_queue', routine: 'dinner' });
 }
 
 // ---------- night ----------

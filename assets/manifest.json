@@ -2,11 +2,11 @@
   "voices": {
     "lubimov": {
       "name": "Lubimov (warder)",
-      "description": "A man of about forty with a thick Russian accent speaking English. Flat, quiet, bureaucratic, never raises his voice. Slightly nasal. Speaks slowly, as if writing each word down.",
+      "description": "A camp warder in his fifties with a flat Russian accent speaking English. A dry, thin, nasal voice, slightly high and pinched, clipped and precise, an official monotone with no warmth at all; every word separate, like a man reading out a list.",
       "settings": {
-        "stability": 0.7,
+        "stability": 0.8,
         "similarity_boost": 0.8,
-        "style": 0.1
+        "style": 0.05
       }
     },
     "fomin": {
@@ -29,11 +29,11 @@
     },
     "lev": {
       "name": "Lev (student)",
-      "description": "A young man of nineteen with a soft Russian accent speaking English. Thin, educated, Leningrad intelligentsia, weak from hunger, a slight rasp and occasional breathlessness. Gentle, ironic, no self-pity.",
+      "description": "A nineteen-year-old student from Leningrad with a soft Russian accent speaking English. A light, young, high tenor voice, thin and breathy from hunger, a little hoarse; quick, clever, ironic, quiet, with no self-pity. Clearly younger and lighter than the other men in the camp.",
       "settings": {
-        "stability": 0.5,
+        "stability": 0.45,
         "similarity_boost": 0.8,
-        "style": 0.35
+        "style": 0.4
       }
     },
     "kuzma": {
@@ -392,6 +392,36 @@
       "loop": false,
       "seconds": 2,
       "text": "A stub of pencil writing quickly on rough paper, close up, a few short strokes"
+    },
+    "amb_hut_morning": {
+      "loop": true,
+      "seconds": 22,
+      "text": "A crowded wooden barracks waking before dawn in winter: men coughing and clearing their throats, felt boots shuffling on wooden floorboards, a stove door clanking, low muttered voices, blankets, wind outside. No snoring, no music"
+    },
+    "crying": {
+      "loop": false,
+      "seconds": 7,
+      "text": "A grown man crying very quietly in the dark, trying not to be heard, muffled into a blanket, a few suppressed sobs and a shaky breath, close but very soft"
+    },
+    "prayer": {
+      "loop": false,
+      "seconds": 9,
+      "text": "Two or three men murmuring a prayer very quietly together in a dark room, indistinct words, low steady rhythm like counting, no singing"
+    },
+    "cough": {
+      "loop": false,
+      "seconds": 4,
+      "text": "A thin man coughing a deep wet cough in a cold wooden room, a few coughs, then a wheeze"
+    },
+    "drip": {
+      "loop": false,
+      "seconds": 6,
+      "text": "Meltwater dripping slowly from a wooden roof beam into a small puddle, single drops, quiet room"
+    },
+    "raven": {
+      "loop": false,
+      "seconds": 4,
+      "text": "A single raven croaking twice in cold still winter air, outdoors, at a little distance"
     }
   },
   "frames": [

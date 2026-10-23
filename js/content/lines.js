@@ -1,7 +1,8 @@
 'use strict';
 // Words that change over the winter. Each pool is a list of lines; a line can depend on the month,
 // the cold, the light, and on what has happened (who is gone, what you carry, how long it has been).
-// L(pool) picks one the player has not seen lately. Entries: { t: string | () => string, when?, w? }.
+// L(pool) picks one the player has not seen lately. Entries: { t: string | () => string, when?, w?, m?, s? }
+// m: a small mercy the line carries; s: a sound that plays with it (the crying you read, you hear).
 
 // ---------- the calendar, in words ----------
 // day 1 = 3 January; February starts on day 30, March 58, April 89, May 119
@@ -26,6 +27,7 @@ function L(pool) {
   const [x, i] = weighted(fresh.length ? fresh : ok, ([e]) => e.w || 1);
   S.recent[pool] = [i, ...recent].slice(0, Math.max(0, Math.min(6, ok.length - 1)));
   if (x.m) mercy(typeof x.m === 'function' ? x.m() : x.m);
+  if (x.s) cue(x.s);
   return typeof x.t === 'function' ? x.t() : x.t;
 }
 
@@ -58,7 +60,7 @@ const LINES = {
     { t: 'Lev is already sitting up, with his blanket round his shoulders, reading the inside of his own eyelids.', when: () => S.lev.alive },
     { t: 'Your eyelashes have frozen together in the night. You open them one at a time with a thumb, like a book.', when: cold(-38) },
     { t: 'Ice on the inside of the walls, in the shape of the planks, so that the hut has a second hut inside it.', when: cold(-35) },
-    { t: 'Water is dripping off the roof beam onto somebody\'s bunk. He has moved his head six inches and gone back to sleep.', when: inMonths('apr', 'may') },
+    { t: 'Water is dripping off the roof beam onto somebody\'s bunk. He has moved his head six inches and gone back to sleep.', when: inMonths('apr', 'may'), s: 'drip' },
     { t: 'The air in the hut is wet now instead of frozen. Everything smells of it: the felt, the planks, the men.', when: inMonths('apr', 'may') },
     // memory
     { t: 'The boots are gone from the bunk above. Nobody has been given Senka\'s place. Nobody wants it.', when: () => S.flags.senkaGone, w: 2 },
@@ -102,7 +104,7 @@ const LINES = {
     { t: 'Breakfast. The steam off the bowls is the only warm thing in the room, and two hundred men lean into it.', when: cold(-30) },
     { t: 'Breakfast. Cabbage again. It has been cabbage since October. They say there is a field of it somewhere that never ends.', when: inMonths('jan', 'feb', 'mar') },
     { t: 'Breakfast. Nettles in the skilly: the first green thing anyone has eaten since autumn. The brigade eats it like medicine.', when: inMonths('may'), m: 'Something green in the skilly.' },
-    { t: 'Breakfast. Your hands shake a little holding the bowl. They did not used to.', when: () => S.strength < 30 },
+    { t: 'Breakfast. Your hands shake a little holding the bowl. They did not used to.', when: () => S.strength < 30, s: 'cough' },
   ],
 
   // the foreman, at the work site
@@ -128,7 +130,7 @@ const LINES = {
   quiet: [
     { t: 'Noon. The soup cart does not come. Nothing happens. In here that is an event, and not a bad one.' },
     { t: 'Noon. Someone has found a bit of wire and is making a needle of it, slowly, with a stone. Six men watch him as if he were a surgeon.' },
-    { t: 'Noon. A raven lands on the half-built wall and looks at the brigade with professional interest.' },
+    { t: 'Noon. A raven lands on the half-built wall and looks at the brigade with professional interest.', s: 'raven' },
     { t: 'Noon. The Estonian with the good boots tells you, in careful Russian, about the sea at Pärnu. You have never seen the sea. You let him tell it twice.', m: 'The sea at Pärnu, told twice.' },
     { t: 'Noon. Two men argue about whether it is Tuesday. It matters to neither of them. They argue anyway, because it is something to own.' },
     { t: 'Noon. Kuzma sings half a song, stops, and says he has forgotten the rest. He has not. The rest is about a woman.', when: () => S.kuzma.here, m: 'Half of Kuzma\'s song.' },
@@ -235,14 +237,14 @@ const LINES = {
 
   night: [
     { t: 'Night. Two hundred men breathing in a hut built for a hundred. The stove is embers.' },
-    { t: 'Night. Somebody is crying, very quietly, the way men learn to here. Nobody says anything. That is the kindness.' },
-    { t: 'Night. The Latvians are praying in Latvian. It sounds like counting.' },
+    { t: 'Night. Somebody is crying, very quietly, the way men learn to here. Nobody says anything. That is the kindness.', s: 'crying' },
+    { t: 'Night. The Latvians are praying in Latvian. It sounds like counting.', s: 'prayer' },
     { t: 'Night. Lice, and the stove ticking, and somebody\'s boots drying on the pipe, and the smell of them.' },
     { t: 'Night. You lie on your back and do the thing you do instead of thinking about home: you count the planks above you.' },
     { t: 'Night, early, the way it is in January: dark at four, and fourteen hours to get through before the rail.', when: inMonths('jan') },
     { t: 'Night. The cold comes up through the planks of the bunk, so that you sleep on your side and turn every hour, like meat.', when: cold(-38) },
     { t: 'Night, and still light outside the window at the evening count. The men do not know what to do with it.', when: inMonths('apr', 'may') },
-    { t: 'Night. Meltwater is running somewhere under the hut. It sounds like someone talking in the next room.', when: inMonths('may') },
+    { t: 'Night. Meltwater is running somewhere under the hut. It sounds like someone talking in the next room.', when: inMonths('may'), s: 'drip' },
     { t: 'Night. Kuzma is telling the stove about the priest and the tax collector. You fall asleep before the end. You always do.', when: () => S.kuzma.here, m: 'Kuzma\'s story, nearly to the end.' },
     { t: 'Night. Senka, in the bunk above, is drawing on the frost of the wall with his fingernail. You do not ask what.', when: () => !S.flags.senkaGone && S.flags.partner },
   ],

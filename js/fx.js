@@ -56,8 +56,9 @@ const FX = (() => {
                    dark: { x: .72, y: .58, r: .45, a: .22 },
                    beam: { x: .655, y: .48, w: .06, angle: 100, spread: 22, len: .35, a: .16, pass: true },
                    breath: [B(.235, .465, 'paper', .6)], motes: { n: 10, region: [.55, .35, .4, .4] } },
-    table:       { smoke: { x: .47, y: .30, color: 'ink', a: .08, r: [8, 26], life: 3, rate: .8, drift: [6, -22], spread: 30 },
-                   pool: { x: .46, y: .36, r: .5, a: .3, swing: .05, period: 7.5, shade: true } },
+    table:       { smoke: { x: .47, y: .26, color: 'ink', a: .08, r: [8, 26], life: 3, rate: .8, drift: [6, -22], spread: 30 },
+                   pool: { x: .46, y: .36, r: .5, a: .3, swing: .05, period: 7.5, shade: true },
+                   liquid: { x: .468, y: .285, rx: .1, ry: .045 } },
     cells:       { beam: { x: .5, y: .17, w: .03, angle: 92, spread: 16, len: .75, a: .32, land: { x: .48, y: .78, rx: .13, ry: .05 } },
                    glow: [{ x: .50, y: .11, r: .05, color: 'paper', a: .18, flicker: .15 }],
                    motes: { n: 16, region: [.42, .2, .16, .6] } },
@@ -183,8 +184,11 @@ const FX = (() => {
 
   // A variant drawing ("noon-03") uses its own entry if there is one (merged over the master's);
   // otherwise it keeps only what does not depend on where things are in the picture.
-  const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool'];
+  const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool', 'liquid'];
+  // pictures that are edits of another share its effects: the breadless table is the table
+  const ALIAS = { table_nobread: 'table' };
   function configFor(key) {
+    if (ALIAS[key]) key = ALIAS[key];
     if (CONF[key] && !key.includes('-0')) return CONF[key];
     const base = key.split('-0')[0], b = CONF[base] || {};
     const out = {};
@@ -212,11 +216,13 @@ const FX = (() => {
     if (cfg.clouds) drawClouds(cfg.clouds, dt);
     if (cfg.dark) drawDark(cfg.dark);
     if (cfg.pool && cfg.pool.shade) drawPool(cfg.pool);
+    if (cfg.liquid) drawRipples(cfg.liquid, dt);
     if (cfg.sweep && cfg.sweep.color === 'warm') drawSweep(cfg.sweep);
     // light
     ctx = ctxL;
     if (cfg.beam) [].concat(cfg.beam).forEach(b => drawBeam(b, dt));
     if (cfg.pool && !cfg.pool.shade) drawPool(cfg.pool);
+    if (cfg.liquid) drawLiquid(cfg.liquid);
     if (cfg.sweep && cfg.sweep.color !== 'warm') drawSweep(cfg.sweep);
     if (cfg.glow) cfg.glow.forEach(drawGlow);
     if (cfg.spill) drawSpill(cfg.spill);
@@ -391,6 +397,45 @@ const FX = (() => {
     else { g.addColorStop(0, `rgba(${col(p.color || 'paper')},${p.a})`); g.addColorStop(1, `rgba(${col(p.color || 'paper')},0)`); }
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
+  // ---- soup: a sheen that slides across the surface, a glint or two, and now and then a ripple
+  // from the middle, as if somebody had knocked the table. Everything is clipped to the bowl.
+  function bowl(l) {
+    ctx.save(); ctx.translate(l.x * W, l.y * H); ctx.scale(1, l.ry / l.rx * H / W);
+    ctx.beginPath(); ctx.arc(0, 0, l.rx * W, 0, 6.3); ctx.clip();
+    return l.rx * W;
+  }
+  function drawLiquid(l) {
+    const r = bowl(l);
+    const sx = Math.sin(t * .35) * r * .55, sy = Math.cos(t * .27) * r * .25;
+    const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * .7);
+    g.addColorStop(0, `rgba(${PAPER},.22)`); g.addColorStop(1, `rgba(${PAPER},0)`);
+    ctx.fillStyle = g; ctx.fillRect(-r, -r, r * 2, r * 2);
+    for (let i = 0; i < 3; i++) {
+      const a = .5 + .5 * Math.sin(t * (1.3 + i * .7) + i * 2);
+      ctx.globalAlpha = a * .5;
+      ctx.fillStyle = `rgb(${PAPER})`;
+      ctx.beginPath(); ctx.arc(Math.cos(i * 2.1 + t * .2) * r * .45, Math.sin(i * 1.7 + t * .15) * r * .4, 1.3 * s, 0, 6.3); ctx.fill();
+    }
+    ctx.globalAlpha = 1; ctx.restore();
+  }
+  let ripple = -1, rippleAt = 2;
+  function drawRipples(l, dt) {
+    rippleAt -= dt;
+    if (rippleAt <= 0 && ripple < 0) { ripple = 0; rippleAt = rnd(4, 9); }
+    if (ripple < 0) return;
+    ripple += dt;
+    const k = ripple / 2.4;
+    if (k >= 1) { ripple = -1; return; }
+    const r = bowl(l);
+    ctx.lineWidth = 1.4 * s;
+    for (const d of [0, .18, .36]) {
+      const kk = k - d; if (kk <= 0) continue;
+      ctx.strokeStyle = `rgba(${INK},${.35 * (1 - kk)})`;
+      ctx.beginPath(); ctx.arc(0, 0, r * kk, 0, 6.3); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   // ---- cloud shadows drifting over the snow
   function drawClouds(c, dt) {
     for (let i = 0; i < clouds.length; i++) {

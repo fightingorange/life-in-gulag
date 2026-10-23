@@ -27,7 +27,9 @@ function auditFiles(T, A) {
   for (const f of need.frame) {
     const has = n => fs.existsSync(path.join(ROOT, `assets/frames/web/${n}.jpg`)) || fs.existsSync(path.join(ROOT, `assets/frames/${n}.png`));
     if (has(f)) continue;
-    if (FALLBACK[f] && has(FALLBACK[f])) fallback.push(`frame ${f} (shows ${FALLBACK[f]} until drawn)`);
+    let n = FALLBACK[f];
+    while (n && !has(n)) n = FALLBACK[n];
+    if (n) fallback.push(`frame ${f} (shows ${n} until drawn)`);
     else missing.push(`frame ${f}`);
   }
   for (const s of need.sfx) {
