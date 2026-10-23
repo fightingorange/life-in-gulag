@@ -32,3 +32,17 @@ Produce 3 or 4 variants per frame, pick one, save it as `assets/frames/<name>.pn
 ## Also useful (optional)
 
 - A portrait-free "cast" sheet: five silhouettes with props only (a notebook, a parcel, a work sheet, a thin coat, a pipe) for Lubimov, Fomin, Pasha, Lev, Kuzma. For future dialogue cards.
+
+## Second set: seven frames for the winter calendar (v2)
+
+Same style prefix, same rules, same production notes (`frames-production.md`). Save as `assets/frames/<name>.png`, then make the web copy:
+`sips -s format jpeg -s formatOptions 82 assets/frames/<name>.png --out assets/frames/web/<name>.jpg`.
+Until a frame exists the game shows its stand-in (in brackets), so these can arrive in any order.
+
+13. **stove** (stand-in: hut_night) — The barracks stove at the centre, glowing through its door slits. Around it, crowded tight, a ring of seated and crouching silhouettes, the nearest with their backs to us. On one side three men sit apart and at ease, one with a cap pushed back: the urki. A space two men wide between the groups. Boots and foot cloths on strings above.
+14. **letter** (stand-in: hut_morning) — Close on a bare plank bunk: an opened envelope with a torn edge, a folded letter with some lines blacked out by the censor (black bars, no readable text), a small opened parcel with a knitted sock spilling out, a stub of pencil. Grey window light from one side.
+15. **inspection** (stand-in: count) — On packed snow before the camp gate, three officials in long good coats and fur hats and a woman holding a notebook, seen from behind the prisoners' column. The commandant a step behind them. The column in fives in the foreground, backs to us. Swept paths, a fresh-limed post.
+16. **blizzard** (stand-in: hut_night) — The barracks window at night seen from inside, the frame of a bunk in the near foreground, a sleeping silhouette. Through the glass, nothing but driving diagonal snow; no tower, no searchlight, no fence visible. Snow packed on the sill.
+17. **office** (stand-in: table) — A small camp office: a plank desk with a lamp, an abacus, stacked ledgers, a large folded map with the line of a river on it (no lettering). A thin young prisoner in a padded jacket bent over it with a pencil, seen in profile as a silhouette.
+18. **easter** (stand-in: hut_night) — On the edge of a plank bunk, a single boiled egg on a scrap of cloth beside a candle stub, its small flame a carved cut in the black. Behind, out of focus, the stove and the bunks. Quiet, devotional, no icons, no crosses.
+19. **ice_out** (stand-in: river) — The river in May breaking up: huge cracked plates of ice tilting and piled against each other, black open water between them, a low bank with a small column of prisoners and two guards standing still, watching. Wide sky, a little smoke on the far horizon.

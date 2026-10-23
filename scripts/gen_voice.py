@@ -6,6 +6,12 @@
     python3 scripts/gen_voice.py lines             # record every missing line
     python3 scripts/gen_voice.py lines fomin_kum   # only these
     python3 scripts/gen_voice.py lines --force     # re-record everything
+    python3 scripts/gen_voice.py oneoff            # voices marked "oneoff": spoken straight from voice design
+    python3 scripts/gen_voice.py oneoff --pick nina=1 --force
+
+A "oneoff" voice is never saved to the account (custom voice slots are limited). Its lines are
+spoken by the voice-design step itself, all in one take so they share a voice, then split at the
+pauses. The take must be at least 100 characters. Takes are kept in assets/voice/previews/.
 
 Voice ids are kept in assets/voice/voices.json. Previews from the design step are saved
 to assets/voice/previews/<voice>_<n>.mp3 so you can listen before picking.
@@ -27,6 +33,11 @@ SAMPLE = {
     "pasha": "The percentage is a hundred and twenty. Do not argue with me, argue with the inspector. The quota is the quota. Somebody has to have done the measuring, and it will not be me.",
     "lev": "They gave me five years for a paper I read aloud. Pain and suffering are always inevitable for a large intelligence and a deep heart. A man who was never hungry wrote that.",
     "kuzma": "Downriver, three days on the ice, there is a settlement of the free ones. They feed you, and then they sell you back. Upriver there is nothing. Nothing is better, I think.",
+    "vaska": "Nice jacket. Warm, is it? Take it off, brother, I only want to see. No? Then we will sit here a while, the three of us, and talk about how warm it is.",
+    "alyosha": "They will take the bread off you at the gate one day. Give it to me. God sees it, and so do the rats, but the rats are lazier than the warders. Christ is risen, brother.",
+    "smith": "I hear you are a man who thinks about fences. I have fifteen centimetres of good steel. Three pinches of tobacco. Not two. Three. And you never saw me.",
+    "commissioner": "Any complaints, prisoners? Speak freely. The Soviet state listens. Comrade commandant, the paths are very clean. Write that down, please. Very clean.",
+    "nina": "My dear. The collective farm paid for the year in workdays, which is to say in nothing. I paint carpets on canvas now and sell them at the station. Swans, mostly. Are you well?",
 }
 
 
@@ -80,6 +91,8 @@ def cmd_design(argv):
     voices = manifest()["voices"]
     state = load_voices()
     for name, spec in voices.items():
+        if spec.get("oneoff"):
+            continue
         st = state.setdefault(name, {})
         if name in picks:
             if "previews" not in st:
@@ -132,6 +145,8 @@ def cmd_lines(argv):
     for line_id, line in m["lines"].items():
         if only and line_id not in only:
             continue
+        if m["voices"][line["voice"]].get("oneoff"):
+            continue
         if (VOICE_DIR / f"{line_id}.mp3").exists() and not force:
             print(f"  {line_id}.mp3  exists, skipped")
             continue
@@ -139,8 +154,76 @@ def cmd_lines(argv):
     print("done")
 
 
+def silences(path):
+    """(start, end) of each pause in an mp3, from ffmpeg's silencedetect."""
+    import subprocess, re
+    out = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path), "-af", "silencedetect=noise=-38dB:d=0.35", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    starts = [float(x) for x in re.findall(r"silence_start: ([0-9.]+)", out)]
+    ends = [float(x) for x in re.findall(r"silence_end: ([0-9.]+)", out)]
+    dur = float(re.search(r"Duration: (\d+):(\d+):([0-9.]+)", out).group(3)) + 60 * int(re.search(r"Duration: (\d+):(\d+)", out).group(2))
+    return list(zip(starts, ends)), dur
+
+
+def cut(src, dst, start, end):
+    import subprocess
+    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-ss", f"{start:.3f}"]
+    if end is not None:
+        cmd += ["-to", f"{end:.3f}"]
+    cmd += ["-c:a", "libmp3lame", "-b:a", "128k", str(dst)]
+    subprocess.run(cmd, check=True)
+
+
+def cmd_oneoff(argv):
+    force = "--force" in argv
+    picks = dict((a.split("=", 1)[0], int(a.split("=", 1)[1])) for a in argv if "=" in a)
+    m = manifest()
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    for name, spec in m["voices"].items():
+        if not spec.get("oneoff"):
+            continue
+        lines = [(lid, l) for lid, l in m["lines"].items() if l["voice"] == name]
+        if not force and all((VOICE_DIR / f"{lid}.mp3").exists() for lid, _ in lines):
+            print(f"  {name}: lines exist, skipped")
+            continue
+        take = [PREVIEW_DIR / f"{name}_take_{i}.mp3" for i in range(3)]
+        if force or not take[0].exists():
+            text = " ... ".join(l["text"] for _, l in lines)
+            if len(text) < 100:
+                sys.exit(f"{name}: a one-off take needs at least 100 characters, has {len(text)}")
+            body = {"voice_description": spec["description"], "text": text, "model_id": "eleven_multilingual_ttv_v2"}
+            status, data, _ = request("POST", "/v1/text-to-voice/design", body)
+            if status != 200:
+                fail(status, data, f"oneoff {name}")
+            for i, p in enumerate(json.loads(data)["previews"][:3]):
+                take[i].write_bytes(base64.b64decode(p["audio_base_64"]))
+            print(f"  {name}: 3 takes -> assets/voice/previews/{name}_take_*.mp3")
+        src = take[picks.get(name, 0)]
+        if len(lines) == 1:
+            cut(src, VOICE_DIR / f"{lines[0][0]}.mp3", 0, None)
+            print(f"  {lines[0][0]}.mp3  from take {picks.get(name, 0)}")
+            continue
+        # split the take where the lines meet: the pause nearest each expected boundary
+        pauses, dur = silences(src)
+        sizes = [len(l["text"]) for _, l in lines]
+        total, bounds, acc = sum(sizes), [], 0
+        for n in sizes[:-1]:
+            acc += n
+            want = dur * acc / total
+            best = min(pauses, key=lambda p: abs((p[0] + p[1]) / 2 - want)) if pauses else (want, want)
+            bounds.append(best)
+        t0 = 0.0
+        for i, (lid, _) in enumerate(lines):
+            end = bounds[i][0] + 0.15 if i < len(bounds) else None
+            cut(src, VOICE_DIR / f"{lid}.mp3", t0, end)
+            print(f"  {lid}.mp3  {t0:.1f}s to {'end' if end is None else f'{end:.1f}s'}")
+            t0 = max(0.0, bounds[i][1] - 0.15) if i < len(bounds) else t0
+    print("done")
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
-    if not args or args[0] not in ("design", "lines"):
+    cmds = {"design": cmd_design, "lines": cmd_lines, "oneoff": cmd_oneoff}
+    if not args or args[0] not in cmds:
         sys.exit(__doc__)
-    (cmd_design if args[0] == "design" else cmd_lines)(args[1:])
+    cmds[args[0]](args[1:])

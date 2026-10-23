@@ -43,5 +43,23 @@
     ],
     "voice_id": "Au1qq6DpVhshuYR5CNkk",
     "picked": 0
+  },
+  "vaska": {
+    "previews": [
+      "o2glvlkZdDSKXOBlJRRU",
+      "qmPXYKHBLAJ0WM36ZTqL",
+      "hWak8ZEaSLdEqyYVuyWO"
+    ],
+    "voice_id": "o2glvlkZdDSKXOBlJRRU",
+    "picked": 0
+  },
+  "alyosha": {
+    "previews": [
+      "IePFdQUHWUOBSl2crJo2",
+      "0oOuJPIE0vDWIYzjcb1T",
+      "xHNoitd4ByZbT8bDARPj"
+    ],
+    "voice_id": "IePFdQUHWUOBSl2crJo2",
+    "picked": 0
   }
 }

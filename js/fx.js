@@ -84,7 +84,7 @@ const FX = (() => {
 
   function set(frameName) {
     name = frameName;
-    cfg = (frameName && CONF[frameName]) || null;
+    cfg = frameName ? (CONF[frameName] || {}) : null;   // an unconfigured frame still gets the grain
     if (reduced) cfg = null;
     if (cfg) { resize(); start(); } else { stop(); if (ctx) ctx.clearRect(0, 0, W, H); }
   }
