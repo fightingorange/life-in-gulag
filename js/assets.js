@@ -14,6 +14,9 @@ const ASSETS = {
     count: [.5, .62], table: [.45, .42], river: [.31, .42], office: [.62, .38], site: [.25, .56],
     letter: [.47, .5], inspection: [.66, .3], ice_out: [.22, .56], dead: [.42, .62], title: [.42, .5],
     cells: [.5, .55], wire: [.25, .5],
+    reveille: [.42, .4], breakfast_400: [.55, .35], breakfast_550: [.58, .35], breakfast_650: [.55, .35],
+    supper: [.55, .35], site_power_1: [.5, .45], site_power_2: [.5, .45], site_power_3: [.5, .45],
+    site_timber_1: [.5, .5], site_timber_2: [.55, .55], site_timber_3: [.55, .55],
   },
   // A frame name may stand for a picture not drawn yet; it shows its stand-in until the file exists.
   // Stand-ins can chain: site_power_3 -> site_power_2 -> site_power_1 -> site.

@@ -78,6 +78,26 @@ const FX = (() => {
     office:      { beam: { x: .26, y: .3, w: .05, angle: 62, spread: 58, len: .38, a: .3, color: 'warm', flicker: .08, land: { x: .42, y: .58, rx: .2, ry: .07 } },
                    glow: [{ x: .265, y: .27, r: .06, color: 'warm', a: .3, flicker: .1 }],
                    motes: { n: 10, region: [.25, .25, .25, .25] } },
+    // ---- the third set: pictures that follow the day
+    reveille:    { glow: [{ x: .275, y: .22, r: .07, color: 'warm', a: .45, flicker: .35 }, { x: .03, y: .34, r: .06, color: 'warm', a: .25, flicker: .1 }],
+                   spill: { x: .29, y: .32, r: .38, a: .13 },
+                   sweep: { x: .945, y: .41, a0: 184, a1: 204, period: 13, len: .38, spread: 7 },
+                   snow: { n: 70, color: 'paper', wind: -20, speed: [18, 40], size: [.6, 1.4] },
+                   breath: [B(.385, .34, 'paper', .7)] },
+    hut_morning_dark: { glow: [{ x: .668, y: .21, r: .05, color: 'paper', a: .4, flicker: .06 }],
+                   beam: { x: .668, y: .23, w: .02, angle: 92, spread: 70, len: .5, a: .12, breathe: false, flicker: .05, land: { x: .67, y: .78, rx: .2, ry: .07 } },
+                   motes: { n: 12, region: [.58, .25, .18, .45] } },
+    hut_morning_grey: { beam: { x: .725, y: .5, w: .07, angle: 96, spread: 24, len: .5, a: .2, pass: true, land: { x: .72, y: .78, rx: .15, ry: .05 } },
+                   motes: { n: 14, region: [.62, .48, .22, .4] } },
+    hut_morning_sun: { beam: { x: .725, y: .48, w: .07, angle: 100, spread: 30, len: .62, a: .28, pass: true },
+                   glow: [{ x: .725, y: .45, r: .08, color: 'paper', a: .25, flicker: .1 }],
+                   motes: { n: 24, region: [.55, .45, .3, .45] } },
+    site_power_1: { snow: { n: 50, color: 'ink', wind: 25, speed: [15, 35], size: [.6, 1.2], streak: true },
+                   smoke: { x: .73, y: .6, color: 'ink', a: .08, r: [6, 26], life: 4, rate: 1.2, drift: [10, -26], spread: 10 },
+                   clouds: { n: 4, a: .18, speed: 10 } },
+    site_timber_1: { snow: { n: 40, color: 'ink', wind: 30, speed: [15, 32], size: [.6, 1.2], streak: true },
+                   breath: [B(.385, .48, 'ink', .6), B(.69, .36, 'ink', .6)],
+                   clouds: { n: 4, a: .17, speed: 11 } },
     easter:      { ember: { x: .852, y: .575, r: .07, floor: { x: .82, y: .66, rx: .16, ry: .04 } },
                    spill: { x: .84, y: .6, r: .3, a: .12 },
                    dark: { x: .84, y: .6, r: .55, a: .2 },
@@ -186,7 +206,12 @@ const FX = (() => {
   // otherwise it keeps only what does not depend on where things are in the picture.
   const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool', 'liquid'];
   // pictures that are edits of another share its effects: the breadless table is the table
-  const ALIAS = { table_nobread: 'table' };
+  const ALIAS = {
+    table_nobread: 'table', breakfast_400: 'table', breakfast_550: 'table', breakfast_650: 'table', supper: 'table', supper_b: 'table',
+    site_power_2: 'site_power_1', site_power_3: 'site_power_1',
+    site_settlement_1: 'site', site_settlement_2: 'site', site_settlement_3: 'site',
+    site_timber_2: 'site_timber_1', site_timber_3: 'site_timber_1',
+  };
   function configFor(key) {
     if (ALIAS[key]) key = ALIAS[key];
     if (CONF[key] && !key.includes('-0')) return CONF[key];

@@ -1,6 +1,6 @@
 # Ten Years — shared production direction
 
-This supplements the locked prefix and both shot sets in `frames.md` (nineteen frames).
+This supplements the locked prefix and all three shot sets in `frames.md` (thirty-seven frame names).
 
 ## Visual continuity
 
@@ -23,3 +23,11 @@ Produce three separate image files per shot. The scene and medium stay fixed; va
 If a selected composition needs a targeted correction, preserve that correction as a fourth variant. The second set's inspection scene uses this to clarify the ranks of five. Export selected masters to `assets/frames/web/<name>.jpg` with `sips -s format jpeg -s formatOptions 82 assets/frames/<name>.png --out assets/frames/web/<name>.jpg`.
 
 Record the exact generation prompts and original output paths in each group's production JSON under `assets/frames/production/`. Preserve the three variants under `assets/frames/variants/` so selections remain reviewable.
+
+## Third-set continuity
+
+- Treat lighting, ration, supper and later construction stages as edits of the specified masters. Candidate variants must preserve the viewpoint; they are review alternatives, not alternate camera angles for the game to cycle through.
+- The three morning lights use the same `hut_morning.png` input. Express grey light and shadows through carved density, retaining the two inks.
+- Breakfast changes only the bread. Supper keeps the bowl in its original position; the spoon-lift companion uses the selected supper master as its input. Generated twins preserve visual registration but can retain small ink/paper texture differences outside the hand; inspect the slow fade before promising pixel identity.
+- Reuse `site.png` byte for byte as `site_settlement_1.png`. Edit later site stages from their selected stage-one master to keep landmarks aligned.
+- Preserve the original nineteen masters. Export new masters and all candidate variants as quality-82 web JPEGs. Regenerate their depth maps with the existing `scripts/depth.py` pipeline.
