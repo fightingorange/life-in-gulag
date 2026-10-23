@@ -1,6 +1,8 @@
 'use strict';
 // The wire. Two parts: getting through the fence, and three days on the ice.
 // The plan screen says, in words, how each part stands tonight and what is missing.
+// When the clock on a choice runs out (ui.js), the choice marked def is taken: here always the one
+// that does not run: back to the bunk, the drift, the river, nothing on the table.
 
 function breadForPlan() { return S.bread + (S.flags.partner && S.flags.senkaBread ? 300 : 0); }
 function planHas() {
@@ -35,6 +37,7 @@ function iceOdds() {
   if (S.temp <= -35) p -= .15; else if (S.temp > -20) p += .08;
   if (S.day >= THAW_DAY) p -= .3;
   if (S.strength < 40) p -= .1;
+  if (S.flags.rubber) p -= .1;   // Vaska's rubber boots on the ice
   return clamp(p, .02, .85);
 }
 function oddsWord(p) {
@@ -57,6 +60,7 @@ function plan() {
   paras.push(S.today.blizzard ? 'Tonight there is a blizzard. The towers are blind.' : 'Tonight the towers can see. A blizzard would blind them.');
   if (S.temp <= -35) paras.push('It is too cold for the ice. Men freeze on the river at this temperature with bread in their pockets.');
   if (S.day >= THAW_DAY) paras.push('The ice is going bad. Kuzma said after the tenth it would not hold a man.');
+  if (S.flags.rubber) paras.push('And your feet. Three days on the ice in tyre rubber and rag: the river would have your toes by the second night.');
   show(paras, [
     { id: 'wait', label: 'Not tonight.', fn: () => go(endDay) },
     { id: 'go', label: 'Tonight.', hint: `the fence: ${oddsWord(f)}; the ice: ${oddsWord(i)}`, fn: escape },
@@ -72,7 +76,7 @@ function plan() {
 function newEscape() {
   return { partner: !!S.flags.partner && !S.flags.senkaGone, bread: breadForPlan(), blade: !!S.flags.blade,
     route: !!(S.flags.river || S.flags.map), map: !!S.flags.map, temp: S.temp, blizzard: !!(S.today && S.today.blizzard),
-    thaw: S.day >= THAW_DAY, strength: S.strength, days: 0, cause: null, gave: null };
+    thaw: S.day >= THAW_DAY, strength: S.strength, rubber: !!S.flags.rubber, days: 0, cause: null, gave: null };
 }
 // every stage can be entered directly (dev jumps, tests): it sets up the attempt if there is none
 function attempt() { if (!S.esc) S.esc = newEscape(); return S.esc; }
@@ -89,7 +93,7 @@ function escape() {
   if (E.partner) ch.push({ id: 'post', label: 'The rotten post Senka showed you.', hint: 'he has done this before', fn: () => fence('post') });
   if (E.blade) ch.push({ id: 'cut', label: 'Behind the carpenters\' shed. Cut the wire.', hint: 'the blade; the shed hides you from the tower', fn: () => fence('cut') });
   ch.push({ id: 'gap', label: 'The gap under the wire by the latrine.', hint: 'everyone knows it; so do the guards', fn: () => fence('gap') });
-  ch.push({ id: 'back', label: 'Go back to your bunk.', hint: 'nobody has seen anything yet', fn: () => { S.esc = null; go(endDay); } });
+  ch.push({ id: 'back', def: true, label: 'Go back to your bunk.', hint: 'nobody has seen anything yet', fn: () => { S.esc = null; go(endDay); } });
   show(paras, ch, { frame: 'wire', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_wind', sfx: 'searchlight', story: true, escape: 'fence' });
 }
 function fenceChance(route) {
@@ -123,22 +127,23 @@ function firstNight() {
   const paras = ['The first night on the ice. ' + cold];
   if (E.thaw) paras.push('Under your feet the ice talks: long, low creaks, and once a crack like a rifle a long way off. Kuzma said after the tenth it would not hold a man.');
   if (!E.route) paras.push('You do not know the river. In the dark every bend looks like every other bend.');
+  if (E.rubber) paras.push('Your feet in the rubber boots stopped hurting an hour ago. You know what that means, and you keep walking anyway.');
   show(paras, [
     { id: 'walk', label: 'Walk through the night. Distance is everything.', hint: 'the dogs start at the count', fn: () => night1('walk') },
-    { id: 'drift', label: 'Dig into a drift under the bank and sleep till grey light.', hint: E.partner ? 'Senka will keep watch' : 'men sleep in the snow and do not wake', fn: () => night1('drift') },
+    { id: 'drift', def: true, label: 'Dig into a drift under the bank and sleep till grey light.', hint: E.partner ? 'Senka will keep watch' : 'men sleep in the snow and do not wake', fn: () => night1('drift') },
   ], { frame: 'river', amb: 'amb_wind', story: true, escape: 'night' });
 }
 function night1(how) {
   const E = attempt();
   E.night = how;
-  const guard = E.partner ? .5 : 1;
+  const guard = (E.partner ? .5 : 1) * (E.rubber ? 1.6 : 1);   // rubber boots freeze faster than felt
   if (E.thaw && chance(how === 'walk' ? .3 : .15)) { E.cause = 'ice'; return finish('frozen'); }
   if (how === 'walk') {
     adj(-14);
-    if (E.temp <= -35 && chance(.22 * guard)) { E.cause = 'walk'; return finish('frozen'); }
+    if (E.temp <= (E.rubber ? -28 : -35) && chance(.22 * guard)) { E.cause = 'walk'; return finish('frozen'); }
   } else {
     adj(-6);
-    if (E.temp <= -30 && chance(.2 * guard)) { E.cause = 'sat'; return finish('frozen'); }
+    if (E.temp <= (E.rubber ? -24 : -30) && chance(.2 * guard)) { E.cause = 'sat'; return finish('frozen'); }
   }
   // the dogs: worse if they noticed you, if you slept, if they were already searching
   let dogs = how === 'walk' ? .1 : .22;
@@ -155,7 +160,7 @@ function night1(how) {
   paras.push('The second day. Late in the afternoon there is smoke on the bank ahead: one hut, a fisherman\'s, with a boat turned over beside it and nets on poles.');
   const ch = [
     { id: 'hut', label: 'Go to the hut.', hint: 'a stove, food; a man who might talk', fn: () => day2('hut') },
-    { id: 'river', label: 'Keep to the river. Keep walking.', hint: `${breadLeft()} g of bread left`, fn: () => day2('river') },
+    { id: 'river', def: true, label: 'Keep to the river. Keep walking.', hint: `${breadLeft()} g of bread left`, fn: () => day2('river') },
   ];
   show(paras, ch, { frame: 'ice_out', amb: 'amb_wind', story: true, escape: 'day2' });
 }
@@ -191,8 +196,9 @@ function settlement() {
   if (E.blade) ch.push({ id: 'blade', label: 'Put the blade on the table.', hint: 'fifteen centimetres of steel is worth more than you are', fn: () => give('blade', .78) });
   if (E.partner) ch.push({ id: 'senka', label: 'Let Senka talk to him, with his hands.', hint: 'two men who have been where he has been', fn: () => give('senka', .72) });
   if (S.tobacco >= 2) ch.push({ id: 'tobacco', label: 'Give him your tobacco.', hint: `${numberWord(S.tobacco)} pinches`, fn: () => give('tobacco', .58 + Math.min(.12, S.tobacco * .02)) });
+  if (S.flags.money) ch.push({ id: 'money', label: 'Put Nina\'s roubles on the table.', hint: 'twenty-five roubles; out here money is money again', fn: () => give('money', .55) });
   if (breadLeft() > 0) ch.push({ id: 'bread', label: 'Give him what is left of the bread.', hint: `${breadLeft()} g`, fn: () => give('bread', .52) });
-  ch.push({ id: 'nothing', label: 'Give him nothing. Eat the soup, and look at him.', hint: 'he was in a camp once too', fn: () => give('nothing', .36) });
+  ch.push({ id: 'nothing', def: true, label: 'Give him nothing. Eat the soup, and look at him.', hint: 'he was in a camp once too', fn: () => give('nothing', .36) });
   show(paras, ch, { frame: 'table', amb: 'amb_hut', story: true, escape: 'settlement' });
 }
 function give(what, p) {

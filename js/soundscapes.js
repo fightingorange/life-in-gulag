@@ -47,6 +47,41 @@ const SCAPES = {
     spots: [['spot_pick', [3, 8], .4], ['spot_shout_far', [14, 30], .3], ['spot_gust', [10, 22], .4], ['spot_crow', [25, 60], .25],
       [['ru_site_davai', 'ru_site_move', 'ru_site_nostand', 'ru_site_heave', 'ru_site_heave2', 'ru_site_davai2'], [7, 16], .3]],
   },
+  // each site its own work (the work screen names 'site_' + the site's key; amb_site is the fallback).
+  // A quiet entry is the same work further off: another gang down the wall, across the field, up the bank.
+  // the power station: laying bricks on the second storey, the mortar freezing on the trowel
+  site_power: {
+    beds: [['bed_wind_snow', .4]],
+    spots: [['spot_trowel', [3, 8], .4], ['spot_brick', [4, 10], .35], [['spot_trowel', 'spot_brick'], [5, 12], .14],
+      ['spot_gust', [10, 22], .4], ['spot_shout_far', [16, 34], .25],
+      [['ru_site_davai', 'ru_site_move', 'ru_site_nostand', 'ru_site_davai2', 'ru_site_smoke'], [8, 18], .3]],
+  },
+  // the settlement: picks and shovels in frozen ground; the carpenters' shed at the edge
+  site_settlement: {
+    beds: [['bed_wind_snow', .4]],
+    spots: [['spot_pick', [3, 7], .4], ['spot_shovel', [4, 10], .35], [['spot_pick', 'spot_shovel'], [5, 12], .14],
+      ['spot_saw', [20, 45], .12], ['spot_gust', [10, 22], .4], ['spot_crow', [25, 60], .25],
+      [['ru_site_davai', 'ru_site_move', 'ru_site_nostand', 'ru_site_davai2', 'ru_site_smoke'], [7, 16], .3]],
+  },
+  // the river bank: logs hauled up to the sledge, axes and a two-man saw, the frozen river below
+  site_timber: {
+    beds: [['bed_wind_snow', .4]],
+    spots: [['log_drag', [10, 22], .35], ['spot_axe', [5, 12], .35], ['spot_axe', [8, 18], .14], ['spot_saw', [10, 24], .3],
+      ['spot_gust', [10, 22], .35], ['spot_ice_crack', [40, 90], .2],
+      [['ru_site_heave', 'ru_site_heave2', 'ru_site_davai2'], [6, 14], .3],
+      [['ru_site_davai', 'ru_site_move', 'ru_site_nostand', 'ru_site_smoke'], [14, 30], .25]],
+  },
+  // arrival: inside the goods wagon on the move (amb_train): a plank creaking, a man coughing, the wind at the boards
+  amb_train: {
+    beds: [],
+    spots: [['spot_creak', [8, 20], .3], ['cough', [12, 30], .3], ['spot_gust', [16, 36], .2]],
+  },
+  // arrival: the column marching from the railhead. The story plays ru_march_rule and ru_march_quiet itself.
+  arrival_march: {
+    beds: [['bed_column', .5], ['bed_wind_snow', .4]],
+    spots: [['dogs', [18, 40], .3], ['spot_gust', [8, 18], .4], ['spot_snow_steps', [10, 24], .3],
+      [['ru_march_close', 'ru_march_hands'], [12, 28], .35]],
+  },
   // the mess hut: the queue (amb_queue), spoons on tin, the stove; the door letting the cold in
   amb_queue: {
     beds: [['bed_spoons', .55], ['bed_stove', .2], ['ru_mess_murmur', .3]],

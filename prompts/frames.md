@@ -171,3 +171,111 @@ The game cycles these while the gate screen is up: a man searched, the spot empt
     to walk along the front row.
 45. **figure: column_man_a/b** — one prisoner in a padded jacket walking, seen from behind, two steps,
     for the column moving through the gate.
+
+## Fifth set: the arrival, the hut at its true size, people who move (v5)
+
+Same style prefix, rules and production notes. Plates, figures and sequences as defined in set four.
+Every name below has a stand-in in the game already (`js/assets.js`), so they can arrive in any order.
+
+**One rule for every outdoor picture from now on, old and new: the snow is lived on.** Trodden paths
+between the huts, packed tracks where the column walks, footprints, the runners of a sledge, a dark
+line where a man dragged something. Inside the camp no snow is untouched. Out in the country, the column's
+own track behind it.
+
+### A. The arrival
+
+The player now arrives: days in a prison wagon, a long march from the railhead, the gate at night,
+processing, the hut. These pictures carry the first ten minutes of the game.
+
+46. **arrival_wagon** — Inside a closed wooden goods wagon in winter, half dark. Two tiers of rough plank
+    shelves on both sides packed with men lying and sitting in coats, a small iron stove in the middle with
+    a pipe through the roof, a barred slit of a window high up letting in one grey stripe of light, frost
+    on the planks. Seen from the floor near the door.
+47. **arrival_railhead** — The train stopped in empty white country: a line of dark goods wagons, one door
+    rolled open, men climbing down into knee-deep snow with bundles. A row of guards with rifles and two
+    dogs on leashes along the track. No station, only a water tower and a hut.
+48. **arrival_march** — The column strung out across flat white country under a low sky, seen from inside
+    it, slightly above: the backs of the men in fives ahead, bundles on their shoulders, a guard on each side
+    a few paces off with a rifle, one with a dog. The column's track behind it, nothing else on the plain.
+49. **arrival_march_dusk** — the same march hours later: the light nearly gone, the column smaller and
+    straggling, and far ahead, low on the horizon, a row of lights on poles and the dark shapes of towers:
+    the camp. (An edit of 48 is ideal.)
+50. **arrival_gate** — The camp gate at night from outside: the wooden arch with its lamp, the gates
+    open, the new column halted in fives in front of it in the snow, a guard with a board counting them
+    through, searchlight beams crossing above. (Different from `gate`, which is seen from inside.)
+51. **arrival_processing** — Inside the guardhouse: a plank table with an oil lamp and an open register,
+    a clerk in uniform writing; before the table one prisoner standing with his cap in his hand, his bundle
+    opened on the floor; along the wall a bench of men waiting. Hard lamplight, deep shadows.
+52. **arrival_hut** — The barracks in the evening, everyone awake: new men standing in the aisle with
+    their bundles, not knowing where to go; old prisoners on the bunks looking at them; in the foreground,
+    on a lower bunk, an older man sitting with his elbows on his knees, the one who will explain how it
+    works. The stove lit.
+
+### B. The hut at its true size, and a slow look round it
+
+The current hut reads as a room for twenty or forty. A camp barracks held two hundred.
+
+53. **hut_night_pano** — A wide panorama, **3:1** (at least 4800 × 1600), of a long barracks at night
+    seen from eye level near the middle of the aisle, so that the game can turn slowly across it like a
+    head turning: two-tier bunks ("vagonki") in long rows on both sides running away into the dark, both
+    ends of the hut visible at the far left and far right, two iron stoves glowing at intervals, one dim
+    bulb, felt boots and foot cloths hanging on strings over the stoves, bodies on every bunk, a few men
+    sitting up. **On one lower bunk in the near right third, the blanket and the boards are drawn with
+    nobody in them**: a figure will be laid there.
+54. **figure: sleeper_turn_a / sleeper_turn_b / sleeper_turn_c** — one man in a padded jacket lying on
+    that bunk under a thin blanket, alone on paper, at exactly the scale and angle of that bunk in 53: (a) on
+    his back, (b) half turned onto his side, (c) on his side facing the wall, knees drawn up. The game cuts
+    between them every half minute or so, with a creak.
+
+### C. Reveille, after the rail
+
+55. **reveille_after** — an edit of `reveille`: the rail has been struck. The same man stands at ease
+    beside the post, the hammer hanging at his side, looking towards the huts; the rail still. Everything
+    else exactly the same, line for line, so the lantern's light still fits.
+
+### D. The mess table, crowded — new master, then edits
+
+The breakfast and supper pictures look like a laid table in a still life: one bowl, the spoon placed
+beside it. A camp mess hut is crowded and nobody lays anything.
+
+56. **mess_table** — A long plank mess table seen from the place of one man sitting at it, looking down:
+    his own tin bowl close in front of him, his two hands, and on both sides of him other men's elbows,
+    sleeves and bowls, shoulder to shoulder on the bench; across the table more men bent over their bowls,
+    heads down, caps on; spilled soup and bread crumbs on the boards; steam. His right hand holds the
+    wooden spoon in the bowl. Nothing is arranged.
+57. **breakfast_550 / breakfast_400 / breakfast_650** — edits of 56 with the bread beside his bowl, sizes
+    as in set three (a heavy quarter-loaf block; the heel, clearly less; almost a third of a loaf).
+58. **supper / supper_b** — edits of 56, no bread anywhere, as in set three: (a) spoon in the soup, the left
+    hand steadying the rim; (b) the spoon lifted, a drip falling. These replace the current ones.
+
+### E. Work that moves — plates and figures
+
+A man caught mid-swing for half a minute looks frozen. The workers become figures the game moves:
+each figure in two or three poses, cut between in time with the sound of the blow.
+
+59. **site_settlement_plate_1 / _2 / _3** — edits of `site_settlement_1/2/3` with the men who dig
+    removed (the ground where they stood trodden).
+60. **figure: digger_a / digger_b** — a man with a pick, as the nearest digger in `site_settlement_1`,
+    same scale: (a) the pick raised over his shoulder, (b) the pick driven into the ground, back bent.
+61. **figure: shoveller_a / shoveller_b** — a man with a shovel: (a) the blade pushed into the spoil,
+    (b) throwing the spoil over his shoulder.
+62. **site_power_plate_1 / _2 / _3** — edits of `site_power_1/2/3` with the bricklayers on the
+    scaffolding removed.
+63. **figure: bricklayer_a / bricklayer_b** — a man on the scaffold planks, as the nearest bricklayer in
+    `site_power_1`: (a) bent to the mortar box with a trowel, (b) upright, setting a brick on the wall.
+64. **figure: axeman_a / axeman_b** — for the timber bank: a man trimming a log with an axe, (a) the axe
+    raised, (b) the axe in the wood. Same scale as the haulers in `site_timber_1`.
+
+### F. Noon: the men move with the fire
+
+65. **noon_plate** — an edit of `noon` with the crouching men removed: the fire, the scrap wood, the
+    trodden snow round it.
+66. **figure: noon_men_a / noon_men_b** — the group of crouching men as in `noon`, as one figure:
+    (a) hands held out to the fire, (b) the same men a moment later: one rubbing his hands, one with his
+    head turned away from the smoke, one shifted on his heels. Same position and scale.
+
+### G. Tracks in the snow — edits of existing pictures, saved under the same names
+
+Edits, not new compositions, so the game's light still lines up. Add only trodden paths, footprints and
+sledge tracks as in the rule above: `count`, `gate` (and `gate_search`, `gate_empty`, `gate_next`),
+`inspection`, `noon`, `reveille`, `wire`, `river`, `site_*` (all nine), `ice_out`.

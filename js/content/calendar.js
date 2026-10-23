@@ -1,6 +1,6 @@
 'use strict';
 // The winter's calendar: things that happen to the whole camp on (or after) a given day.
-// A morning beat replaces reveille; a noon beat replaces the noon event.
+// A morning beat replaces reveille; a noon beat replaces the noon event; a night beat replaces the night.
 
 const BEATS = [];
 function BEAT(id, day, at, run, extra) { BEATS.push(Object.assign({ id, day, at, run }, extra || {})); }
@@ -25,7 +25,7 @@ BEAT('stove', 24, 'noon', () => {
       note('You were warm for an afternoon. Vaska Kosoi saw where you stood.', true);
       afterNoon();
     } },
-    { id: 'wait', label: 'Wait your turn at the edge.', fn: () => { adj(3); note('Your turn came at four. It lasted twenty minutes.'); afterNoon(); } },
+    { id: 'wait', def: true, label: 'Wait your turn at the edge.', fn: () => { adj(3); note('Your turn came at four. It lasted twenty minutes.'); afterNoon(); } },
   ];
   if (S.lev.alive) ch.push({ id: 'lev', label: 'Give your place to Lev.', hint: `Lev is ${levWord()}`, fn: () => {
     S.lev.health = Math.min(100, S.lev.health + 15); S.lev.helped++; adj(-2); brig(4);
@@ -38,7 +38,7 @@ BEAT('stove', 24, 'noon', () => {
 
 // 4 February: a letter
 BEAT('letter1', 33, 'noon', () => {
-  const ch = [{ id: 'nowrite', label: 'Don\'t write. Nothing that is true gets through.', fn: () => { adj(-3); afterNoon(); } }];
+  const ch = [{ id: 'nowrite', def: true, label: 'Don\'t write. Nothing that is true gets through.', fn: () => { adj(-3); afterNoon(); } }];
   if (S.tobacco > 0) ch.unshift({ id: 'write', label: 'Write back. Paper costs a pinch of tobacco.', fn: () => {
     tob(-1); adj(4); S.flags.wrote = true;
     mercy('A letter home.', 0);
@@ -108,7 +108,7 @@ BEAT('parcel', 80, 'noon', () => {
       note('The lard went round the brigade on the point of a knife. Pasha took the smallest piece, which is how you know he is the foreman.', true);
       afterNoon();
     } },
-    { id: 'eat', label: 'Eat it yourself, slowly, over a week.', fn: () => { adj(18); tob(2); note('The lard, a little every night, in the dark, like a secret.'); mercy('A parcel, in her handwriting.', 0); afterNoon(); } },
+    { id: 'eat', def: true, label: 'Eat it yourself, slowly, over a week.', fn: () => { adj(18); tob(2); note('The lard, a little every night, in the dark, like a secret.'); mercy('A parcel, in her handwriting.', 0); afterNoon(); } },
   ];
   if (!S.flags.blade) ch.push({ id: 'trade', label: 'Trade the lard to the blacksmith\'s man.', hint: 'fifteen centimetres of steel', fn: () => {
     S.flags.blade = true; S.flags.bladeDay = S.day; tob(2); eye(5);
@@ -128,13 +128,14 @@ BEAT('letter2', 100, 'noon', () => {
     'A second letter. The censor has left almost all of it, which tells you what kind of letter it is before you read it.',
     'Tanya has finished school. They will not take her at the institute with a father like hers. The man at the district office says that if your wife divorces you, it will be as if Tanya had no father, and then they will take her.',
     'She does not ask you to agree. She sends the form, already signed, and asks you to forgive her.',
+    ...(S.flags.photo ? ['You take the photograph out from under your heel and look at it for a long time: Nina, and Tanya at nine, in a coat that used to be yours.'] : []),
   ], [
     { id: 'sign', label: 'Sign it.', fn: () => {
       adj(-6); S.flags.signed = true;
       note(`You signed it on the bunk, with ${pencil}. The letters will stop. That was the price, and you paid it.`, true);
       afterNoon();
     } },
-    { id: 'keep', label: 'Put it inside your jacket, unsigned.', fn: () => {
+    { id: 'keep', def: true, label: 'Put it inside your jacket, unsigned.', fn: () => {
       adj(-3);
       note('You carry it against your chest. It is not warm. Nothing in here is.', true);
       afterNoon();
@@ -152,7 +153,7 @@ BEAT('easter', 117, 'noon', () => {
       : 'In the evening, by the stove, he says to nobody and everybody: "Christ is risen." Nobody answers. Kuzma would have answered.',
   ], [
     { id: 'say', label: 'Say it too.', fn: () => { adj(4); note('You said it. You do not know whether you believe it. It was warm to say.'); mercy('Christ is risen, said out loud.', 0); afterNoon(); } },
-    { id: 'quiet', label: 'Say nothing.', fn: afterNoon },
+    { id: 'quiet', def: true, label: 'Say nothing.', fn: afterNoon },
   ], { frame: 'easter', amb: 'amb_hut', voice: kuzma ? ['alyosha_easter', 'kuzma_easter'] : 'alyosha_easter' });
 });
 

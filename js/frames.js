@@ -3,8 +3,8 @@
 // the living overlay (fx.js) and the moving figures (sprites.js) follow whichever picture is actually on screen.
 // Over the winter a place is seen from different angles: each frame moves to another of its
 // drawings every day. The page tints the prints by month, and darkens them as the body fails.
-// A screen can also run a short sequence of pictures (ASSETS.sequences), and each picture has its own
-// camera move (ASSETS.cams).
+// A screen can also run a short sequence of pictures (ASSETS.sequences). The camera is locked, except for
+// the few pictures that have a move of their own (ASSETS.cams).
 // With WebGL the print itself is drawn by glframe.js (ink boil, parallax); the <img> layers stay as the fallback.
 const FRAME = (() => {
   const box = document.getElementById('frame');
@@ -44,21 +44,37 @@ const FRAME = (() => {
     const order = [v.selected, ...v.all.filter(k => k !== v.selected)];
     return order[(Math.floor((day - 1) / ASSETS.every) + h) % order.length];
   }
-  function sources(name) {
-    const out = [];
-    const v = variantOf(name);
-    const sel = ASSETS.variants[name] && ASSETS.variants[name].selected;
-    if (v !== null && v !== sel) out.push([`${name}-0${v}`, `assets/frames/web/variants/${name}-0${v}.jpg`, false]);
+  // the names a frame may show, itself first and then its stand-ins
+  function chain(name) {
     const names = [name];
     for (let n = ASSETS.fallback[name]; n && !names.includes(n); n = ASSETS.fallback[n]) names.push(n);
-    for (const n of names.filter(n => !missing[n])) out.push([n, `assets/frames/web/${n}.jpg`, false], [n, `assets/frames/${n}.png`, true]);
+    return names;
+  }
+  // which drawings it shows today: its own variant, and for a stand-in listed in ASSETS.inherit, the
+  // variant of the place it stands in for (the night hut's panorama shows the hut's drawing of the day)
+  function variantsOf(name) {
+    const inherit = ASSETS.inherit && ASSETS.inherit.includes(name);
+    const out = new Map();
+    chain(name).forEach((n, i) => { const v = (i === 0 || inherit) ? variantOf(n) : null; if (v !== null) out.set(n, v); });
+    return out;
+  }
+  const vtag = name => [...variantsOf(name)].map(([n, v]) => n + v).join(',');
+  function sources(name) {
+    const out = [], vs = variantsOf(name);
+    for (const n of chain(name)) {
+      const v = vs.has(n) ? vs.get(n) : null, sel = ASSETS.variants[n] && ASSETS.variants[n].selected;
+      if (v !== null && v !== sel) out.push([`${n}-0${v}`, `assets/frames/web/variants/${n}-0${v}.jpg`, false]);
+      // a plate with moving figures (sprites.js) stands in for the master drawing when it exists
+      for (const p of window.SPRITES ? SPRITES.plates(n) : []) if (!missing[p]) out.push([p, `assets/frames/web/${p}.jpg`, false], [p, `assets/frames/${p}.png`, true]);
+      if (!missing[n]) out.push([n, `assets/frames/web/${n}.jpg`, false], [n, `assets/frames/${n}.png`, true]);
+    }
     return out;
   }
   // which picture a frame name will actually show today: [key, src], or null if nothing loads.
   // Remembered, so a sequence knows at once whether its steps are different pictures.
   const resolved = {};
   function resolve(name) {
-    const id = name + '@' + variantOf(name);
+    const id = name + '@' + vtag(name);
     if (resolved[id]) return resolved[id];
     const list = sources(name);
     return resolved[id] = new Promise(done => (function next(i) {
@@ -76,6 +92,7 @@ const FRAME = (() => {
     const id = ++putId;
     stage.style.setProperty('--fade', (fade || 1.1) + 's');
     const back = layers[1 - front];
+    back.style.objectPosition = '';      // a wide picture may have been panned
     back.src = src;
     const swap = () => {
       if (id !== putId) return;          // a newer picture was asked for while this one decoded
@@ -84,6 +101,7 @@ const FRAME = (() => {
       front = 1 - front;
       if (window.FX) FX.set(key);
       if (window.SPRITES) SPRITES.set(key);
+      aim(key, fade || 1.1);     // the new picture's camera move, blended in under the crossfade
     };
     if (living) GLFRAME.show(key, src);
     loop(key);
@@ -114,63 +132,46 @@ const FRAME = (() => {
   }
 
   // ---------- the camera ----------
-  // Each picture has a named move (ASSETS.cams, or the screen's o.cam): a slow, smooth loop that fits
-  // what the man is doing. A move is a pose for every moment (zoom s, pan x and y in % of the print);
-  // a new move blends from wherever the camera is over several seconds, so it never jumps, and every
-  // pose stays inside room(), so the camera never shows an edge of the print.
+  // Locked by default: the picture holds still, zoomed in a touch so its edges never show. A camera
+  // that moves on every screen is not how the man sees; he looks at things. A few pictures have a move
+  // of their own (ASSETS.cams, or the screen's o.cam), played once and then held until the screen changes:
+  //   lean  one slow lean over the bowl, and he stays bent over the food (supper, breakfast)
+  //   pano  a slow look round a wide picture, like turning your head (the night hut's panorama)
+  // A move belongs to the picture actually on screen, not to the name asked for, so a stand-in stays locked.
+  // A pose is a zoom s, a pan x and y in % of the print, and for wide pictures where the eye is along
+  // the picture (pan, 0..1) and how far the head is turned (turn, degrees). A new picture blends into its
+  // move during the crossfade; every pose stays inside room(), so the camera never shows an edge.
   // It runs here, frame by frame, so the living print (glframe.js) knows exactly where it is.
-  const cam = { s: 1.04, x: 0, y: 0 };
+  const LOCK = { s: 1.04, x: 0, y: 0, pan: .5, turn: 0 };
+  const cam = { ...LOCK };
   const room = s => (s - 1) / (2 * s) * 100 * .92;      // how far it can pan at this zoom, in %
   const smooth = k => (k = clamp(k, 0, 1), k * k * k * (k * (k * 6 - 15) + 10));   // eases in and out, no kinks
-  const wave = (t, period, phase = 0) => Math.sin(2 * Math.PI * t / period + phase);
-  // a closed loop of segments [seconds, from, to]: a level 0..1 that moves smoothly and holds
-  function cycle(t, segs) {
-    const total = segs.reduce((a, g) => a + g[0], 0);
-    let u = ((t % total) + total) % total;
-    for (const [d, a, b] of segs) { if (u < d) return a + (b - a) * smooth(u / d); u -= d; }
-    return segs[segs.length - 1][2];
-  }
-  // a pan that brings the subject (f, fractions of the print) amt of the way to the middle, softly
-  // limited so that `spare` % of room is left for the move's small motions
-  function toward(f, amt, s, spare) {
-    const lim = Math.max(0, room(s) - spare);
+  // a pan that brings the subject (f, fractions of the print) amt of the way to the middle, softly limited
+  function toward(f, amt, s) {
+    const lim = room(s);
     const soft = v => lim ? lim * Math.tanh(v / lim) : 0;
     return f ? { x: soft((.5 - f[0]) * 100 * amt), y: soft((.5 - f[1]) * 100 * amt) } : { x: 0, y: 0 };
   }
-  // the moves: (t seconds since the move began, f the subject or null, ph a random phase) -> pose
-  const LEAN = [[2.5, 0, 0], [12, 0, 1], [6, 1, 1], [12, 1, 0], [5.5, 0, 0]];   // in over the bowl, eat, straighten
-  const LOOK = [[22, 0, 1], [24, 1, 1], [22, 1, 0], [8, 0, 0]];                 // push in, hold, ease back
-  const WALK = [[34, 0, 1], [6, 1, 1], [36, 1, 0], [4, 0, 0]];                  // drift forward, and back very slowly
-  const WORK = [[2.5, 0, 1], [13, 1, 1], [2.5, 1, 0], [6, 0, 0]];               // strokes, then a rest
+  // the moves: (t seconds since the move began, f the subject or null) -> pose
   const MOVES = {
-    still: (t, f, ph) => ({ s: 1.032 + .003 * wave(t, 37, ph), x: .2 * wave(t, 53, ph * 2), y: .12 * wave(t, 43, ph * 3) }),
-    stand: (t, f, ph) => {
-      const s = 1.046 + .0025 * wave(t, 5.2), c = toward(f, .25, s, .5);
-      return { s, x: c.x + .35 * wave(t, 11, ph), y: c.y + .12 * wave(t, 5.2, .8) };
+    still: () => ({ ...LOCK }),
+    // a beat, then seven seconds bending over the bowl, then held there
+    lean: (t, f) => {
+      const k = smooth((t - .8) / 7), s = 1.04 + .055 * k, c = toward(f, .7 * k, s);
+      return { s, x: c.x, y: c.y, pan: .5, turn: 0 };
     },
-    lean: (t, f, ph) => {
-      const k = cycle(t, LEAN), s = 1.035 + .06 * k + .002 * wave(t, 5, ph), c = toward(f, .1 + .65 * k, s, .3);
-      return { s, x: c.x + .12 * wave(t, 13, ph), y: c.y + .1 * wave(t, 5, ph + .8) };
-    },
-    look: (t, f, ph) => {
-      const k = cycle(t, LOOK), s = 1.04 + .05 * k + .0015 * wave(t, 6, ph), c = toward(f, .2 + .6 * k, s, .3);
-      return { s, x: c.x + .15 * wave(t, 29, ph), y: c.y + .1 * wave(t, 23, ph + 1) };
-    },
-    walk: (t, f, ph) => {
-      const k = cycle(t, WALK), s = 1.035 + .055 * k, c = toward(f, .5 * k, s, .45);
-      return { s, x: c.x + .3 * wave(t, 3.4, ph), y: c.y + .1 * wave(t, 1.7, ph) };
-    },
-    work: (t, f, ph) => {
-      const e = cycle(t, WORK), stroke = e * (1 - Math.cos(2 * Math.PI * t / 3.2)) / 2;
-      const s = 1.05 + .004 * stroke, c = toward(f, .3, 1.05, .7);
-      return { s, x: c.x + .45 * wave(t, 41, ph), y: c.y - .25 * stroke };
+    // a wide picture (about 3:1) seen through the 16:9 window: the eye starts near the left end, waits,
+    // and turns slowly to the right end over fifty seconds, then stays. The head's turn shows as a slight
+    // perspective, strongest at the two ends and none in the middle.
+    pano: t => {
+      const pan = .08 + .84 * smooth((t - 3) / 50);
+      return { s: 1.055, x: 0, y: 0, pan, turn: 2.6 * (pan - .5) };
     },
   };
-  // which move a frame name uses: its own, then its stand-in's, then 'look'
-  function camFor(name) {
-    for (let n = name, i = 0; n && i < 12; n = ASSETS.fallback[n], i++) if (ASSETS.cams && ASSETS.cams[n]) return ASSETS.cams[n];
-    const base = String(name).replace(/_\w+$/, '');      // site_power_2 -> site
-    return (ASSETS.cams && ASSETS.cams[base]) || 'look';
+  // which move the picture on screen has: its own (the key without its variant), else locked
+  function camOf(key) {
+    const base = String(key || '').replace(/-0\d$/, '');
+    return (ASSETS.cams && (ASSETS.cams[key] || ASSETS.cams[base])) || 'still';
   }
   // where the eye goes in the picture on screen: placed by hand, or the fire or the lamp (fx.js)
   function focusFor(key, name) {
@@ -179,30 +180,42 @@ const FRAME = (() => {
       || (key && window.FX && FX.focusOf(key))
       || (ASSETS.focus && (ASSETS.focus[base] || ASSETS.focus[name])) || null;
   }
-  const BLEND = 7000;   // ms from one move into the next
-  let mv = null, clock = performance.now(), manual = false, lastNow = 0, camWanted = null;
+  const BLEND = 1400;   // ms from one move into the next when the picture stays (a new picture: its fade)
+  let mv = null, clock = performance.now(), manual = false, lastNow = 0, camWish = null, panImg = null, lastTf = '';
   function poseOf(m, now) {
-    if (m.fixed) return m.fixed;
-    const p = MOVES[m.name]((now - m.t0) / 1000, m.focus, m.ph);
+    if (m.fixed) return { ...m.fixed };
+    const p = MOVES[m.name]((now - m.t0) / 1000, m.focus);
     const r = room(p.s);
     p.x = clamp(p.x, -r, r); p.y = clamp(p.y, -r, r);
     if (m.prev) {
-      const k = (now - m.t0) / BLEND;
+      const k = (now - m.t0) / m.blend;
       if (k >= 1) m.prev = null;
-      else { const q = poseOf(m.prev, now), e = smooth(k); for (const a of ['s', 'x', 'y']) p[a] = q[a] + (p[a] - q[a]) * e; }
+      // (not the pan along a wide picture: that belongs to the new picture alone, and starts where its move does)
+      else { const q = poseOf(m.prev, now), e = smooth(k); for (const a of ['s', 'x', 'y', 'turn']) p[a] = q[a] + (p[a] - q[a]) * e; }
     }
     return p;
   }
-  function begin(name, focus) {
-    if (!MOVES[name]) name = 'look';
-    if (still()) { mv = { name, fixed: { s: 1.04, x: 0, y: 0 } }; Object.assign(cam, mv.fixed); apply(); return; }
+  function begin(name, key, blend = BLEND) {
+    if (!MOVES[name]) name = 'still';
+    panImg = name === 'pano' && !still() ? layers[front] : null;
+    if (still()) { mv = { name, key, fixed: { ...LOCK } }; Object.assign(cam, LOCK); apply(); return; }
     // blend from where the camera is: from the old move as it goes on, but never more than one deep
     let prev = mv && !mv.fixed ? mv : { fixed: { ...cam } };
     if (prev.prev) prev.prev = { fixed: poseOf(prev.prev, clock) };
-    mv = { name, t0: clock, focus: focus === undefined ? focusFor(shown, wantedName) : focus, ph: Math.random() * 6.28, prev };
+    mv = { name, key, t0: clock, blend, focus: focusFor(key, wantedName), prev };
+  }
+  // the picture on screen has changed (or the screen asked for another move): start its move, unless
+  // it is already playing on this picture
+  function aim(key, fade) {
+    const name = camWish || camOf(key);
+    if (mv && mv.name === name && (mv.key === key || name === 'still')) return;
+    begin(name, key, fade ? fade * 1000 : BLEND);
   }
   function apply() {
-    stage.style.transform = `scale(${cam.s.toFixed(4)}) translate(${cam.x.toFixed(3)}%, ${cam.y.toFixed(3)}%)`;
+    const turn = Math.abs(cam.turn) > .001 ? `perspective(${Math.max(900, stage.clientWidth * 2)}px) rotateY(${cam.turn.toFixed(3)}deg) ` : '';
+    const tf = `${turn}scale(${cam.s.toFixed(4)}) translate(${cam.x.toFixed(3)}%, ${cam.y.toFixed(3)}%)`;
+    if (tf !== lastTf) { stage.style.transform = lastTf = tf; }
+    if (panImg) panImg.style.objectPosition = `${(cam.pan * 100).toFixed(2)}% 50%`;
   }
   // the clock stops while the page is hidden: a long gap shifts every start time, so nothing jumps
   function shift(ms) {
@@ -226,8 +239,9 @@ const FRAME = (() => {
   }
 
   // ---------- picture sequences ----------
-  // While a screen with o.seq is up, the picture cycles through the steps of ASSETS.sequences[o.seq],
-  // crossfading, and each step may sound as it begins. The camera goes on through the steps.
+  // While a screen with o.seq is up, the picture goes through the steps of ASSETS.sequences[o.seq],
+  // crossfading, and each step may sound as it begins. A sequence loops, unless it reaches a step
+  // marked stay: there it stops, and the picture stays until the screen changes.
   let seq = null;
   function stepsOf(s) {
     const steps = Array.isArray(s) ? s : s && ASSETS.sequences && ASSETS.sequences[s];
@@ -240,10 +254,10 @@ const FRAME = (() => {
       const keys = rs.map(r => r && r[0]);
       // every step the same picture (none drawn yet): keep the screen's own frame, keep only the sounds
       const pictures = keys.some(k => k !== keys[0]);
-      if (pictures && rs[0]) { put(rs[0][0], rs[0][1], steps[0].fade); cameraNow(); }
+      if (pictures && rs[0]) show(rs[0][0], rs[0][1], steps[0].fade);
       else picture(name, g);
       if (frozen()) return;
-      seq = { steps, rs, pictures, i: 0, until: clock + (steps[0].hold || 4) * 1000, g, log: [] };
+      seq = { steps, rs, pictures, i: 0, until: steps[0].stay ? Infinity : clock + (steps[0].hold || 4) * 1000, g, log: [] };
       play(0);
     });
   }
@@ -257,30 +271,32 @@ const FRAME = (() => {
     const s = seq;
     s.i = (s.i + 1) % s.steps.length;
     const st = s.steps[s.i], r = s.rs[s.i];
-    if (s.pictures && r) put(r[0], r[1], st.fade);      // the same picture as now: put() does nothing
-    s.until = clock + (st.hold || 4) * 1000;
+    if (s.pictures && r) show(r[0], r[1], st.fade);      // the same picture as now: nothing changes
+    s.until = st.stay ? Infinity : clock + (st.hold || 4) * 1000;
     play(s.i);
   }
   function stopSeq() { seq = null; }
 
   // ---------- a screen's picture ----------
-  // set(name, { cam, seq }): the frame, the camera move (else the frame's own), a sequence (else none).
+  // set(name, { cam, seq }): the frame, the camera move (else the picture's own), a sequence (else none).
   let wantedName = null;
-  function cameraNow() { if (camWanted) { const c = camWanted; camWanted = null; begin(c); } }
+  // put a resolved picture on screen; if it is already there, only see that the camera has the right move
+  function show(key, src, fade) {
+    if (key === shown) aim(key);
+    else put(key, src, fade);
+  }
   function picture(name, g) {
-    resolve(name).then(r => { if (g !== gen) return; if (r) put(r[0], r[1]); cameraNow(); });
+    resolve(name).then(r => { if (g !== gen) return; if (r) show(r[0], r[1]); });
   }
   function set(name, opts = {}) {
     if (!name) return;
     const steps = stepsOf(opts.seq);
-    const move = opts.cam || camFor(name);
-    const key = name + '@' + variantOf(name) + (steps ? '#' + (typeof opts.seq === 'string' ? opts.seq : 'seq') : '');
-    if (key === wanted) { if (!mv || mv.name !== move) begin(move); return; }
+    camWish = opts.cam || null;
+    const key = name + '@' + vtag(name) + (steps ? '#' + (typeof opts.seq === 'string' ? opts.seq : 'seq') : '');
+    if (key === wanted) { if (shown) aim(shown); return; }
     wanted = key; wantedName = name;
     const g = ++gen;
     stopSeq();
-    camWanted = move;
-    setTimeout(() => { if (g === gen) cameraNow(); }, 900);   // if the picture is slow, move anyway
     if (steps) startSeq(steps, name, g);
     else picture(name, g);
   }
@@ -295,14 +311,14 @@ const FRAME = (() => {
     box.dataset.month = TINT[Math.min(4, monthOf(day))];
     box.style.setProperty('--weak', clamp((45 - strength) / 40, 0, 1).toFixed(2));
   }
-  begin('still');
+  begin('still', null);
   requestAnimationFrame(tick);
   return {
-    set, screen, mood, room, moves: Object.keys(MOVES), camFor,
-    aim: name => begin(name || (mv && mv.name) || 'look'),
+    set, screen, mood, room, moves: Object.keys(MOVES), camOf,
+    aim: name => begin(name || (mv && mv.name) || 'still', shown),
     // step(now): move the camera (and any sequence) to this moment by hand; the page stops doing it itself
     step: now => { manual = true; step(now); }, auto: () => { manual = false; },
-    pose: (name, t, focus = null, ph = 0) => MOVES[name](t, focus, ph),
+    pose: (name, t, focus = null) => MOVES[name](t, focus),
     cam: () => ({ ...cam }), move: () => mv && { name: mv.name, focus: mv.focus, blending: !!mv.prev },
     seq: () => seq && { i: seq.i, n: seq.steps.length, pictures: seq.pictures, keys: seq.rs.map(r => r && r[0]), log: seq.log.slice() },
     shown: () => shown, variant: v => { force = v; wanted = null; },

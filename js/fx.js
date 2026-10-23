@@ -17,7 +17,9 @@ const FX = (() => {
   const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rnd = (a, b) => a + Math.random() * (b - a);
 
-  const B = (x, y, color, scale) => ({ x, y, color: color || 'paper', scale: scale || 1 });
+  // a mouth that breathes: where, paper or ink (soft puffs), how big; dir: which way he faces (1 right,
+  // -1 left); sync: the index of the lift (his shoulders, below) whose breathing out it follows
+  const B = (x, y, color, scale, dir, sync) => ({ x, y, color: color || 'paper', scale: scale || 1, dir: dir || 1, sync });
   const CONF = {
     // ---- outside: snow, breath, smoke, and cloud shadows drifting over the snow
     title:       { snow: { n: 40, color: 'ink', wind: 35, speed: [18, 40], size: [.6, 1.3], streak: true },
@@ -40,7 +42,13 @@ const FX = (() => {
                             touch: [{ x: .503, y: .688, r: .02, a: .4 }, { x: .553, y: .675, r: .024, a: .4 }, { x: .368, y: .532, r: .016, a: .35 }, { x: .617, y: .54, r: .016, a: .35 }] },
                    dark: { x: .53, y: .72, r: .42, a: .12 },
                    smoke: { x: .528, y: .665, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 10 },
-                   breath: [B(.375, .56, 'ink', .7), B(.625, .585, 'ink', .7)],
+                   // the men breathe: each man's head and shoulders cut from the print and lifted a hair as he
+                   // breathes in (lift), and the two whose faces show breathe out in carved curls as they sink
+                   lift: [{ box: [.255, .492, .398, .672], pivot: [.33, .72], rise: .0042, turn: -.35, period: 4.6, ph: .1 },
+                          { box: [.358, .54, .497, .675], pivot: [.43, .74], rise: .0032, turn: .25, period: 5.3, ph: .55 },
+                          { box: [.497, .54, .598, .652], pivot: [.55, .7], rise: .003, turn: -.2, period: 4.1, ph: .8 },
+                          { box: [.598, .492, .748, .675], pivot: [.68, .73], rise: .0042, turn: .35, period: 5, ph: .35 }],
+                   breath: [B(.374, .557, 'ink', .7, 1, 0), B(.611, .585, 'ink', .7, -1, 3)], carve: true,
                    clouds: { n: 3, a: .17, speed: 12 } },
     gate:        { snow: { n: 60, color: 'ink', wind: 20, speed: [18, 40], size: [.6, 1.3], streak: true },
                    sweep: { x: .835, y: .135, a0: 135, a1: 200, period: 11, len: .9, spread: 14, color: 'warm' },
@@ -66,9 +74,8 @@ const FX = (() => {
                    dark: { x: .72, y: .58, r: .45, a: .22 },
                    beam: { x: .655, y: .48, w: .06, angle: 100, spread: 22, len: .35, a: .16, pass: true },
                    breath: [B(.235, .465, 'paper', .6)], motes: { n: 10, region: [.55, .35, .4, .4] } },
-    table:       { smoke: { x: .47, y: .26, color: 'ink', a: .08, r: [8, 26], life: 3, rate: .8, drift: [6, -22], spread: 30 },
-                   pool: { x: .46, y: .36, r: .5, a: .3, swing: .05, period: 7.5, shade: true },
-                   liquid: { x: .468, y: .285, rx: .1, ry: .045 } },
+    // the soup's steam and stirring are placed per picture in BOWLS, below
+    table:       { pool: { x: .46, y: .36, r: .5, a: .3, swing: .05, period: 7.5, shade: true } },
     cells:       { beam: { x: .5, y: .17, w: .03, angle: 92, spread: 16, len: .75, a: .32, land: { x: .48, y: .78, rx: .13, ry: .05 } },
                    glow: [{ x: .50, y: .11, r: .05, color: 'paper', a: .18, flicker: .15 }],
                    motes: { n: 16, region: [.42, .2, .16, .6] } },
@@ -110,6 +117,11 @@ const FX = (() => {
     site_timber_1: { snow: { n: 40, color: 'ink', wind: 30, speed: [15, 32], size: [.6, 1.2], streak: true },
                    breath: [B(.385, .48, 'ink', .6), B(.69, .36, 'ink', .6)],
                    clouds: { n: 4, a: .17, speed: 11 } },
+    // the bank without its haulers (sprites.js moves them over it): the same weather, and the breath
+    // goes with the men's mouths as they climb
+    site_timber_plate: { snow: { n: 40, color: 'ink', wind: 30, speed: [15, 32], size: [.6, 1.2], streak: true },
+                   breath: 'figures', carve: true,
+                   clouds: { n: 4, a: .17, speed: 11 } },
     easter:      { flame: { x: .853, y: .657, w: .017, h: .109, kind: 'candle', cover: true, under: [-.03, 0], base: [[.82, .658], [.89, .658]] },
                    firelight: { x: .853, y: .62, r: .13, a: .2, sq: 1, bands: 3,
                             ground: { x: .84, y: .735, rx: .14, ry: .035, a: .16 }, touch: [{ x: .77, y: .70, r: .03, a: .14 }] },
@@ -117,13 +129,40 @@ const FX = (() => {
                    dark: { x: .84, y: .6, r: .55, a: .2 },
                    beam: { x: .23, y: .24, w: .05, angle: 95, spread: 18, len: .3, a: .08 } },
   };
+  // noon's plate: the fire and the snow without the men, who come as one figure (sprites.js) and
+  // breathe where their mouths are
+  CONF.noon_plate = Object.assign({}, CONF.noon, { lift: null, breath: 'figures' });
+
+  // ---- the soup, per picture: every bowl in one place, because the mess-hut pictures will be redrawn
+  // (mess_table and its edits: give each new drawing its own line here; a picture with no line has no
+  // steam and no stirring, rather than steam in the wrong place).
+  //   x, y, rx, ry  the soup's surface, an ellipse inside the rim (fractions of the frame)
+  //   steam         wisps rising at a time (0: none); rise: how high they go (fraction of the frame's height)
+  //   at            where the wisps rise from, across the surface (-1 left edge .. 1 right edge); default anywhere
+  //   stir          how far the middle of the soup turns, in degrees (default 4)
+  //   keep          [[x, y, rx, ry], ...]: what lies in the soup and must not turn with it (a spoon)
+  // A name may point to another picture's line (the edits that only change the bread).
+  const BOWLS = {
+    table:            { x: .472, y: .342, rx: .095, ry: .054, steam: 3, rise: .2 },
+    table_nobread: 'table', breakfast_400: 'table', breakfast_550: 'table', breakfast_650: 'table',
+    'table-02':       { x: .395, y: .488, rx: .09, ry: .047, steam: 3, rise: .2 },
+    'table-03':       { x: .557, y: .43, rx: .1, ry: .155, steam: 3, rise: .13 },        // looking straight down
+    // supper's own drawn steam rises at .47; the spoon lies in the soup (supper) or is lifted with a drip
+    // (supper_b, its twin, which fades in over it): neither turns
+    supper:           { x: .467, y: .354, rx: .098, ry: .055, steam: 2, rise: .19, at: [-.55, .32],
+                        keep: [[.51, .37, .05, .03], [.565, .352, .03, .018], [.538, .29, .052, .034], [.507, .33, .012, .028]] },
+    supper_b: 'supper',
+  };
+  function bowlOf(key) {
+    let b = BOWLS[key];
+    for (let i = 0; typeof b === 'string' && i < 4; i++) b = BOWLS[b];
+    return b && typeof b === 'object' ? b : null;
+  }
 
   // effects placed by hand on the other drawings of each place (positions as fractions of the frame)
   const VARIANTS = {
     'hut_morning-02': { glow: [{ x: .245, y: .37, r: .08, color: 'paper', a: .10, flicker: .3 }] },
     'hut_morning-03': { glow: [{ x: .68, y: .45, r: .08, color: 'paper', a: .10, flicker: .3 }] },
-    'table-02': { smoke: { x: .375, y: .42, color: 'ink', a: .08, r: [8, 24], life: 3, rate: .8, drift: [6, -22], spread: 26 } },
-    'table-03': { smoke: { x: .56, y: .33, color: 'ink', a: .08, r: [8, 24], life: 3, rate: .8, drift: [6, -22], spread: 26 } },
     'site-01': { smoke: { x: .04, y: .13, color: 'ink', a: .10, r: [6, 28], life: 4.5, rate: 1.2, drift: [14, -28], spread: 8 } },
     'site-03': { smoke: { x: .965, y: .07, color: 'ink', a: .10, r: [6, 28], life: 4.5, rate: 1.2, drift: [14, -28], spread: 8 } },
     // noon-01: a small fire on open snow, its tongues cut in ink
@@ -133,7 +172,12 @@ const FX = (() => {
                  firelight: { x: .525, y: .71, r: .17, a: .2, sq: .8, ground: { x: .525, y: .76, rx: .17, ry: .04, a: .18 },
                           touch: [{ x: .56, y: .66, r: .022, a: .22 }, { x: .49, y: .68, r: .02, a: .18 }] },
                  dark: { x: .525, y: .7, r: .42, a: .1 },
-                 smoke: { x: .525, y: .64, color: 'ink', a: .07, r: [8, 30], life: 4, rate: 1, drift: [18, -30], spread: 10 } },
+                 smoke: { x: .525, y: .64, color: 'ink', a: .07, r: [8, 30], life: 4, rate: 1, drift: [18, -30], spread: 10 },
+                 lift: [{ box: [.262, .525, .385, .675], pivot: [.32, .73], rise: .004, turn: -.3, period: 4.8, ph: .2 },
+                        { box: [.378, .565, .5, .69], pivot: [.44, .76], rise: .003, turn: .25, period: 5.4, ph: .6 },
+                        { box: [.548, .535, .68, .66], pivot: [.62, .71], rise: .0035, turn: .3, period: 4.3, ph: .9 },
+                        { box: [.688, .545, .815, .685], pivot: [.75, .75], rise: .004, turn: .3, period: 5.1, ph: .4 }],
+                 breath: [B(.376, .574, 'ink', .7, 1, 0), B(.583, .585, 'ink', .7, -1, 2), B(.712, .6, 'ink', .7, -1, 3)] },
     // noon-03: the big one, close, between the coats
     'noon-03': { flame: { x: .482, y: .69, w: .066, h: .165, embers: 4,
                           cover: [[.452, .69], [.453, .66], [.458, .645], [.463, .625], [.464, .59], [.466, .56], [.469, .543], [.472, .543], [.476, .56], [.484, .58], [.492, .6], [.5, .603], [.506, .62], [.513, .64], [.517, .668], [.516, .69]],
@@ -141,7 +185,12 @@ const FX = (() => {
                  firelight: { x: .482, y: .62, r: .24, a: .26, sq: .85, ground: { x: .48, y: .73, rx: .22, ry: .05, a: .2 },
                           touch: [{ x: .425, y: .6, r: .035, a: .22 }, { x: .545, y: .6, r: .035, a: .22 }, { x: .52, y: .44, r: .03, a: .18 }, { x: .25, y: .36, r: .025, a: .14 }] },
                  dark: { x: .48, y: .62, r: .45, a: .12 },
-                 smoke: { x: .47, y: .5, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 10 } },
+                 smoke: { x: .47, y: .5, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 10 },
+                 lift: [{ box: [.075, .235, .28, .5], pivot: [.17, .6], rise: .006, turn: -.3, period: 4.9, ph: .15 },
+                        { box: [.27, .275, .425, .5], pivot: [.34, .62], rise: .005, turn: .2, period: 5.5, ph: .6 },
+                        { box: [.44, .245, .56, .46], pivot: [.5, .55], rise: .005, turn: -.25, period: 4.4, ph: .85 },
+                        { box: [.555, .295, .76, .52], pivot: [.65, .65], rise: .006, turn: .3, period: 5.2, ph: .4 }],
+                 breath: [B(.258, .36, 'ink', 1, 1, 0), B(.498, .372, 'ink', 1, -1, 2)] },
     'gate-02': { sweep: { x: .80, y: .08, a0: 125, a1: 190, period: 11, len: .9, spread: 14, color: 'warm' } },
     'gate-03': { sweep: { x: .79, y: .25, a0: 140, a1: 205, period: 11, len: .9, spread: 14, color: 'warm' } },
     'hut_night-02': { ember: { x: .265, y: .60, r: .05, floor: { x: .27, y: .72, rx: .11, ry: .03 } } },
@@ -173,7 +222,7 @@ const FX = (() => {
   let clouds = [], passAt = 0, passT = -1;
   let snow = [], puffs = [], sparks = [], motes = [], breathTimers = [], smokeAcc = 0, sparkAcc = 0;
   let raf = null, last = 0, t = 0, grain = [], grainIdx = 0, grainAt = 0;
-  let flames = [], fireF = 1, cutDirty = false;
+  let flames = [], fireF = 1, cutDirty = false, lifts = [], soup = null, curls = [], breathCycle = [];
 
   function mount(frameBox) {
     box = frameBox;
@@ -227,11 +276,14 @@ const FX = (() => {
       const [rx, ry, rw, rh] = cfg.motes.region;
       motes.push({ x: (rx + Math.random() * rw) * W, y: (ry + Math.random() * rh) * H, vx: rnd(-3, 3), vy: rnd(-2, 2), ph: rnd(0, 6.3) });
     }
-    if (cfg.breath) breathTimers = cfg.breath.map(() => rnd(.5, 3));
+    if (Array.isArray(cfg.breath)) breathTimers = cfg.breath.map(() => rnd(.5, 3));
     clouds = [];
     if (cfg.clouds) for (let i = 0; i < cfg.clouds.n; i++) clouds.push(cloud(cfg.clouds, true));
     passAt = rnd(8, 20); passT = -1;
     flames = [].concat(cfg.flame || []).map(makeFlame);
+    lifts = (cfg.lift || []).map(c => ({ c, sprite: null }));
+    soup = cfg.soup ? { b: cfg.soup, sprite: null, wisps: [] } : null;
+    curls = []; breathCycle = [];
   }
   function cloud(c, anywhere) {
     const r = rnd(.25, .5) * W;
@@ -246,21 +298,31 @@ const FX = (() => {
 
   // A variant drawing ("noon-03") uses its own entry if there is one (merged over the master's);
   // otherwise it keeps only what does not depend on where things are in the picture.
-  const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool', 'liquid', 'flame', 'firelight'];
+  const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool', 'flame', 'firelight', 'lift'];
   // pictures that are edits of another share its effects: the breadless table is the table
   const ALIAS = {
     table_nobread: 'table', breakfast_400: 'table', breakfast_550: 'table', breakfast_650: 'table', supper: 'table', supper_b: 'table',
     site_power_2: 'site_power_1', site_power_3: 'site_power_1',
     site_settlement_1: 'site', site_settlement_2: 'site', site_settlement_3: 'site',
     site_timber_2: 'site_timber_1', site_timber_3: 'site_timber_1',
+    reveille_after: 'reveille',     // the same scene, the hammer lowered: the same lantern and light
+    // plates: the place without its workers, who move over it as figures (sprites.js)
+    test_timber_plate: 'site_timber_plate', site_timber_plate_1: 'site_timber_plate', site_timber_plate_2: 'site_timber_plate', site_timber_plate_3: 'site_timber_plate',
+    site_power_plate_1: 'site_power_1', site_power_plate_2: 'site_power_1', site_power_plate_3: 'site_power_1',
+    site_settlement_plate_1: 'site', site_settlement_plate_2: 'site', site_settlement_plate_3: 'site',
   };
   function configFor(key) {
+    const soup = bowlOf(key);
     if (ALIAS[key]) key = ALIAS[key];
-    if (CONF[key] && !key.includes('-0')) return CONF[key];
-    const base = key.split('-0')[0], b = CONF[base] || {};
-    const out = {};
-    for (const k in b) if (!PLACED.includes(k) && !(k === 'snow' && b.snow.clip)) out[k] = b[k];
-    return Object.assign(out, VARIANTS[key] || {});
+    let out;
+    if (CONF[key] && !key.includes('-0')) out = CONF[key];
+    else {
+      const base = key.split('-0')[0], b = CONF[base] || {};
+      out = {};
+      for (const k in b) if (!PLACED.includes(k) && !(k === 'snow' && b.snow.clip)) out[k] = b[k];
+      Object.assign(out, VARIANTS[key] || {});
+    }
+    return soup ? Object.assign({}, out, { soup }) : out;
   }
   function set(frameName) {
     name = frameName;
@@ -292,6 +354,8 @@ const FX = (() => {
     fireF = flames.length ? fireLevel() : flick(5.5, .45);
     // cut-outs
     ctx = ctxC;
+    for (const L of lifts) { cutLift(L); cutDirty = true; }
+    if (soup) { stir(soup); cutDirty = true; }
     for (const fl of flames) { cutFlame(fl); cutDirty = true; }
     // shade
     ctx = ctxS;
@@ -299,13 +363,11 @@ const FX = (() => {
     if (cfg.dark) drawDark(cfg.dark);
     if (cfg.firelight) drawFireTint(cfg.firelight);
     if (cfg.pool && cfg.pool.shade) drawPool(cfg.pool);
-    if (cfg.liquid) drawRipples(cfg.liquid, dt);
     if (cfg.sweep && cfg.sweep.color === 'warm') drawSweep(cfg.sweep);
     // light
     ctx = ctxL;
     if (cfg.beam) [].concat(cfg.beam).forEach(b => drawBeam(b, dt));
     if (cfg.pool && !cfg.pool.shade) drawPool(cfg.pool);
-    if (cfg.liquid) drawLiquid(cfg.liquid);
     if (cfg.sweep && cfg.sweep.color !== 'warm') drawSweep(cfg.sweep);
     if (cfg.glow) cfg.glow.forEach(drawGlow);
     if (cfg.spill) drawSpill(cfg.spill);
@@ -318,6 +380,8 @@ const FX = (() => {
     if (cfg.smoke) stepSmoke(cfg.smoke, dt);
     if (cfg.breath) stepBreath(cfg.breath, dt);
     drawPuffs(dt);
+    drawCurls();
+    if (soup) drawSteam(soup);
     if (cfg.motes) drawMotes(dt);
     if (cfg.snow) drawSnow(cfg.snow, dt);
     drawGrain(now);
@@ -352,14 +416,27 @@ const FX = (() => {
   function addPuff(x, y, color, a, r0, r1, life, dx, dy) {
     puffs.push({ x, y, color, a, r0, r1, life, age: 0, dx, dy, ph: rnd(0, 6.3) });
   }
+  // Breath: a soft puff, or with cfg.carve, a few curls cut in the print's two inks (breathe, below).
+  // breath: 'figures' breathes at the mouths of the moving figures (sprites.js), wherever they are.
+  // A mouth with sync breathes out as the shoulders of its lift (cfg.lift) start to sink.
   function stepBreath(list, dt) {
+    if (list === 'figures') list = window.SPRITES ? SPRITES.mouths().filter(m => m.a > .6).map(m => B(m.x, m.y, 'ink', m.scale || .9, m.dir)) : [];
     list.forEach((b, i) => {
-      breathTimers[i] -= dt;
-      if (breathTimers[i] <= 0) {
+      if (breathTimers[i] === undefined) breathTimers[i] = rnd(.5, 2.5);
+      const L = b.sync !== undefined && cfg.lift && cfg.lift[b.sync];
+      if (L) {
+        const c = Math.floor(t / L.period + (L.ph || 0) - .5);
+        if (breathCycle[i] === undefined) breathCycle[i] = c;
+        if (c === breathCycle[i]) return;
+        breathCycle[i] = c;
+      } else {
+        breathTimers[i] -= dt;
+        if (breathTimers[i] > 0) return;
         breathTimers[i] = rnd(2.6, 4.8);
-        const k = b.scale, a = b.color === 'paper' ? .20 : .11;
-        addPuff(b.x * W, b.y * H, b.color, a, 4 * k * s, 15 * k * s, 2.4, rnd(-4, 10) * k * s, -14 * k * s);
       }
+      if (cfg.carve) return breathe(b);
+      const k = b.scale, a = b.color === 'paper' ? .20 : .11;
+      addPuff(b.x * W, b.y * H, b.color, a, 4 * k * s, 15 * k * s, 2.4, rnd(-4, 10) * k * s, -14 * k * s);
     });
   }
   function stepSmoke(c, dt) {
@@ -441,8 +518,8 @@ const FX = (() => {
     return L.concat(R.reverse());
   }
   // the drawn flame, cut out of the print at the canvas's resolution
-  function cutOut(pts, under) {
-    const img = printImg;
+  function cutOut(pts, under, from) {
+    const img = from || printImg;
     if (!img || !img.complete || !img.naturalWidth || !W) return null;
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     const x0 = Math.min(...xs) * W - 2, y0 = Math.min(...ys) * H - 2, w = (Math.max(...xs) - Math.min(...xs)) * W + 4, h = (Math.max(...ys) - Math.min(...ys)) * H + 4;
@@ -688,42 +765,223 @@ const FX = (() => {
     else { g.addColorStop(0, `rgba(${col(p.color || 'paper')},${p.a})`); g.addColorStop(1, `rgba(${col(p.color || 'paper')},0)`); }
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
-  // ---- soup: a sheen that slides across the surface, a glint or two, and now and then a ripple
-  // from the middle, as if somebody had knocked the table. Everything is clipped to the bowl.
-  function bowl(l) {
-    ctx.save(); ctx.translate(l.x * W, l.y * H); ctx.scale(1, l.ry / l.rx * H / W);
-    ctx.beginPath(); ctx.arc(0, 0, l.rx * W, 0, 6.3); ctx.clip();
-    return l.rx * W;
-  }
-  function drawLiquid(l) {
-    const r = bowl(l);
-    const sx = Math.sin(t * .35) * r * .55, sy = Math.cos(t * .27) * r * .25;
-    const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * .7);
-    g.addColorStop(0, `rgba(${PAPER},.22)`); g.addColorStop(1, `rgba(${PAPER},0)`);
-    ctx.fillStyle = g; ctx.fillRect(-r, -r, r * 2, r * 2);
-    for (let i = 0; i < 3; i++) {
-      const a = .5 + .5 * Math.sin(t * (1.3 + i * .7) + i * 2);
-      ctx.globalAlpha = a * .5;
-      ctx.fillStyle = `rgb(${PAPER})`;
-      ctx.beginPath(); ctx.arc(Math.cos(i * 2.1 + t * .2) * r * .45, Math.sin(i * 1.7 + t * .15) * r * .4, 1.3 * s, 0, 6.3); ctx.fill();
+  // ---- carved wisps: steam and breath as a block-cutter would leave them. Where a wisp crosses the
+  // dark of the print it is a sliver of paper cut out of the ink; where it crosses the light it is a
+  // hairline of ink left standing. It comes in pieces, pointed at both ends, that break further apart
+  // as it rises, and it is recut a few times a second, never smoothly.
+  // The print's lightness, coarse, decides which ink a piece is cut in.
+  let lumMap = null;
+  function lightAt(x, y) {
+    const img = printImg;
+    if (!img || !img.complete || !img.naturalWidth) return 200;
+    if (!lumMap || lumMap.img !== img || lumMap.src !== img.src) {
+      const w = 336, h = Math.round(w * img.naturalHeight / img.naturalWidth), c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0, w, h);
+      let d;
+      try { d = g.getImageData(0, 0, w, h).data; } catch (e) { lumMap = { img, src: img.src, L: null }; return 200; }
+      const L = new Uint8Array(w * h);
+      for (let i = 0; i < L.length; i++) L[i] = d[i * 4] * .3 + d[i * 4 + 1] * .59 + d[i * 4 + 2] * .11;
+      lumMap = { img, src: img.src, w, h, L };
     }
-    ctx.globalAlpha = 1; ctx.restore();
+    if (!lumMap.L) return 200;
+    const nw = img.naturalWidth, nh = img.naturalHeight, k = Math.max(W / nw, H / nh);
+    const u = (x - (W - nw * k) / 2) / (nw * k), v = (y - (H - nh * k) / 2) / (nh * k);
+    const i = Math.max(0, Math.min(lumMap.w - 1, Math.floor(u * lumMap.w))), j = Math.max(0, Math.min(lumMap.h - 1, Math.floor(v * lumMap.h)));
+    return lumMap.L[j * lumMap.w + i];
   }
-  let ripple = -1, rippleAt = 2;
-  function drawRipples(l, dt) {
-    rippleAt -= dt;
-    if (rippleAt <= 0 && ripple < 0) { ripple = 0; rippleAt = rnd(4, 9); }
-    if (ripple < 0) return;
-    ripple += dt;
-    const k = ripple / 2.4;
-    if (k >= 1) { ripple = -1; return; }
-    const r = bowl(l);
-    ctx.lineWidth = 1.4 * s;
-    for (const d of [0, .18, .36]) {
-      const kk = k - d; if (kk <= 0) continue;
-      ctx.strokeStyle = `rgba(${INK},${.35 * (1 - kk)})`;
-      ctx.beginPath(); ctx.arc(0, 0, r * kk, 0, 6.3); ctx.stroke();
+  // pts: the wisp's spine [[x, y], ...] in pixels; half: its half-width at the foot; broken: how much of
+  // it is gone (0 whole .. 1 nothing); seed, slide: where the breaks fall, and how they travel along it;
+  // a: how strong (1 full)
+  function sliver(pts, half, broken, seed, slide, a, climb, inkw) {
+    let piece = [], dark = null;
+    const flush = () => { if (piece.length > 2) carvePiece(piece, half, dark, a, inkw); piece = []; };
+    for (let i = 0; i < pts.length; i++) {
+      const v = i / (pts.length - 1);
+      const n = .5 + .5 * (Math.sin(v * 9.1 + seed - slide) * .6 + Math.sin(v * 23.7 + seed * 2.3 - slide * 1.7) * .4);
+      if (n < broken + (climb || 0) * v) { flush(); continue; }
+      const d = lightAt(pts[i][0], pts[i][1]) < 118;
+      if (piece.length && d !== dark) { const p = piece[piece.length - 1]; flush(); piece.push(p); }
+      dark = d;
+      piece.push([pts[i][0], pts[i][1], v]);
     }
+    flush();
+  }
+  function carvePiece(p, half, dark, a, inkw) {
+    const L = [], R = [], n = p.length;
+    for (let i = 0; i < n; i++) {
+      const a0 = p[Math.max(0, i - 1)], a1 = p[Math.min(n - 1, i + 1)];
+      let tx = a1[0] - a0[0], ty = a1[1] - a0[1];
+      const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+      const u = i / (n - 1), hw = half * (1 - .45 * p[i][2]) * Math.pow(Math.sin(Math.PI * u), .55) * (dark ? 1 : inkw || .6);
+      L.push([p[i][0] - ty * hw, p[i][1] + tx * hw]); R.push([p[i][0] + ty * hw, p[i][1] - tx * hw]);
+    }
+    ctx.globalAlpha = (dark ? .82 : .7) * a;
+    ctx.fillStyle = `rgb(${dark ? P_PAPER : P_INK})`;
+    ctx.beginPath(); ctx.moveTo(L[0][0], L[0][1]);
+    for (let i = 1; i < n; i++) ctx.lineTo(L[i][0], L[i][1]);
+    for (let i = n - 1; i >= 0; i--) ctx.lineTo(R[i][0], R[i][1]);
+    ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- steam off the soup: a few wisps rising from the surface, curling, breaking up as they go,
+  // each living some seconds and another coming up somewhere else
+  const STEAM_CUT = 10;
+  function wisp(b, q, anywhere) {
+    const life = rnd(6, 10), at = b.at ? b.at[Math.floor(Math.random() * b.at.length)] + rnd(-.12, .12) : rnd(-.6, .6);
+    return { u: at, back: rnd(.15, .6), born: q - (anywhere ? rnd(0, life * .8) : 0), life, ph: rnd(0, 6.3), seed: rnd(0, 50), lean: rnd(-.2, .45), amp: rnd(.7, 1.3), fq: rnd(9, 13), h: rnd(.75, 1.1) };
+  }
+  function drawSteam(S) {
+    const b = S.b, n = b.steam === undefined ? 3 : b.steam;
+    if (!n) return;
+    const q = Math.floor(t * STEAM_CUT) / STEAM_CUT;
+    while (S.wisps.length < n) S.wisps.push(wisp(b, q, true));
+    const cx = b.x * W, cy = b.y * H, rx = b.rx * W, ry = b.ry * H, rise = (b.rise || .18) * H;
+    S.wisps.forEach((w, j) => {
+      let age = q - w.born;
+      if (age >= w.life) { S.wisps[j] = w = wisp(b, q, false); age = 0; }
+      const k = age / w.life, top = Math.min(1, age / 1.8) * w.h;
+      const ends = 1 - Math.pow(Math.sin(Math.PI * k), .6);          // whole in the middle of its life
+      const x0 = cx + w.u * rx, y0 = cy - ry * w.back * Math.sqrt(1 - w.u * w.u);
+      const pts = [], N = 26;
+      for (let i = 0; i <= N; i++) {
+        const v = i / N * top;
+        const amp = rise * .045 * w.amp * (.35 + v);
+        pts.push([x0 + w.lean * rise * .3 * v * v + amp * Math.sin(v * w.fq - q * 2.2 + w.ph), y0 - v * rise]);
+      }
+      sliver(pts, (1.1 + .3 * w.amp) * s, .04 + .6 * ends, w.seed, q * 1.3, 1, .3);
+    });
+  }
+
+  // ---- the soup turns a little in the bowl: its surface, cut from the print, is laid back in rings,
+  // the middle turned most and the rim not at all, back and forth, so the flecks of fat and grain drift.
+  // What lies in it (keep) is laid back unturned on top. While the picture's twin (ASSETS.alternate:
+  // supper's lifted spoon) fades in over it, the twin's soup is stirred too, and the two crossfade.
+  function stir(S) {
+    const b = S.b, box4 = [[b.x - b.rx, b.y - b.ry], [b.x + b.rx, b.y - b.ry], [b.x + b.rx, b.y + b.ry], [b.x - b.rx, b.y + b.ry]];
+    if (!S.sprite) S.sprite = cutOut(box4);
+    const twin = box && box.querySelector('img.twin.on');
+    const tw = twin && twin.complete && twin.naturalWidth ? +getComputedStyle(twin).opacity : 0;
+    if (tw > .01 && (!S.twin || S.twinSrc !== twin.src)) { S.twin = cutOut(box4, null, twin); S.twinSrc = twin.src; }
+    if (S.sprite && tw < .99) stirOne(S.sprite, b, 1);
+    if (S.twin && tw > .01) stirOne(S.twin, b, tw);
+  }
+  function stirOne(sp, b, a) {
+    ctx.globalAlpha = a;
+    const q = Math.floor(t * CUT) / CUT;
+    const th = (b.stir || 4) * Math.PI / 180 * (Math.sin(q * .42 + 1) * .65 + Math.sin(q * .17 + 4) * .35);
+    const cx = b.x * W, cy = b.y * H, rx = b.rx * W, ry = b.ry * H, sq = ry / rx, R = 9;
+    for (let i = 1; i < R; i++) {
+      ctx.save();
+      ctx.translate(cx, cy); ctx.scale(1, sq);
+      ctx.beginPath(); ctx.arc(0, 0, rx * (1 - i / R), 0, 6.3); ctx.clip();
+      ctx.rotate(th * Math.pow(i / R, .8)); ctx.scale(1, 1 / sq); ctx.translate(-cx, -cy);
+      ctx.drawImage(sp.sc, sp.x0, sp.y0, sp.w, sp.h);
+      ctx.restore();
+    }
+    for (const [x, y, ex, ey] of b.keep || []) {
+      ctx.save();
+      ctx.beginPath(); ctx.ellipse(x * W, y * H, ex * W, ey * H, 0, 0, 6.3); ctx.clip();
+      ctx.drawImage(sp.sc, sp.x0, sp.y0, sp.w, sp.h);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---- breath in the cold, carved: two or three short curls leave the mouth the way he faces, drift
+  // with the wind, rise a little, and break apart
+  function breathe(b) {
+    const n = Math.random() < .5 ? 2 : 3;
+    for (let i = 0; i < n; i++) curls.push({ x: b.x * W, y: b.y * H + (i - (n - 1) / 2) * 4 * s * b.scale, dir: b.dir || 1, k: b.scale,
+      born: t + i * .1, life: rnd(2.2, 2.9), ph: rnd(0, 6.3), seed: rnd(0, 50), len: rnd(.75, 1.15) * (1 - i * .15) });
+  }
+  function drawCurls() {
+    if (!curls.length) return;
+    const q = Math.floor(t * CUT) / CUT, wind = cfg.snow ? cfg.snow.wind * .25 : 6;
+    for (let i = curls.length - 1; i >= 0; i--) {
+      const c = curls[i], age = q - c.born;
+      if (age >= c.life) { curls.splice(i, 1); continue; }
+      if (age < 0) continue;
+      const k = age / c.life, L = 40 * s * c.k * c.len * Math.min(1, .25 + age / .5);
+      const ox = c.x + c.dir * 3 * s * c.k + wind * s * age, oy = c.y - 5 * s * c.k * age;
+      const pts = [], N = 14;
+      for (let j = 0; j <= N; j++) {
+        const v = j / N;
+        pts.push([ox + c.dir * v * L, oy - v * L * .18 + Math.sin(v * 5.5 + c.ph - age * 3) * L * .1 * (.3 + v)]);
+      }
+      sliver(pts, 1.7 * s * c.k, .08 + .75 * k * k, c.seed, age * 2.2, 1, 0, .8);
+    }
+  }
+
+  // ---- a man breathing: his head and shoulders cut from the print and laid back lifted a hair and
+  // turned about his hips as he breathes in, sinking as he breathes out. Recut like the flames, a few
+  // times a second. What is cut is the man's ink and a little snow round it, not the box: thin lines
+  // (the horizon, streaks of snow) are opened out of the cut so they stay where they are, and the box's
+  // edges are feathered where it crosses him, so no seam shows.
+  //   lift: [{ box: [x0, y0, x1, y1], pivot: [x, y], rise (fraction of the height), turn (degrees),
+  //            shift: [dx, dy] (fractions, a hand going to the fire), period (seconds), ph (0..1),
+  //            feather: [top, right, bottom, left] as fractions of the box (default [0, .1, .2, .1]: his
+  //            head stands clear against the snow, the box cuts through him at the sides and below) }]
+  function liftSprite(c) {
+    const [x0, y0, x1, y1] = c.box;
+    const sp = cutOut([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]);
+    if (!sp) return null;
+    const g = sp.sc.getContext('2d'), w = sp.sc.width, h = sp.sc.height, f = c.feather || [0, .1, .2, .1];
+    try {
+      const im = g.getImageData(0, 0, w, h), d = im.data, m = new Uint8Array(w * h);
+      for (let i = 0; i < m.length; i++) m[i] = d[i * 4] * .3 + d[i * 4 + 1] * .59 + d[i * 4 + 2] * .11 < 95 ? 255 : 0;
+      const r = Math.max(1, Math.round(2.2 * sp.dpr * s)), grow = Math.max(2, Math.round(3.5 * sp.dpr * s));
+      let k = morph(m, w, h, r, false);                  // open: thin lines go, the man stays
+      k = morph(k, w, h, r + grow, true);                 // and grow it by a margin of snow
+      k = morph(k, w, h, 1, null);                        // a soft edge
+      for (let i = 0; i < k.length; i++) d[i * 4 + 3] = d[i * 4 + 3] * k[i] / 255;
+      g.putImageData(im, 0, 0);
+    } catch (e) {}
+    g.globalCompositeOperation = 'destination-out';
+    const edge = (gx0, gy0, gx1, gy1, rx, ry, rw, rh) => {
+      const gr = g.createLinearGradient(gx0, gy0, gx1, gy1);
+      gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr; g.fillRect(rx, ry, rw, rh);
+    };
+    const [ft, fr, fb, fl] = f.map((v, i) => v * (i % 2 ? w : h)) ;
+    if (fl) edge(0, 0, fl, 0, 0, 0, fl, h);
+    if (fr) edge(w, 0, w - fr, 0, w - fr, 0, fr, h);
+    if (ft) edge(0, 0, 0, ft, 0, 0, w, ft);
+    if (fb) edge(0, h, 0, h - fb, 0, h - fb, w, fb);
+    g.globalCompositeOperation = 'source-over';
+    return sp;
+  }
+  // erode (grow false), dilate (true) or blur (null) a mask by a square of radius r, in two passes
+  function morph(src, w, h, r, grow) {
+    const tmp = new Uint8Array(w * h), out = new Uint8Array(w * h);
+    const pass = (a, b, n, len, step, stride) => {
+      for (let o = 0; o < n; o++) for (let i = 0; i < len; i++) {
+        let v = grow === false ? 255 : 0, sum = 0, cnt = 0;
+        for (let j = Math.max(0, i - r); j <= Math.min(len - 1, i + r); j++) {
+          const x = a[o * stride + j * step];
+          if (grow === null) { sum += x; cnt++; } else if (grow) { if (x > v) v = x; } else if (x < v) v = x;
+        }
+        b[o * stride + i * step] = grow === null ? sum / cnt : v;
+      }
+    };
+    pass(src, tmp, h, w, 1, w);      // along the rows
+    pass(tmp, out, w, h, w, 1);      // down the columns
+    return out;
+  }
+  function liftAt(c, q) { return .5 - .5 * Math.cos(2 * Math.PI * (q / c.period + (c.ph || 0))); }
+  function cutLift(L) {
+    const c = L.c;
+    if (!L.sprite) L.sprite = liftSprite(c);
+    const sp = L.sprite;
+    if (!sp) return;
+    const k = liftAt(c, Math.floor(t * CUT) / CUT), px = c.pivot[0] * W, py = c.pivot[1] * H;
+    const sh = c.shift || [0, 0];
+    ctx.save();
+    ctx.translate(px, py); ctx.rotate((c.turn || 0) * Math.PI / 180 * k); ctx.translate(-px, -py);
+    ctx.translate(sh[0] * W * k, (sh[1] - (c.rise || 0)) * H * k);
+    ctx.drawImage(sp.sc, sp.x0, sp.y0, sp.w, sp.h);
     ctx.restore();
   }
 
@@ -787,11 +1045,12 @@ const FX = (() => {
     const c = configFor(key);
     const fl = c.flame && [].concat(c.flame)[0];
     if (fl) return [fl.x, fl.y - fl.h * .5];
-    const e = c.ember || (c.glow && c.glow[0]) || c.sweep || c.smoke || (c.breath && c.breath[0]);
+    if (c.soup) return [c.soup.x, c.soup.y];
+    const e = c.ember || (c.glow && c.glow[0]) || c.sweep || c.smoke || (Array.isArray(c.breath) && c.breath[0]);
     return e ? [e.x, e.y] : null;
   }
   // advance(secs): stop the clock and step the overlay by hand, for looking at it headlessly
   function advance(secs) { stop(); const n = Math.round(secs * 30); for (let i = 0; i < n; i++) frame(1 / 30, performance.now()); }
-  return { mount, set, resize, focusOf, advance, state: () => ({ name, cfg: !!cfg, running: !!raf, W, H, snow: snow.length, puffs: puffs.length, flames: flames.length, t: Math.round(t) }) };
+  return { mount, set, resize, focusOf, advance, state: () => ({ name, cfg: !!cfg, running: !!raf, W, H, snow: snow.length, puffs: puffs.length, curls: curls.length, flames: flames.length, lifts: lifts.length, wisps: soup ? soup.wisps.length : 0, t: Math.round(t) }) };
 })();
 window.FX = FX;

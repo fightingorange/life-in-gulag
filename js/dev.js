@@ -86,6 +86,8 @@ const DEV = (() => {
       + (over.length ? '\n  ' + [...new Set(over)].slice(0, 12).join('\n  ') : ''));
   }
   const walk = () => { testing(); return print(TESTKIT.walk().report); };
+  // the thirty seconds on a choice: on or off (?notimer starts with it off); it waits while this panel is open
+  const timer = on => print(`timer ${UI.timer(on) ? 'on: 30 s, then the default' : 'off'}`);
   const sim = (bot, n) => { testing(); return print(TESTKIT.sim(bot, n).report); };
   function dump() {
     testing();
@@ -125,6 +127,7 @@ const DEV = (() => {
   <button data-a="escaper">escaper ×100</button>
   <button data-a="dump">dump script</button>
   <button data-a="fit">does it fit?</button>
+  <button data-a="timer">timer</button>
   <button data-a="close">close</button>
 </div>
 <div class="row">${NUMS.map(k => `<label>${k} <input type="number" name="${k}"></label>`).join('')}
@@ -139,7 +142,7 @@ const DEV = (() => {
       const run = {
         jump: () => jump(panel.querySelector('[name=scene]').value),
         skip: () => skip(Number(panel.querySelector('[name=skipto]').value)),
-        read: fillState, walk, dump, fit,
+        read: fillState, walk, dump, fit, timer,
         random: () => sim('random', 100), careful: () => sim('careful', 100), smart: () => sim('smart', 100), escaper: () => sim('escaper', 100),
         close: toggle,
       }[a];
@@ -156,7 +159,8 @@ const DEV = (() => {
   }
   document.addEventListener('keydown', e => { if (e.key === '`') toggle(); });
   // deep links: ?dev opens the panel; ?seed=7 fixes the dice; ?skip=60 plays on to day 60;
-  // ?scene=event:lev_barrow opens a scene; ?state={"strength":20} sets state first; ?still turns animation off
+  // ?scene=event:lev_barrow opens a scene; ?state={"strength":20} sets state first; ?still turns animation off;
+  // ?notimer: no clock on the choices (ui.js reads it)
   const q = new URLSearchParams(location.search);
   if (q.has('still')) { const st = document.createElement('style'); st.textContent = '*{animation:none !important;transition:none !important}'; document.head.appendChild(st); }
   if (q.has('seed')) seed(Number(q.get('seed')) || 1);
@@ -205,6 +209,6 @@ const DEV = (() => {
     if (q.has('dev')) toggle();
   }, 0);
 
-  return { walk, sim, dump, jump, skip, toggle, fit, scenes: () => Object.keys(TESTKIT.scenes()) };
+  return { walk, sim, dump, jump, skip, toggle, fit, timer, scenes: () => Object.keys(TESTKIT.scenes()) };
 })();
 window.DEV = DEV;

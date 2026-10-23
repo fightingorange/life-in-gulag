@@ -348,5 +348,5 @@ const AUDIO = (() => {
     oneShots: sfx.filter(a => !a.paused).map(a => ({ path: a.dataset.path, loop: a.loop })),
     decoded: buffers.size,
   });
-  return { ambient, snd, say, body, scene, toggle, unlock, speaking, testMode, state, isOn: () => on };
+  return { ambient, snd, spot, say, body, scene, toggle, unlock, speaking, testMode, state, isOn: () => on };
 })();

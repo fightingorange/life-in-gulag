@@ -275,6 +275,66 @@
     "prisoner_complaint": {
       "voice": "prisoner",
       "text": "The bread is short weight. The men are dying."
+    },
+    "lubimov_proc": {
+      "voice": "lubimov",
+      "text": "Surname. Name and patronymic. Article. Term."
+    },
+    "lubimov_five": {
+      "voice": "lubimov",
+      "text": "For nothing they give five. You have ten."
+    },
+    "lubimov_boots": {
+      "voice": "lubimov",
+      "text": "Felt boots. Own. One pair."
+    },
+    "lubimov_dispute": {
+      "voice": "lubimov",
+      "text": "Object of a dispute. Confiscated."
+    },
+    "kuzma_boots": {
+      "voice": "kuzma",
+      "text": "Good boots. Everybody saw them at the gate. Sleep with them under your head, and your head on them."
+    },
+    "kuzma_bread": {
+      "voice": "kuzma",
+      "text": "Five hundred and fifty grams of bread, if the brigade makes the norm. Four hundred if it does not. Eat it in the morning, all of it, or hide it where nobody looks."
+    },
+    "kuzma_day": {
+      "voice": "kuzma",
+      "text": "The rail at five. Then the count, in fives. They count until it comes out right. Stand in your five and look at nothing. A man they notice is a man they search."
+    },
+    "kuzma_brigade": {
+      "voice": "kuzma",
+      "text": "Pasha. The foreman. The brigade eats on the norm, so the brigade watches how you work. Work so Pasha sees it. A man the brigade decides against does not see the spring."
+    },
+    "kuzma_urki": {
+      "voice": "kuzma",
+      "text": "Thieves. Vaska Kosoi and his friends. They do not work, and they eat first. The camp is run for them. They saw your boots too."
+    },
+    "kuzma_winter": {
+      "voice": "kuzma",
+      "text": "He does not. Nobody can hold ten years in his head. Count the winter. On the twentieth of May the ice goes out on the river. When it goes, the worst is over. Some go out on the ice before that. We find them in the spring, mostly."
+    },
+    "kuzma_kills": {
+      "voice": "kuzma",
+      "text": "The cold is slow, and it is fair. What kills a man is stopping. First he stops mending his boots. Then he stops washing. Then he scrapes other men's bowls. Then the cold notices him."
+    },
+    "kuzma_good": {
+      "voice": "kuzma",
+      "text": "Learn to see a good day. A second bowl. Dry foot cloths. Eleven minutes of sun. A man who can still tell a good day from a bad one is not finished."
+    },
+    "vaska_boots": {
+      "voice": "vaska",
+      "text": "Good boots. Felt, from home. My size, I think. A swap. I am fair."
+    },
+    "vaska_fence": {
+      "voice": "vaska",
+      "text": "A man who pays is a man I can trust. And you look at the fence the way I look at a purse. I have fifteen centimetres of steel. Three hundred grams, and you never saw me."
+    },
+    "pasha_mine": {
+      "voice": "pasha",
+      "text": "He is in my brigade. His feet work for my brigade."
     }
   },
   "sfx": {
@@ -505,6 +565,49 @@
       "loop": false,
       "seconds": 4,
       "text": "A few slow footsteps crunching on dry packed snow outdoors, one person in felt boots approaching from a little distance and stopping, cold still air"
+    },
+    "spot_shovel": {
+      "loop": false,
+      "seconds": 4,
+      "text": "A steel shovel scraping and biting into frozen gravel and hard earth outdoors, two or three short stabs and a scrape, gritty, cold air, no voices, no music"
+    },
+    "spot_axe": {
+      "loop": false,
+      "seconds": 5,
+      "text": "Three heavy axe blows into frozen wood outdoors, each hard knock echoing over open snow toward a forest, slow, no voices, no music",
+      "highpass": 90
+    },
+    "spot_saw": {
+      "loop": false,
+      "seconds": 5,
+      "text": "Two men slowly working a long two-man crosscut saw through a thick frozen log outdoors, slow heavy strokes, each long rasping pull about one second, back and forth, cold air, no voices, no music"
+    },
+    "spot_trowel": {
+      "loop": false,
+      "seconds": 4,
+      "text": "A steel trowel scraping stiff cold mortar on a board and spreading it, then a few taps of the trowel handle settling a brick, outdoors, no voices, no music"
+    },
+    "spot_brick": {
+      "loop": false,
+      "seconds": 3,
+      "text": "Clay bricks set down on a wall and knocked together, a few dry clacks, outdoors in the cold, no voices, no music"
+    },
+    "amb_train": {
+      "loop": true,
+      "seconds": 12,
+      "text": "Inside a closed wooden goods wagon on a moving train in winter: steady clack-clack of wheels over rail joints, the wooden wagon creaking and swaying, cold wind whistling through the planks, low rumble, no voices, no music",
+      "highpass": 30
+    },
+    "spot_wagon_door": {
+      "loop": false,
+      "seconds": 4,
+      "text": "A heavy wooden railway wagon door rolled open on its iron rail, rumbling, and banging hard against its stop, outdoors in freezing air, no voices, no music"
+    },
+    "bed_column": {
+      "loop": true,
+      "seconds": 12,
+      "text": "A long column of men walking slowly through deep packed snow, many felt boots crunching, steady, outdoors in winter, no voices, no music",
+      "highpass": 50
     }
   },
   "frames": [

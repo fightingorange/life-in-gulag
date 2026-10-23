@@ -18,7 +18,8 @@ function nextDay() {
 // The daily cost of being alive here: more in the cold, and a little more every month.
 function drain() {
   const cold = Math.max(0, -S.temp - 20) / 3.2;
-  return Math.round(6.4 + cold + S.day / 40 + (S.until.nojacket ? 3 : 0));
+  const feet = S.flags.rubber ? (S.temp <= -35 ? 2 : S.temp <= -15 ? 1 : 0) : 0;   // Vaska's tyre-rubber boots (arrival.js)
+  return Math.round(6.4 + cold + S.day / 40 + (S.until.nojacket ? 3 : 0) + feet);
 }
 
 function startDay() {
@@ -91,7 +92,7 @@ function reveille() {
     { id: 'lie', habit: false, label: 'Five more minutes under the jacket.', hint: 'warm, if Lubimov is counting someone else', fn: lieIn },
   ];
   if (S.strength < 40) ch.push({ id: 'sick', habit: false, label: 'Lie still. Report sick.', hint: 'the medic takes two a day', fn: reportSick });
-  show(paras, ch, { frame: 'reveille', amb: 'amb_hut_morning', sfx: 'rail', routine: 'morning' });
+  show(paras, ch, { frame: 'reveille', seq: 'reveille', amb: 'amb_hut_morning', sfx: 'rail', routine: 'morning' });   // the rail, then the man standing
 }
 function lieIn() {
   if (chance(.3)) return cellsDay('Warder Lubimov. He does not shout. He writes your number in a book, and that is worse than shouting. "Three days. With work." You get one of them today.', 'lubimov_cells');
@@ -249,12 +250,12 @@ function work() {
       else note('Nobody saw. Pasha knows anyway.');
       go(noon);
     } },
-  ], { frame: siteFrame(site), amb: 'amb_site', voice: S.day === 1 ? 'pasha_quota' : null, routine: 'work' });
+  ], { frame: siteFrame(site), amb: 'amb_site', scape: 'site_' + site.key, voice: S.day === 1 ? 'pasha_quota' : null, routine: 'work' });
 }
 function foundBlade() {
   show(['In the sawdust by the carpenters\' shed, half a hacksaw blade. Fifteen centimetres of steel. In here it is worth more than you are. It is also three years, if it is found on you.'], [
     { id: 'take', label: 'Take it. Into the boot, under the foot cloth.', hint: 'the wire needs a blade', fn: () => { S.flags.blade = true; S.flags.bladeDay = S.day; eye(5); note('The blade is in your boot. You walk differently. You must stop walking differently.', true); go(noon); } },
-    { id: 'leave', label: 'Kick sawdust over it.', fn: () => go(noon) },
+    { id: 'leave', def: true, label: 'Kick sawdust over it.', fn: () => go(noon) },
   ], { frame: siteFrame(SITES[1]) });
 }
 function barracksDay() {
@@ -335,6 +336,8 @@ function dinner() {
 
 // ---------- night ----------
 function night() {
+  const beat = beatFor('night');   // a night beat replaces the night (the boots, arrival.js)
+  if (beat) return runBeat(beat);
   const m = monthOf(S.day);
   S.today.blizzard = m <= 2 ? chance(.11) : m === 3 ? chance(.05) : false;
   const paras = [L('night')];
@@ -353,7 +356,7 @@ function night() {
   ch.push({ id: 'wire', habit: false, label: 'Think about the wire.', hint: planHint(), fn: plan });
   if (S.today.blizzard && (S.flags.blade || planItems() >= 2)) stopRun('A blizzard. From the window you cannot see the towers.');
   show(paras, ch, {
-    frame: S.today.blizzard ? 'blizzard' : 'hut_night', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_hut',
+    frame: S.today.blizzard ? 'blizzard' : 'hut_night_pano', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_hut',
     sfx: !S.today.blizzard && chance(.25) ? 'dogs' : null, routine: 'night',
   });
 }
@@ -465,7 +468,7 @@ function endDay() {
     { id: 'next', label: 'Sleep.', fn: nextDay },
     { id: 'run', label: 'Let the days run.', hint: habitsLine(), fn: () => { startRun(); nextDay(); } },
   ], {
-    frame: 'hut_night', amb: t.blizzard ? 'amb_blizzard' : 'amb_hut', sfx: 'pencil', routine: true,
+    frame: 'hut_night_pano', amb: t.blizzard ? 'amb_blizzard' : 'amb_hut', sfx: 'pencil', routine: true,
     ledger: { date: fmtDate(S.day), day: S.day, lines, good: t.mercies.slice(), verdict: VERDICTS[kind], kind },
   });
 }

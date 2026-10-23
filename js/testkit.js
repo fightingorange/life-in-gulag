@@ -36,6 +36,17 @@ const TESTKIT = (() => {
     list['esc:settlement'] = { setup: () => { escSetup(); S.esc.days = 3; S.tobacco = 3; }, run: settlement };
     list['esc:day2hut'] = { setup: () => { escSetup(); S.esc.days = 2; }, run: () => day2('hut') };
     list['day:intro'] = { run: intro };
+    // the arrival (arrival.js): the wagon, the march, the gate, the guardhouse, the hut, the first supper
+    const met = () => { S.flags.metLev = true; S.flags.metSenka = true; S.flags.struck = true; };
+    const arr = { crack: arrCrack, railhead: arrRailhead, rule: arrRule, march: arrMarch, whisper: arrWhisper, hours: arrHours,
+      lookBack: arrLookBack, lights: arrLights, gate: arrGate, process: arrProcess, hut: arrHut, supper: arrSupper, sleep: arrSleep };
+    for (const k in arr) list['arr:' + k] = { setup: met, run: arr[k] };
+    list['arr:silenced'] = { run: () => arrSilenced('senka') };
+    list['arr:searchPhoto'] = { run: () => arrSearch('photo') };
+    list['arr:searchMoney'] = { run: () => arrSearch('money') };
+    list['arr:boots'] = { setup: met, run: () => arrBoots(true) };
+    list['arr:ask'] = { setup: met, run: () => arrAsk(KUZMA_ANSWERS[3], ['q_bread']) };
+    list['beat:boots_money'] = { setup: () => { S.day = 3; S.flags.money = true; S.brigade = 12; }, run: () => runBeat(BEATS.find(b => b.id === 'boots')) };
     list['day:startDay'] = { run: startDay };
     for (const e of EVENTS) list['event:' + e.id] = { setup: e.setup, run: () => runEvent(e) };
     for (const b of BEATS) list['beat:' + b.id] = { setup: () => { S.day = b.day; if (b.id === 'stove') S.until.snap = 28; if (b.id === 'commission') S.until.inspection = 49; if (b.id === 'brought_back') S.flags.othersEscaped = 'two'; if (b.id === 'letter2') S.seen['beat:letter1'] = true; }, run: () => runBeat(b) };
@@ -135,6 +146,11 @@ const TESTKIT = (() => {
     if (o.escape === 'day2') return byId(scr, breadLeft() >= 200 && S.esc.route ? 'river' : 'hut');
     if (o.escape === 'settlement') return byId(scr, 'blade', 'senka', 'tobacco', 'bread', 'nothing');
     if (o.ledger) return byId(scr, 'run');
+    // the arrival: hide the roubles; the third night: Pasha if he has seen you work, otherwise pay
+    if (scr.choices.some(c => c.id === 'money') && scr.choices.some(c => c.id === 'hand')) return byId(scr, 'money');
+    if (o.confront === 'boots') return byId(scr, S.brigade >= 10 ? 'pasha' : wantsOut ? 'bread' : 'money', S.strength > 55 ? 'fight' : 'bread');
+    if (o.urki === 'knife') return byId(scr, S.brigade >= 20 ? 'still' : 'settle');
+    if (o.urki === 'tribute') return byId(scr, wantsOut || S.strength > 40 ? 'pay' : 'stop');
     if (o.routine === 'morning') return byId(scr, S.strength < 35 ? 'sick' : 'up', 'up');
     if (o.routine === 'bread') {
       if (S.lev.alive && S.lev.health < 30 && S.strength > 45) return byId(scr, 'lev', 'eat');
@@ -183,7 +199,8 @@ const TESTKIT = (() => {
           ends[scr.o.ending] = (ends[scr.o.ending] || 0) + 1; days.push(S.day);
           details.push({ end: scr.o.ending, day: S.day, clicks: n, runs, eye: S.eye, brigade: S.brigade, tobacco: S.tobacco, plan: planItems(),
             lev: S.lev.alive, kuzma: S.kuzma.here, count: Object.assign({}, S.count), beats: Object.keys(S.seen).filter(k => k.startsWith('beat:')).length,
-            verdicts: S.history.reduce((a, h) => (a[h.v] = (a[h.v] || 0) + 1, a), {}), caught: !!S.flags.caught });
+            verdicts: S.history.reduce((a, h) => (a[h.v] = (a[h.v] || 0) + 1, a), {}), caught: !!S.flags.caught,
+            urki: S.flags.urki || null, rubber: !!S.flags.rubber });
         }
         else if (scr) errs.push(`${botName}#${r}: did not end in 30000 steps`);
       } catch (e) {

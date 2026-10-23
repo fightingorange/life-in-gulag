@@ -4,15 +4,29 @@
 // their paper disappears and only the ink stays, as if printed on the plate. They sit above the print
 // and below the light and shade (fx.js), so the weather and the light fall on them too.
 //
-// Figures are drawn only when the picture on screen is the plate itself: if the plate is not drawn yet,
-// frames.js shows a stand-in, its key is not the plate's, and nothing moves over it.
+// A plate stands in for a picture ('over'): when the game asks for site_timber_1 and a plate for it
+// exists, frames.js shows the plate instead (it asks plates(name) before the picture itself, after the
+// day's other drawing of the place, so a plate only ever replaces the master). Figures are drawn only
+// when the picture on screen is the plate itself: if no plate is drawn yet, the game shows the picture,
+// its key is not the plate's, and nothing moves over it. A picture may also carry figures itself (the
+// night hut's panorama has an empty bunk drawn in it).
 //
-// CONF: { <plate key>: [figure, ...] }, a figure being
+// CONF: { <plate or picture key>: { over: 'picture', figures: [figure, ...] } }
+//   over    the picture this plate stands in for (omit for a picture that carries figures itself).
+//           Several plates may stand in for one picture: the first listed that exists wins.
+// A figure:
 //   img     'name' or ['name', 'name2', ...]: assets/frames/figures/<name>.png; several drawings are
 //           cycled (two poses of men hauling), one every `every` seconds (default .6)
-//   w       width as a fraction of the frame's width (the height follows the drawing)
+//   poses   [{ img, hold, sfx }, ...] instead of img: drawings cut between in turn, each held `hold`
+//           seconds (default `every`), each with its own sound as it comes (a pick strike, an axe blow,
+//           a creak); a missing pose is skipped
+//   blend   seconds of crossfade from one pose into the next (default 0: a cut, like a block recut)
+//   offset  seconds into its pose cycle at the start (two figures that should not strike together)
+//   or      a drawing shown while none of its own exist yet (the test cut-out); it does not cycle
+//   w       width as a fraction of the picture's width (the height follows the drawing)
 //   anchor  [ax, ay]: the point of the drawing that walks the path, as fractions of it (default [.5, 1], the feet)
-//   path    [[x, y], ...]: where the anchor goes, as fractions of the frame (one point: it stays there)
+//   path    [[x, y], ...]: where the anchor goes, as fractions of the picture (one point: it stays there
+//           and only changes pose, like a man digging)
 //   secs    how long the path takes; ease 'inout' (default), 'linear', 'in', 'out'
 //   loop    true: when it gets there it fades out, waits `rest` seconds and starts again (fade: seconds, default 1.5);
 //           false: it gets there and holds
@@ -21,17 +35,74 @@
 //   sway    how far it rocks with each step, in degrees, about the anchor
 //   scale   [s0, s1]: its size along the path (going away up the bank: [1, .9])
 //   flip    true: mirrored
-//   sfx     a sound (assets/sfx/<name>.mp3) played each time it starts moving; skipped if the file is missing
+//   sfx     a sound played each time it starts along its path; skipped if the file is missing
+//   vol     how loud its sounds are, 0..1 (default .35)
+//   mouth   [[x, y, dir], ...]: the men's mouths on the drawing (fractions of it), so fx.js's breath follows
+//           them (an fx config with breath: 'figures'); dir 1: facing right, -1: left; mouthAt: the same as fractions of the picture,
+//           for a figure that stays where it is
+// Positions are fractions of the picture as it is fitted in the frame (for a 16:9 drawing, the frame);
+// a wide picture panned by the camera (the 3:1 panorama) carries its figures with it.
 const SPRITES = (() => {
+  // the haulers dragging their log up the bank (site_timber_1): drawn where they stand at the middle of
+  // the path (.506, .798) and brought up from lower down the bank, thirty seconds, then round again
+  const HAUL = { anchor: [.5, 1], path: [[.44, .835], [.5063, .7981], [.56, .768]], secs: 30, ease: 'linear',
+    loop: true, rest: 3, fade: 2.5, bob: .003, step: .8, sway: .4, scale: [1.03, .97], sfx: 'log_drag' };
+  // their mouths on test_haulers.png; measure again on haulers_a/b when they come
+  const HAUL_MOUTHS = [[.3, .36], [.945, .1]];
+  // stages two and three: the same two men a little smaller, the log at the same place on the bank
+  const HAUL_LATER = { ...HAUL, w: .45, path: [[.44, .81], [.5, .775], [.555, .745]] };
   const CONF = {
-    // The working example, built from site_timber_1: the two men and their log cut out of the drawing,
-    // the plate patched with snow. Open ?test&frame=test_timber_plate to see it. Not used by the game.
-    test_timber_plate: [
-      // drawn where they stand at the middle of the path (.506, .798); they come up from lower down the bank
-      { img: 'test_haulers', w: .4862, anchor: [.5, 1], path: [[.44, .835], [.5063, .7981], [.56, .768]], secs: 30, ease: 'linear',
-        loop: true, rest: 3, fade: 2.5, bob: .003, step: .8, sway: .4, scale: [1.03, .97], sfx: 'log_drag' },
-    ],
+    // ---- the timber bank. Stand-ins: test_timber_plate (site_timber_1 with the two haulers removed by
+    // hand) and test_haulers (the men cut out). Codex's plates and two-pose figures take over when they come.
+    site_timber_plate_1: { over: 'site_timber_1', figures: [
+      { ...HAUL, poses: [{ img: 'haulers_a', hold: .9 }, { img: 'haulers_b', hold: .9 }], or: 'test_haulers', w: .4862, mouth: HAUL_MOUTHS },
+      // the axeman trimming a log on the stacks, right; place him when he is drawn
+      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .12, path: [[.83, .62]] },
+    ] },
+    test_timber_plate: { over: 'site_timber_1', figures: [
+      { ...HAUL, img: 'test_haulers', w: .4862, mouth: HAUL_MOUTHS },
+    ] },
+    site_timber_plate_2: { over: 'site_timber_2', figures: [
+      { ...HAUL_LATER, poses: [{ img: 'haulers_a', hold: .9 }, { img: 'haulers_b', hold: .9 }], or: 'test_haulers', mouth: HAUL_MOUTHS },
+      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .11, path: [[.86, .58]] },
+    ] },
+    site_timber_plate_3: { over: 'site_timber_3', figures: [
+      { ...HAUL_LATER, poses: [{ img: 'haulers_a', hold: .9 }, { img: 'haulers_b', hold: .9 }], or: 'test_haulers', mouth: HAUL_MOUTHS },
+      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .11, path: [[.86, .58]] },
+    ] },
+    // ---- the settlement: the nearest digger (left, feet at .12, .765) and a man shovelling the spoil
+    // beside the man with the raised pick; they stay where they are and swing, each blow heard
+    ...stages('site_settlement', [
+      { poses: [{ img: 'digger_a', hold: 1.3 }, { img: 'digger_b', hold: .8, sfx: 'spot_pick' }], w: .19, path: [[.125, .765]] },
+      { poses: [{ img: 'shoveller_a', hold: 1.4, sfx: 'spot_shovel' }, { img: 'shoveller_b', hold: 1 }], w: .08, path: [[.545, .55]], offset: .9 },
+    ]),
+    // ---- the power station: the nearest bricklayer, on the scaffold in the middle, bending to the
+    // mortar and setting a brick; his planks are higher at each stage
+    ...stages('site_power', [
+      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .085, path: [[.485, .49]] }],
+      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .085, path: [[.49, .29]] }],
+      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .085, path: [[.48, .32]] }],
+    ]),
+    // ---- noon: the crouching men as one figure on the plate, hands to the fire and a moment later
+    // shifted; slow, so it reads as men settling, not as a flicker. Their mouths for the breath.
+    noon_plate: { over: 'noon', figures: [
+      { poses: [{ img: 'noon_men_a', hold: 5.5 }, { img: 'noon_men_b', hold: 3.5 }], blend: .35, w: .52, path: [[.495, .865]],
+        mouthAt: [[.372, .556, 1], [.612, .584, -1]] },
+    ] },
+    // ---- the night hut at its true size: one man on the empty lower bunk in the near right third,
+    // turning in his sleep about every half minute, with a creak. Place him when the panorama is drawn.
+    hut_night_pano: { figures: [
+      { poses: [{ img: 'sleeper_turn_a', hold: 31 }, { img: 'sleeper_turn_b', hold: 27, sfx: 'spot_creak' }, { img: 'sleeper_turn_c', hold: 34, sfx: 'spot_creak' }],
+        w: .09, path: [[.78, .74]], vol: .25 },
+    ] },
   };
+  // a plate for each of a place's three stages: <place>_plate_1/2/3 over <place>_1/2/3. figs is one list
+  // for all three, or a list per stage
+  function stages(place, figs) {
+    const out = {};
+    for (const i of [1, 2, 3]) out[`${place}_plate_${i}`] = { over: `${place}_${i}`, figures: Array.isArray(figs[0]) ? figs[i - 1] : figs };
+    return out;
+  }
 
   const reduced = () => (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || /[?&]still\b/.test(location.search);
   const EASE = {
@@ -68,6 +139,15 @@ const SPRITES = (() => {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     draw();
+  }
+  // where the picture lies in the frame: object-fit cover, and the camera's pan of a wide picture
+  function pictureRect() {
+    const im = stage && [...stage.querySelectorAll('img.on')].find(i => !i.classList.contains('twin'));
+    if (!im || !im.naturalWidth) return { x: 0, y: 0, w: W, h: H };
+    const k = Math.max(W / im.naturalWidth, H / im.naturalHeight), w = im.naturalWidth * k, h = im.naturalHeight * k;
+    const pos = (im.style.objectPosition || '').match(/(-?[\d.]+)%\s+(-?[\d.]+)%/);
+    const px = pos ? +pos[1] / 100 : .5, py = pos ? +pos[2] / 100 : .5;
+    return { x: (W - w) * px, y: (H - h) * py, w, h };
   }
 
   // A figure drawn on cream paper is levelled so its paper is pure white (white does nothing under
@@ -112,23 +192,44 @@ const SPRITES = (() => {
     return c;
   }
 
-  function sound(name) {
-    if (!name || !window.AUDIO || reduced()) return;
-    if (sounds[name] === false) return;
-    const play = () => { try { AUDIO.snd(name); } catch (e) {} };
+  // A figure's sounds come again and again (every blow), so they cannot go through AUDIO.snd, which plays
+  // a sound once per screen. AUDIO.spot (the soundscapes' one-shots) is used if audio.js offers it;
+  // otherwise a small player of our own, heard only when the game's sound is on (never in test mode).
+  const players = [];
+  function sound(name, vol) {
+    if (!name || typeof AUDIO === 'undefined' || reduced()) return;     // AUDIO is a const: not on window
+    if (!(AUDIO.isOn ? AUDIO.isOn() : true)) return;
+    if (sounds[name] === false || sounds[name] === 'probing') return;
+    const play = () => {
+      try {
+        if (AUDIO.spot) return AUDIO.spot(name, vol);
+        let a = players.find(p => p.paused || p.ended);
+        if (!a) { if (players.length >= 4) return; a = new Audio(); players.push(a); }
+        a.src = `assets/sfx/${name}.mp3`; a.volume = Math.max(0, Math.min(1, vol)); a.play().catch(() => {});
+      } catch (e) {}
+    };
     if (sounds[name] === true) return play();
+    sounds[name] = 'probing';
     fetch(`assets/sfx/${name}.mp3`, { method: 'HEAD', cache: 'no-cache' })
       .then(r => { sounds[name] = r.ok; if (r.ok) play(); })
       .catch(() => { sounds[name] = false; });
   }
+
+  // which plates may stand in for a picture, in order (frames.js tries them before the picture itself)
+  function plates(name) { return Object.keys(CONF).filter(k => CONF[k].over === name); }
+  function figuresOf(k) { const c = k && CONF[k]; return c ? (Array.isArray(c) ? c : c.figures || []) : []; }
 
   function set(k) {
     if (!mount()) return;
     place();
     if (k === key) return;
     key = k;
-    const conf = (k && CONF[k]) || null;
-    figs = conf ? conf.map(f => ({ f, imgs: [].concat(f.img).map(load), runs: -1 })) : [];
+    const conf = figuresOf(k);
+    figs = conf.map(f => {
+      const poses = f.poses ? f.poses.map(p => ({ rec: load(p.img), hold: p.hold || f.every || .6, sfx: p.sfx }))
+        : [].concat(f.img || []).map(n => ({ rec: load(n), hold: f.every || .6 }));
+      return { f, poses, or: f.or ? load(f.or) : null, runs: -1, pose: -1 };
+    });
     t = 0;
     if (figs.length) { canvas.classList.add('on'); draw(); if (!reduced()) start(); else stop(); }
     else { canvas.classList.remove('on'); stop(); setTimeout(() => { if (!figs.length) g.clearRect(0, 0, canvas.width, canvas.height); }, 1200); }
@@ -155,6 +256,20 @@ const SPRITES = (() => {
     const a = Math.min(1, fade ? v / fade : 1, fade ? (secs - v) / fade : 1);
     return { k: v / secs, a, run, moving: true };
   }
+  // which drawing a figure shows at time t: [[rec, alpha], ...] (two while it blends), and the pose index.
+  // Only drawings that exist take part; with none, the stand-in ('or'); with nothing, nothing.
+  function poseAt(F, tt) {
+    const live = F.poses.filter(p => p.rec.ready);
+    if (!live.length) return { draw: F.or && F.or.ready ? [[F.or, 1]] : [], i: -1, stand: true };
+    if (live.length === 1 || reduced()) return { draw: [[live[0].rec, 1]], i: F.poses.indexOf(live[0]) };
+    const total = live.reduce((a, p) => a + p.hold, 0);
+    let u = ((tt + (F.f.offset || 0)) % total + total) % total, j = 0;
+    while (u >= live[j].hold) { u -= live[j].hold; j++; }
+    const cur = live[j], blend = F.f.blend || 0, left = cur.hold - u;
+    const out = { draw: [[cur.rec, 1]], i: F.poses.indexOf(cur) };
+    if (blend && left < blend) out.draw.push([live[(j + 1) % live.length].rec, 1 - left / blend]);
+    return out;
+  }
   function along(path, k) {
     if (path.length === 1) return path[0];
     const seg = [];
@@ -170,42 +285,75 @@ const SPRITES = (() => {
     }
     return path[path.length - 1];
   }
+  // where each figure is drawn now, in the frame's pixels: for drawing it, and for its mouths
+  function layout(F, R) {
+    const f = F.f, ph = phase(f, t), ps = poseAt(F, t);
+    const rec = ps.draw.length ? ps.draw[0][0] : null;
+    if (!rec) return { ph, ps, rec };
+    const k = (EASE[f.ease] || EASE.inout)(ph.k);
+    const [px, py] = along(f.path, k);
+    const sc = f.scale ? f.scale[0] + (f.scale[1] - f.scale[0]) * k : 1;
+    const w = (f.w || .2) * R.w * sc, h = w * rec.h / rec.w;
+    const walk = ph.moving ? t * (f.step || 1) : 0;
+    const bob = f.bob ? -Math.abs(Math.sin(Math.PI * walk)) * f.bob * R.h : 0;
+    const rot = f.sway ? Math.sin(Math.PI * walk) * f.sway * Math.PI / 180 : 0;
+    return { ph, ps, rec, x: R.x + px * R.w, y: R.y + py * R.h + bob, w, h, rot };
+  }
   function draw() {
     if (!g || !W) return;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, canvas.width, canvas.height);
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.globalCompositeOperation = 'multiply';        // figures overlapping each other: ink on ink
+    const R = pictureRect();
     for (const F of figs) {
-      const f = F.f, ph = phase(f, t);
-      if (ph.run !== F.runs && ph.moving) { F.runs = ph.run; sound(f.sfx); }
-      if (ph.a <= 0) continue;
-      const imgs = F.imgs.filter(r => r.ready);
-      if (!imgs.length) continue;
-      const rec = imgs.length > 1 ? imgs[Math.floor(t / (f.every || .6)) % imgs.length] : imgs[0];
-      const k = (EASE[f.ease] || EASE.inout)(ph.k);
-      const [px, py] = along(f.path, k);
-      const sc = f.scale ? f.scale[0] + (f.scale[1] - f.scale[0]) * k : 1;
-      const w = (f.w || .2) * W * sc, h = w * rec.h / rec.w;
+      const f = F.f, L = layout(F, R), ph = L.ph;
+      if (ph.run !== F.runs && ph.moving) { F.runs = ph.run; sound(f.sfx, f.vol || .35); }
+      if (L.ps.i !== F.pose) {                       // a new pose: its blow, its creak
+        const first = F.pose === -1;
+        F.pose = L.ps.i;
+        const p = F.poses[L.ps.i];
+        if (!first && p && p.sfx && ph.a > .5) sound(p.sfx, f.vol || .35);
+      }
+      if (ph.a <= 0 || !L.rec) continue;
       const [ax, ay] = f.anchor || [.5, 1];
-      const walk = ph.moving ? t * (f.step || 1) : 0;
-      const bob = f.bob ? -Math.abs(Math.sin(Math.PI * walk)) * f.bob * H : 0;
-      const rot = f.sway ? Math.sin(Math.PI * walk) * f.sway * Math.PI / 180 : 0;
       g.save();
-      g.globalAlpha = ph.a;
-      g.translate(px * W, py * H + bob);
-      if (rot) g.rotate(rot);
+      g.translate(L.x, L.y);
+      if (L.rot) g.rotate(L.rot);
       if (f.flip) g.scale(-1, 1);
-      g.drawImage(rec.el, -ax * w, -ay * h, w, h);
+      for (const [rec, a] of L.ps.draw) {
+        g.globalAlpha = ph.a * a;
+        g.drawImage(rec.el, -ax * L.w, -ay * L.h, L.w, L.h);
+      }
       g.restore();
     }
     g.globalCompositeOperation = 'source-over';
+  }
+  // the men's mouths now, as fractions of the frame, with how visible they are: fx.js breathes there
+  function mouths() {
+    if (!W || !figs.length) return [];
+    const R = pictureRect(), out = [];
+    for (const F of figs) {
+      const f = F.f;
+      if (!f.mouth && !f.mouthAt) continue;
+      const L = layout(F, R);
+      if (!L.rec || L.ph.a <= 0) continue;
+      if (f.mouthAt) { for (const [mx, my, dir] of f.mouthAt) out.push({ x: (R.x + mx * R.w) / W, y: (R.y + my * R.h) / H, a: L.ph.a, dir: dir || 1 }); continue; }
+      const [ax, ay] = f.anchor || [.5, 1];
+      for (const [mx, my, dir] of f.mouth) {
+        let dx = (mx - ax) * L.w * (f.flip ? -1 : 1), dy = (my - ay) * L.h;
+        const c = Math.cos(L.rot || 0), s = Math.sin(L.rot || 0);
+        out.push({ x: (L.x + dx * c - dy * s) / W, y: (L.y + dx * s + dy * c) / H, a: L.ph.a, dir: (dir || 1) * (f.flip ? -1 : 1) });
+      }
+    }
+    return out;
   }
   // for looking at it without waiting: at(seconds) shows the figures as they are that long after the
   // plate appeared, and stops the clock
   function at(secs) { stop(); t = secs; draw(); }
   function advance(secs) { at(t + secs); }
 
-  return { set, at, advance, conf: CONF, state: () => ({ key, figures: figs.length, ready: figs.map(F => F.imgs.map(r => r.ready)), t: +t.toFixed(2), running: !!raf }) };
+  return { set, at, advance, plates, mouths, conf: CONF,
+    state: () => ({ key, figures: figs.length, ready: figs.map(F => F.poses.map(p => p.rec.ready)), stand: figs.map(F => !!(F.or && F.or.ready)), poses: figs.map(F => F.pose), t: +t.toFixed(2), running: !!raf }) };
 })();
 window.SPRITES = SPRITES;

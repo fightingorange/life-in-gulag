@@ -20,18 +20,7 @@ function title() {
   if (saved) ch.unshift({ id: 'continue', label: `Continue: ${fmtDate(saved.day)}, day ${saved.day}.`, fn: () => { S = saved; startDay(); } });
   show(['# TEN YEARS', '~ Десять лет', epigraph(QUOTES.creature)], ch, { title: true, frame: 'title', amb: 'amb_wind' });
 }
-function intro() {
-  S.flags.title = false;
-  show([
-    '1951. A camp in the north, past the railhead, on a river that is ice for seven months of the year. The nearest town is four hundred kilometres away and does not want you.',
-    'Article 58-10, anti-Soviet agitation. Ten years. You said something at a table.',
-    'Ten years is not a thing a man can hold in his head. The old ones say: do not count the years, count the winter. When the ice goes out on the river in May, the worst of it is over.',
-    'There is another way out: through the wire, and down the river on the ice. Most men who take it are found in the spring.',
-    'The old ones say something else as well. Learn to see a good day: a second bowl, dry foot cloths, eleven minutes of sun. A man who can still tell a good day from a bad one is not finished.',
-    'You stopped counting on the train. This morning you start again, from one.',
-    '~ Each day you choose how to eat, how to work and how to spend the night. Once you have lived a day, the days can run on their own, the way you lived it, until something happens.',
-  ], [{ id: 'wake', label: 'Wake.', fn: startDay }], { frame: 'hut_night', amb: 'amb_hut', story: true });
-}
+// The opening (the wagon, the march, the gate, the hut) is in arrival.js: intro().
 
 // ---------- endings ----------
 const spoonHand = () => S.kuzma.here ? 'Kuzma takes your spoon' : 'somebody takes your spoon';
@@ -77,6 +66,7 @@ const ENDINGS = {
       const first = g === 'blade' ? 'He picks up the blade, weighs it, puts it in his pocket. He does not pick up the telephone.'
         : g === 'senka' ? 'Senka talks to him with his hands, for a long time. The man watches the hands, not the face. At the end he nods, once, and does not pick up the telephone.'
         : g === 'tobacco' ? 'He takes the tobacco and rolls one, and smokes it all the way down, looking at you. He does not pick up the telephone.'
+        : g === 'money' ? 'He smooths the roubles out on the table, one by one, and folds them into his shirt. "Your wife\'s?" he asks. You nod, and he nods. He does not pick up the telephone.'
         : g === 'bread' ? 'He looks at the bread, hard and grey, and pushes it back across the table to you. "Keep it," he says. "You will need it more." He does not pick up the telephone.'
         : 'He looks at you while you eat. When you have finished he takes the bowl and fills it again. He does not pick up the telephone. Not today.';
       return [first,
@@ -135,6 +125,17 @@ function unsaidLines() {
   else L.push(`Lev died on ${S.lev.diedOn}.`);
   if (!S.kuzma.here) L.push(S.flags.betrayed ? 'Kuzma was taken away with his bag.' : `Kuzma died on ${S.kuzma.diedOn}. Somebody else tells the stove stories now.`);
   else if (S.kuzma.helped) L.push('Kuzma\'s cough went the way it came.');
+  const boots = {
+    gave: 'You gave Vaska Kosoi your boots on the third night.',
+    fought: 'You fought Vaska Kosoi for your boots on the third night.',
+    tribute: `You paid Vaska Kosoi ${fmtInt(st.tribute || 0)} grams of bread for the boots on your own feet.`,
+    paid: 'Nina\'s roubles bought your boots back from Vaska Kosoi.',
+    brigade: 'Pasha stood up for you on the third night.',
+    warder: 'You called the warder. Lubimov wore your boots all winter.',
+  }[S.flags.urki];
+  if (boots) L.push(boots);
+  if (S.flags.toes) L.push('Two toes went in the cold, in Vaska\'s rubbers.');
+  if (S.flags.photo) L.push('You kept the photograph of Nina and Tanya, under your heel, all winter.');
   if (S.flags.spoke) L.push('You told a commission from Moscow the truth.');
   if (S.flags.signed) L.push('You signed the paper, so that Tanya could study.');
   if (st.lost) L.push(`${fmtInt(st.lost)} grams of your bread went into other men's pockets.`);
@@ -153,8 +154,14 @@ function levDeath() {
   S.lev.alive = false; S.lev.diedOn = fmtDate(S.day); S.lev.diedDay = S.day;
   S.bread += 100;
   stopRun('');
-  show([
+  const paras = [
     'Lev did not get up. Lubimov hit the bunk with his stick, which is what you do, and then looked, and then went to get the orderly.',
     'Lev is lighter than his jacket. Pasha keeps his bread ration for the brigade, because the dead do not eat and the office does not know yet. A hundred grams of it is yours.',
-  ], [{ label: 'Keep it.', fn: () => go(count) }], { frame: 'dead', amb: 'amb_hut_morning', sfx: 'rail', story: true });
+  ];
+  // the dead do not need boots
+  if (S.flags.rubber) {
+    S.flags.rubber = false; S.flags.levBoots = true;
+    paras.push('His felt boots go to you, because yours are rubber and because you were nearest. They are dry inside. He kept them under his head every night, the way Kuzma said.');
+  }
+  show(paras, [{ label: 'Keep it.', fn: () => go(count) }], { frame: 'dead', amb: 'amb_hut_morning', sfx: 'rail', story: true });
 }

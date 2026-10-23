@@ -49,7 +49,8 @@ EV('kuzma_river', {
   once: true, minDay: 2, weight: 4, when: () => S.kuzma.here,
   run() {
     show([
-      'The noon break, by the fire that is not allowed and is lit anyway. Kuzma, fifteen years for a sack of grain off his own collective farm, talks the way other men pray.',
+      S.flags.metKuzma ? 'The noon break, by the fire that is not allowed and is lit anyway. Kuzma talks the way other men pray.'
+        : 'The noon break, by the fire that is not allowed and is lit anyway. Kuzma, fifteen years for a sack of grain off his own collective farm, talks the way other men pray.',
       '"Downriver, three days on the ice, there is the free settlement. Released men, who cannot leave. They will feed you. Then they will sell you back, because they are hungry too. Upriver there is nothing." He thinks about it. "Nothing is better."',
     ], [{ id: 'remember', label: 'Remember it.', hint: 'the wire needs a way', fn: () => {
       S.flags.river = true;
@@ -70,7 +71,7 @@ EV('kuzma_cough', {
         note('Kuzma ate it the way he does everything, as if there were a story in it.', true);
         afterNoon();
       } },
-      { id: 'stupid', label: 'Tell him not to be stupid.', fn: () => {
+      { id: 'stupid', def: true, label: 'Tell him not to be stupid.', fn: () => {
         S.kuzma.coughDay = S.day;
         note('Kuzma laughed, and the laugh turned into the cough.', true);
         afterNoon();
@@ -90,7 +91,7 @@ EV('kuzma_worse', {
         mercy('Kuzma, telling stories again.', 0);
         afterNoon();
       } },
-      { id: 'no', label: 'Look at your own bowl.', fn: () => { note('Kuzma will not see the river go out.', true); afterNoon(); } },
+      { id: 'no', def: true, label: 'Look at your own bowl.', fn: () => { note('Kuzma will not see the river go out.', true); afterNoon(); } },
     ], noonFrame());
   },
 });
@@ -101,7 +102,8 @@ EV('lev_barrow', {
   run() {
     const first = S.count.lev_barrow === 1;
     const paras = first ? [
-      'Lev has stopped at the barrow. He is nineteen, from Leningrad, five years for a paper he read aloud at a seminar. He makes about half the quota now, and the brigade carries the rest.',
+      S.flags.metLev ? 'Lev, from the march, has stopped at the barrow. He is nineteen, and the paper was something he read aloud at a seminar. He makes about half the quota now, and the brigade carries the rest.'
+        : 'Lev has stopped at the barrow. He is nineteen, from Leningrad, five years for a paper he read aloud at a seminar. He makes about half the quota now, and the brigade carries the rest.',
       'He does not ask. He looks at your pocket.',
     ] : [pick([
       'Lev again, at the barrow. He has started to walk the way the old ones walk, feet flat, saving something.',
@@ -116,7 +118,7 @@ EV('lev_barrow', {
         note('Lev ate it with his back to the wind.');
         afterNoon();
       } },
-      { id: 'refuse', label: 'Look at the barrow.', fn: () => {
+      { id: 'refuse', def: true, label: 'Look at the barrow.', fn: () => {
         S.lev.refused++; S.lev.health -= 4;
         note(S.lev.refused >= 2 ? 'Lev has stopped asking with his eyes. That is worse.' : 'Lev looked at the barrow too.');
         afterNoon();
@@ -158,10 +160,11 @@ EV('lev_repay', {
 
 // ---------- the kum and his trusty ----------
 EV('fomin_recruit', {
-  once: true, minDay: 4, weight: 2, when: () => !S.flags.betrayed,
+  once: true, minDay: 4, weight: () => S.flags.urki === 'warder' ? 8 : 2, when: () => !S.flags.betrayed,
   run() {
     show([
-      'Fomin finds you at the water barrel. Fomin is a trusty, which means he works indoors and eats.',
+      S.flags.urki === 'warder' ? 'Fomin finds you at the water barrel: the trusty in the clean jacket from the guardhouse, the night you came. He works indoors and eats. He has heard about the boots.'
+        : 'Fomin finds you at the water barrel. Fomin is a trusty, which means he works indoors and eats.',
       '"The kum asked about you. Nothing bad. He likes to know who people are." He looks at your hands. "There is a place coming free in the bootmakers\'. Warm. He said you might be the kind who notices things."',
     ], [
       { id: 'deny', say: 'prisoner_deny', label: '"I don\'t notice anything."', hint: 'the kum will remember that too', fn: () => {
@@ -187,7 +190,7 @@ EV('kum_name', {
         S.kuzma.here = false;
         show(['Kuzma is taken from the hut after the evening count, with his bag. His bunk is given to a Latvian who does not talk. The next morning you are told to report to the bootmakers\'.'], onward(), { sfx: 'door' });
       } },
-      { id: 'refuse', say: 'prisoner_noname', label: '"I don\'t have one."', fn: () => {
+      { id: 'refuse', def: true, say: 'prisoner_noname', label: '"I don\'t have one."', fn: () => {
         S.flags.informer = false; S.flags.refusedName = true; eye(30);
         show(['"Everyone has one," Fomin says, and goes. The kum will remember that you had the chance.'], onward(), { voice: 'fomin_everyone' });
       } },
@@ -247,7 +250,7 @@ EV('wood_stick', {
   run() {
     show(['At the end of the shift Pasha points at the scrap pile by the carpenters\' shed. "One stick each. Whoever carries nothing sits by the door tonight."'], [
       { id: 'carry', label: 'Carry a stick back.', hint: 'the gate may take it, and notice you', fn: () => { S.today.wood = true; afterNoon(); } },
-      { id: 'none', label: 'Carry nothing.', fn: () => { brig(-3); note('You carried nothing. You will sit by the door.'); afterNoon(); } },
+      { id: 'none', def: true, label: 'Carry nothing.', fn: () => { brig(-3); note('You carried nothing. You will sit by the door.'); afterNoon(); } },
     ], { frame: siteFrame(null), amb: 'amb_site', voice: 'pasha_stove' });
   },
 });
@@ -257,7 +260,8 @@ EV('senka_frost', {
   once: true, minDay: 5, weight: 3, when: () => !S.flags.senkaGone,
   run() {
     show([
-      'Senka, deaf since a shell at Kursk, draws on the frost of the lean-to window with a nail: the river. A bend. A cross. Then he rubs it out with his sleeve and looks at you.',
+      S.flags.metSenka ? 'Senka, the big man from the march who would not turn his head, draws on the frost of the lean-to window with a nail: the river. A bend. A cross. Then he rubs it out with his sleeve and looks at you.'
+        : 'Senka, deaf since a shell at Kursk, draws on the frost of the lean-to window with a nail: the river. A bend. A cross. Then he rubs it out with his sleeve and looks at you.',
       'He walked out of a German camp in \'43. He is telling you he can walk out of this one.',
     ], [
       { id: 'nod', label: 'Nod.', hint: 'a man who has done it before', fn: () => {
@@ -265,7 +269,7 @@ EV('senka_frost', {
         note('Senka. He walked out of a German camp in \'43. He does not talk. He draws.', true);
         afterNoon();
       } },
-      { id: 'away', label: 'Look away.', fn: () => { note('Senka rubbed the window clean and did not look at you again.'); afterNoon(); } },
+      { id: 'away', def: true, label: 'Look away.', fn: () => { note('Senka rubbed the window clean and did not look at you again.'); afterNoon(); } },
     ], noonFrame());
   },
 });
@@ -285,7 +289,9 @@ EV('senka_stash', {
 
 // ---------- the urki ----------
 EV('urki_stove', {
-  cooldown: 20, max: 3, weight: 2, minDay: 6,
+  cooldown: 20, max: 3, minDay: 6,
+  weight: () => S.flags.urki === 'gave' ? 4 : 2,
+  when: () => !['tribute', 'paid'].includes(S.flags.urki) && !(S.flags.urki === 'brigade' && S.brigade >= 10),
   run() {
     const loot = S.tobacco > 0 ? 'tobacco' : S.bread > 0 ? 'bread' : 'jacket';
     show([
@@ -330,6 +336,139 @@ EV('urki_grudge', {
     ], onward(), noonFrame());
   },
 });
+// ---------- the boots, afterwards (the third night: arrival.js) ----------
+// tribute: Vaska's man comes for his share every ten days, until you stop paying
+EV('urki_tribute', {
+  force: () => S.flags.urki === 'tribute' && S.day >= (S.flags.tributeDay || 0) + 10,
+  setup: () => { S.flags.urki = 'tribute'; S.flags.tributeDay = S.day - 10; },
+  run() {
+    S.flags.tributeDay = S.day;
+    show([
+      'Vaska\'s man finds you at the noon fire, the young one with the burnt hand. He does not say anything. He holds the hand out.',
+      S.bread >= 150 ? 'A hundred and fifty grams. He knows where you keep it. Everyone knows where everyone keeps it.' : 'You have nothing kept. He will take your noon soup instead, and look at you while you watch him eat it.',
+    ], [
+      { id: 'pay', def: true, label: 'Pay.', hint: 'the boots stay on your feet', fn: () => {
+        if (S.bread >= 150) { S.bread -= 150; S.stats.lost += 150; } else adj(-5);
+        S.stats.tribute = (S.stats.tribute || 0) + 150;
+        note('Vaska\'s share. Paid up for another week or so.');
+        afterNoon();
+      } },
+      { id: 'stop', label: 'Shake your head.', hint: 'nobody stops paying Vaska Kosoi for nothing', fn: () => {
+        S.flags.urki = 'fought'; S.flags.urkiGrudge = S.day; brig(4);
+        remember('You stopped paying Vaska.', true);
+        show(['The young one looks at you for a moment, puzzled, as if a dog had spoken. Then he goes back across the fire and says something to Vaska, and Vaska looks at you over the flames and nods, slowly, like a man agreeing a price.'], onward());
+      } },
+    ], { ...noonFrame(), urki: 'tribute' });
+  },
+});
+// the men who pay: Vaska trusts them, and sells them steel
+EV('vaska_fence', {
+  once: true, minDay: 18, weight: 3, when: () => ['tribute', 'paid'].includes(S.flags.urki) && !S.flags.blade,
+  setup: () => { S.flags.urki = 'paid'; S.bread = 300; },
+  run() {
+    const can = S.bread >= 300;
+    show([
+      'Vaska Kosoi sits down beside you at the noon fire like an old friend, and gives you the end of his cigarette, which nobody refuses.',
+      '"A man who pays is a man I can trust," he says. "And you look at the fence the way I look at a purse. I have fifteen centimetres of steel. Three hundred grams, and you never saw me."',
+    ], [
+      { id: 'no', def: true, label: '"I don\'t think about fences."', fn: () => { note('"Nobody does," Vaska said, and laughed.'); afterNoon(); } },
+      can ? { id: 'pay', label: 'Pay him three hundred grams.', hint: 'the wire needs a blade', fn: () => {
+        S.bread -= 300; S.flags.blade = true; S.flags.bladeDay = S.day; eye(3);
+        note('Vaska\'s steel is in your boot. You walk differently. You must stop walking differently.', true);
+        afterNoon();
+      } } : { id: 'cant', label: `You have ${S.bread} g. Say so.`, fn: () => { note('"Come back when you have it," Vaska said. "I am patient. So is the fence."', true); afterNoon(); } },
+    ], { ...noonFrame(), voice: 'vaska_fence', urki: 'fence' });
+  },
+});
+// the men who fought, or called the warder: the urki collect
+EV('urki_knife', {
+  once: true, minDay: 14, weight: 4,
+  when: () => ['fought', 'warder'].includes(S.flags.urki) && S.day >= (S.flags.urkiGrudge || 0) + 10,
+  setup: () => { S.flags.urki = 'fought'; S.flags.urkiGrudge = S.day - 10; },
+  run() {
+    const settle = S.flags.rubber
+      ? { id: 'settle', label: 'Give him what you have kept.', hint: S.bread ? `${S.bread} g` : 'you have nothing; he will take your soup', fn: () => {
+          if (S.bread) { S.stats.lost += S.bread; S.bread = 0; } else adj(-6);
+          S.flags.urki = 'gave';
+          note('Vaska\'s man took it, and patted your cheek. Your account with the urki is closed. They write such things in their heads, very carefully.', true);
+          afterNoon();
+        } }
+      : { id: 'settle', label: 'Take off the boots. Here, in the snow.', hint: 'he has the rubber ones with him', fn: () => {
+          S.flags.urki = 'gave'; S.flags.rubber = true; S.flags.rubberDay = S.day;
+          note('You walked back to the zone in Vaska\'s rubbers. Your account with the urki is closed.', true);
+          afterNoon();
+        } };
+    show([
+      'At the noon fire the young one with the burnt hand sits down beside you, close, closer than men sit. Something under his jacket touches your side through the quilting, and stays there.',
+      S.flags.rubber ? '"Vaska says hello," he says. "He says the rubber boots suit you. He says you still owe him for the trouble."'
+        : '"Vaska says hello," he says. "He says it is cold for the time of year. A man could lose his boots in this cold."',
+    ], [
+      { id: 'still', def: true, label: 'Sit still.', hint: S.brigade >= 20 ? 'the brigade is at the fire' : 'the brigade is at the fire; it owes you nothing', fn: () => {
+        if (S.brigade >= 20) {
+          brig(3); S.flags.urki = 'brigade';
+          mercy('The brigade stood up for you.');
+          return show(['Across the fire Pasha stands up, and then the brigade stands up, one man at a time, without hurrying. The young one looks at them, and smiles, and is gone.'], onward());
+        }
+        adj(-20); S.until.infirmary = S.day + 3;
+        remember('Vaska\'s man put a knife in you at the noon fire.', true);
+        const paras = ['Nobody stands up. The knife goes in once, not deep, between two ribs, the way a man signs his name. Then he is gone, and you are looking at the snow going red under you, and somebody is shouting for the medic, and it is you.'];
+        if (!S.flags.rubber) { S.flags.rubber = true; S.flags.rubberDay = S.day; paras.push('When you come back from the infirmary your boots are on Vaska\'s feet, and the rubber ones are on your bunk.'); }
+        S.flags.urki = 'gave';
+        show(paras, onward(), { sfx: 'fight' });
+      } },
+      settle,
+    ], { ...noonFrame(), urki: 'knife' });
+  },
+});
+// Pasha's protection lasts while the brigade thinks well of you
+EV('urki_return', {
+  once: true, force: () => S.flags.urki === 'brigade' && !S.flags.rubber && S.brigade < -10,
+  setup: () => { S.flags.urki = 'brigade'; S.brigade = -20; },
+  run() {
+    loseBoots('gave');
+    remember('Pasha did not stand up this time. Vaska has your boots.', true);
+    show([
+      'Vaska Kosoi sits down beside you at the noon fire as if he had never got up. "Pasha is not looking at you any more," he says. "I notice these things."',
+      'He is right. Pasha is looking at the fire. Vaska\'s friend has the rubber boots with him, the same ones, as if they had been waiting for you all this time.',
+    ], [{ id: 'give', label: 'Take them off.', fn: afterNoon }], noonFrame());
+  },
+});
+// the rubber boots in a hard frost
+EV('frostbite', {
+  once: true, weight: 5, site: true, when: () => S.flags.rubber && S.temp <= -36,
+  setup: () => { S.flags.rubber = true; S.temp = -40; },
+  run() {
+    show(['At noon you notice that two toes on your left foot stopped hurting an hour ago. In the rubber boots the cold does not knock. It comes in and sits down.'], [
+      { id: 'work', def: true, label: 'Work on. Do not look.', fn: () => {
+        adj(-10); S.flags.toes = true;
+        note('Two toes went white, and then grey. They are still yours, for now. You walk differently.', true);
+        afterNoon();
+      } },
+      { id: 'rub', label: 'Boot off by the fire. Rub them till they burn.', hint: 'the foreman sees a man sitting down', fn: () => {
+        adj(-3); brig(-4);
+        note('The toes came back, screaming. The foreman wrote down a man sitting by the fire.');
+        afterNoon();
+      } },
+    ], { frame: siteFrame(null), amb: 'amb_site' });
+  },
+});
+// Nina's roubles, if they got through the gate and Vaska did not get them
+EV('free_driver', {
+  once: true, minDay: 5, weight: 2, site: true, when: () => S.flags.money,
+  setup: () => { S.flags.money = true; },
+  run() {
+    show(['A free driver brings cement to the site: a man in a sheepskin with no number on it, who goes home at night. While they unload he stands by his lorry, smoking, and says to nobody that he has makhorka, for money.'], [
+      { id: 'keep', def: true, label: 'Keep Nina\'s roubles in the boot.', fn: afterNoon },
+      { id: 'pay', label: 'Buy tobacco with them.', hint: 'twenty-five roubles; tobacco is the camp\'s money', fn: () => {
+        S.flags.money = false; tob(3);
+        mercy('Three pinches of makhorka, from a free man.', 0);
+        note('Three pinches, in a twist of newspaper. The driver did not look at your face, which was a courtesy.');
+        afterNoon();
+      } },
+    ], { frame: siteFrame(null), amb: 'amb_site' });
+  },
+});
+
 EV('cards', {
   cooldown: 14, max: 3, weight: 1, minDay: 7, when: () => S.tobacco >= 1,
   run() {
@@ -339,7 +478,7 @@ EV('cards', {
         else { tob(-1); note('You lost the pinch. Vaska was very sorry about it.'); }
         afterNoon();
       } },
-      { id: 'watch', label: 'Watch, and keep your tobacco.', fn: afterNoon },
+      { id: 'watch', def: true, label: 'Watch, and keep your tobacco.', fn: afterNoon },
     ], noonFrame());
   },
 });
@@ -374,7 +513,7 @@ EV('baptist', {
         note('Your bread lives under Alyoshka\'s boards now. The searches at the gate will find nothing on you.', true);
         afterNoon();
       } },
-      { id: 'keep', label: 'Keep it on you.', fn: () => { note('Alyoshka shrugged and went back to praying.'); afterNoon(); } },
+      { id: 'keep', def: true, label: 'Keep it on you.', fn: () => { note('Alyoshka shrugged and went back to praying.'); afterNoon(); } },
     ], { ...noonFrame(), voice: 'alyosha_keep' });
   },
 });

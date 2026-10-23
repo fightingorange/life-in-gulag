@@ -9,6 +9,8 @@ distant sounds (the count, the gate, the work site, the mess hut, reveille in th
     python3 scripts/gen_crowd.py verify     # transcribe every final file, compare, write assets/sfx/ru_list.json
     python3 scripts/gen_crowd.py all
     python3 scripts/gen_crowd.py design --force guard_old   # redo one take
+    python3 scripts/gen_crowd.py cut ru_march_rule          # cut and process take file names: only those
+                                                            # (process makes verify transcribe the file again)
 
 Like the "oneoff" voices in gen_voice.py, these voices are never saved to the account (its voice slots
 are full): the voice-design step speaks the whole take, and the take is cut at the word timings from
@@ -113,6 +115,19 @@ TAKES = {
             ("out", "Выходи строиться!"),
         ],
     },
+    "convoy": {
+        "description": "A harsh, loud Russian convoy soldier in his thirties shouting at a long column of prisoners "
+                       "on the march outdoors in deep frost, hoarse barking voice, curt, threatening, every word hammered "
+                       "out. Speaks Russian.",
+        "phrases": [
+            ("rule", "Шаг влево, шаг вправо — считается побег! Конвой стреляет без предупреждения!"),
+            ("quiet", "Разговорчики!"),
+            ("quiet2", "Прекратить разговоры в строю!"),
+            ("hands", "Руки за спину!"),
+            ("close", "Подтянись! Не растягиваться!"),
+            ("name", "Фамилия!"),
+        ],
+    },
     # The murmur: men talking low at the tables. Read as running talk, not separate phrases.
     "murmur_a": {
         "description": "A tired Russian man talking quietly to the man next to him at a table, low murmuring "
@@ -174,9 +189,16 @@ OUT = [
     ("ru_hut_mutter",      "hut",   "prisoner", "prisoner_old", 2, ["again"],                 "Oh Lord... again."),
     ("ru_hut_minute",      "hut",   "prisoner", "prisoner_old", 2, ["minute"],                "Just one more minute."),
     ("ru_hut_boots",       "hut",   "prisoner", "prisoner_old", 0, ["boots"],                 "Where are my felt boots?"),
+    # arrival: the march from the railhead, and the gate
+    ("ru_march_rule",      "march", "guard",    "convoy", 2, ["rule"],                        "A step to the left, a step to the right counts as escape! The convoy shoots without warning!"),
+    ("ru_march_quiet",     "march", "guard",    "convoy", 2, ["quiet"],                       "No talking!"),
+    ("ru_march_quiet2",    "march", "guard",    "convoy", 2, ["quiet2"],                      "Stop talking in the ranks!"),
+    ("ru_march_hands",     "march", "guard",    "convoy", 2, ["hands"],                       "Hands behind your back!"),
+    ("ru_march_close",     "march", "guard",    "convoy", 2, ["close"],                       "Close up! Don't straggle!"),
+    ("ru_proc_name",       "proc",  "guard",    "convoy", 0, ["name"],                        "Surname!"),
 ]
 
-OUTDOOR = {"count", "gate", "site"}
+OUTDOOR = {"count", "gate", "site", "march", "proc"}
 
 # Distance: mono, band-limited, an echo. Outdoors the echo comes late and long, off the huts and the
 # forest across cold air; indoors it is short and close, and the top is duller.
@@ -332,6 +354,8 @@ def cmd_cut(argv):
     CROWD.mkdir(parents=True, exist_ok=True)
     cache = {}
     for name, situation, role, take, i, units, english in OUT:
+        if argv and name not in argv:
+            continue
         if (take, i) not in cache:
             cache[(take, i)] = align(take, i)
         spans, stt = cache[(take, i)]
@@ -371,6 +395,8 @@ def place(src, dst, chain, tail=0.7):
 
 def cmd_process(argv):
     for name, situation, *_ in OUT:
+        if argv and name not in argv:
+            continue
         src = CROWD / f"{name}.wav"
         if not src.exists():
             print(f"  {name}: no cut phrase, skipped")

@@ -10,7 +10,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const FILES = ['js/util.js', 'js/assets.js', 'js/engine.js', 'js/content/lines.js', 'js/content/day.js', 'js/content/events.js', 'js/content/calendar.js',
-  'js/content/escape.js', 'js/content/story.js', 'js/testkit.js'];
+  'js/content/escape.js', 'js/content/story.js', 'js/content/arrival.js', 'js/testkit.js'];
 
 function load() {
   const ctx = vm.createContext({ console });

@@ -10,7 +10,7 @@ const tx = s => esc(typeset(s));   // typeset, then escape
 
 const UI = (() => {
   const top = $('#top'), text = $('#text'), cards = $('#cards'), choicesEl = $('#choices'), snd = $('#snd'), keep = $('#keep');
-  let current = null, last = {}, lockUntil = 0, held = false, holdId = 0;
+  let current = null, order = [], last = {}, lockUntil = 0, held = false, holdId = 0;
 
   // ---------- status ----------
   function meter(key, label, pct, word, tip) {
@@ -132,6 +132,7 @@ const UI = (() => {
       if (!voiced || wait > 0) return void setTimeout(release, Math.max(60, wait));
       held = false;
       choicesEl.classList.remove('held');
+      clockGo();
     };
     if (o.voice) AUDIO.say(o.voice, () => { voiced = true; release(); });
     if (story) setTimeout(release, minHold);
@@ -159,11 +160,58 @@ const UI = (() => {
     text.innerHTML = parts.join('');
 
     choicesEl.classList.toggle('held', held);
-    choicesEl.innerHTML = scr.choices.map((c, k) =>
-      `<button type="button" data-k="${k}" class="${c.id === 'go' ? 'danger' : ''}" style="--i:${k}"><span class="k">${k + 1}</span>`
-      + `<span class="l">${tx(c.label)}${c.hint ? `<small>${tx(c.hint)}</small>` : ''}</span></button>`).join('');
+    // the default choice (def: true, else the first) is shown first, as 1; the keys follow what is shown
+    const d = Math.max(0, scr.choices.findIndex(c => c.def));
+    order = [d, ...scr.choices.map((c, k) => k).filter(k => k !== d)];
+    const timed = clockOn && clocked(scr);
+    choicesEl.innerHTML = order.map((k, n) => {
+      const c = scr.choices[k];
+      return `<button type="button" data-k="${k}" class="${c.id === 'go' ? 'danger' : ''}" style="--i:${n}"><span class="k">${n + 1}</span>`
+        + `<span class="l">${tx(c.label)}${c.hint ? `<small>${tx(c.hint)}</small>` : ''}</span>${timed && n === 0 ? '<i class="clock"></i>' : ''}</button>`;
+    }).join('');
+    clockSet(timed ? choicesEl.querySelector('.clock') : null, d);
+    if (!held) clockGo();
     window.scrollTo(0, 0);
     fit();
+  }
+
+  // ---------- the clock on a choice ----------
+  // A real choice has thirty seconds; then the default is taken, as if clicked (a spoken choice is still
+  // heard). A thin line along the bottom of the default drains while the time runs, and darkens a little
+  // at the end. It runs only while the choices can be clicked, the page is visible and the dev panel is
+  // closed. No clock on the title, the endings, the night's account, the wire, the camp record, or a
+  // screen with only one way on. ?notimer turns it off; so does DEV.timer().
+  const TIME = 30000, LATE = 6000;
+  let clockOn = !/[?&]notimer\b/.test(location.search);
+  const clk = { bar: null, k: -1, left: 0, last: 0, running: false, id: 0 };
+  function clocked(scr) {
+    const o = scr.o;
+    return scr.choices.length > 1 && !(o.title || o.ending || o.ledger || o.plan || o.record);
+  }
+  function clockSet(bar, k) {
+    clk.bar = bar; clk.k = k; clk.left = TIME; clk.running = false; clk.id++;
+  }
+  function clockGo() {
+    if (!clk.bar || clk.running) return;
+    clk.running = true; clk.last = performance.now();
+  }
+  const devOpen = () => { const d = document.getElementById('dev'); return !!(d && d.style.display !== 'none'); };
+  function clockTick() {
+    if (!clk.running) return;
+    const now = performance.now(), dt = Math.min(250, now - clk.last);   // a sleeping computer does not eat the time
+    clk.last = now;
+    if (document.hidden || devOpen() || !clk.bar.isConnected) return;
+    clk.left -= dt;
+    clk.bar.style.transform = `scaleX(${Math.max(0, clk.left / TIME).toFixed(4)})`;
+    clk.bar.classList.toggle('late', clk.left < LATE);
+    if (clk.left <= 0) { clk.running = false; clk.bar = null; pickChoice(clk.k); }
+  }
+  setInterval(clockTick, 100);
+  document.addEventListener('visibilitychange', () => { clk.last = performance.now(); });
+  function timer(on) {
+    clockOn = on === undefined ? !clockOn : !!on;
+    if (current) present(current);
+    return clockOn;
   }
 
   // ---------- every screen fits the window on a desktop ----------
@@ -175,7 +223,8 @@ const UI = (() => {
     inner.style.zoom = '';
     if (!wide()) return 1;
     let k = 1;
-    while (box.scrollHeight > box.clientHeight + 6 && k > .8) { k = Math.round((k - .04) * 100) / 100; inner.style.zoom = k; }
+    const floor = innerHeight < 700 ? .7 : .8;     // a small laptop screen may shrink a little further
+    while (box.scrollHeight > box.clientHeight + 6 && k > floor) { k = Math.round((k - .04) * 100) / 100; inner.style.zoom = k; }
     return k;
   }
   // The documents start under the picture. If that column is crowded and the prose column has room,
@@ -213,7 +262,9 @@ const UI = (() => {
   function pickChoice(k) {
     if (!current || held || performance.now() < lockUntil) return;
     const ch = current.choices[k];
-    if (ch) choose(ch);
+    if (!ch) return;
+    clk.running = false; clk.bar = null;
+    choose(ch);
   }
   choicesEl.addEventListener('click', e => {
     const b = e.target.closest('button[data-k]');
@@ -223,7 +274,7 @@ const UI = (() => {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
     const n = parseInt(e.key, 10);
-    if (n >= 1 && n <= 9) { e.preventDefault(); pickChoice(n - 1); }
+    if (n >= 1 && n <= 9) { e.preventDefault(); if (n <= order.length) pickChoice(order[n - 1]); }
     else if (e.key === 'Enter' && current && current.choices.length === 1 && !(e.target && e.target.tagName === 'BUTTON')) pickChoice(0);
   });
   // ---------- keeping your place ----------
@@ -257,6 +308,7 @@ const UI = (() => {
   snd.addEventListener('click', () => { AUDIO.unlock(); AUDIO.toggle(); sndLabel(); });
   sndLabel();
 
-  return { present, keepLabel, fit, refreshSound: sndLabel, refresh: () => current && present(current) };
+  return { present, keepLabel, fit, timer, clock: () => ({ on: clockOn, running: clk.running, left: Math.round(clk.left), k: clk.k }),
+    refreshSound: sndLabel, refresh: () => current && present(current) };
 })();
 RENDER = UI.present;

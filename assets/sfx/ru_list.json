@@ -280,6 +280,54 @@
   "kind": "spot"
  },
  {
+  "file": "ru_march_rule.mp3",
+  "situation": "march",
+  "text": "Шаг влево, шаг вправо — считается побег! Конвой стреляет без предупреждения!",
+  "english": "A step to the left, a step to the right counts as escape! The convoy shoots without warning!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_march_quiet.mp3",
+  "situation": "march",
+  "text": "Разговорчики!",
+  "english": "No talking!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_march_quiet2.mp3",
+  "situation": "march",
+  "text": "Прекратить разговоры в строю!",
+  "english": "Stop talking in the ranks!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_march_hands.mp3",
+  "situation": "march",
+  "text": "Руки за спину!",
+  "english": "Hands behind your back!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_march_close.mp3",
+  "situation": "march",
+  "text": "Подтянись! Не растягиваться!",
+  "english": "Close up! Don't straggle!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
+  "file": "ru_proc_name.mp3",
+  "situation": "proc",
+  "text": "Фамилия!",
+  "english": "Surname!",
+  "role": "guard",
+  "kind": "spot"
+ },
+ {
   "file": "ru_mess_murmur.mp3",
   "situation": "mess",
   "text": "(неразборчивый гул голосов за столами)",

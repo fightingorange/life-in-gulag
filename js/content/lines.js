@@ -78,6 +78,14 @@ const LINES = {
     { t: 'Day fifty, by your count. Nobody marks it. You mark it, by not eating your bread until noon.', when: () => S.day >= 50 && S.day <= 52, w: 3 },
     { t: 'Day one hundred. In here a hundred is not a number, it is a place you have been.', when: () => S.day >= 100 && S.day <= 102, w: 3 },
     { t: 'Men still talk about the week of forty-five below as if it had been a war. In a way it was.', when: () => S.seen['beat:cold_snap'] && S.day >= 32 && S.day <= 60 },
+    // the boots, and the third night (arrival.js)
+    { t: 'The rubber boots are where your felt ones used to be. You put them on in the dark, still wet from yesterday, and your feet remember May as a rumour.', when: () => S.flags.rubber, w: 2 },
+    { t: 'Across the hut Vaska Kosoi is putting on your felt boots. He does it slowly, so that you can watch.', when: () => S.flags.rubber && S.flags.urki === 'gave', w: 2 },
+    { t: 'Your ribs on the left side tell you the time before the rail does.', when: () => S.flags.urki === 'fought' && since(S.flags.urkiGrudge) <= 12, w: 2 },
+    { t: 'Vaska\'s man looks at you across the hut and taps his stomach. A reminder. You are paid up, for now.', when: () => S.flags.urki === 'tribute', w: 2 },
+    { t: 'Pasha passes your bunk and looks at your boots and then at you, the way a man checks a tool he has lent.', when: () => S.flags.urki === 'brigade', w: 1.5 },
+    { t: 'You look at the photograph before the rail, with your back to the hut. Nina, and Tanya at nine, in a coat that used to be yours.', when: () => S.flags.photo, w: 1.5 },
+    { t: 'Lev\'s felt boots, on your feet now. You still put them under your head every night, the way he did.', when: () => S.flags.levBoots, w: 2 },
   ],
 
   // the count
@@ -93,6 +101,8 @@ const LINES = {
     { t: 'Count. The number comes out right the first time, and the guards look at each other as if something has gone wrong.' },
     { t: 'Count. Since the two men went over the wire they count three times, and the third time is the slowest.', when: () => S.flags.othersEscaped && S.day < 90, w: 2 },
     { t: 'Count. Lubimov stops in front of you, looks at you, and moves on. He has done it every morning since the commission.', when: () => S.flags.spoke, w: 2 },
+    { t: 'Count. In the rubber boots you cannot feel the ground, only the cold coming up through it, like water into a hole.', when: () => S.flags.rubber && S.temp <= -25, w: 2 },
+    { t: 'Count. Lubimov walks the line in new felt boots, white ones. He stops in front of you, and looks down at your feet, and then at his own.', when: () => S.flags.urki === 'warder', w: 2 },
   ],
 
   // breakfast, before the bread is weighed
@@ -163,6 +173,8 @@ const LINES = {
     { t: 'Back to the gate in a wind that takes your breath and does not give it back. Men walk with their eyes shut and their hands on the shoulders in front.', when: cold(-35) },
     { t: 'The column back, along the river. Somebody says the ice has a voice in the evening, and for a while everybody listens for it.', when: inMonths('mar', 'apr') },
     { t: 'The column back. Five abreast, as always, so that if one man falls, four men know.' },
+    { t: 'The column back. "A step to the left or the right," the convoy says at the site, every evening, as if anyone had forgotten since the railhead.' },
+    { t: 'The column back, in the dark. You walk in the rubber boots the way the old men walk: flat, not lifting, saving something.', when: () => S.flags.rubber && inMonths('jan', 'feb')() },
   ],
   gateQuiet: [
     { t: 'The warders are cold too. The line goes through.', when: cold(-20) },
@@ -206,6 +218,9 @@ const LINES = {
     { t: 'Senka drew a horse on the frost of the window, for no reason, and pointed at it, and you both looked at it.', when: () => !S.flags.senkaGone && S.flags.partner },
     { t: 'Lev told you the plot of a novel by a Frenchman, all of it, in the dark. It took an hour. It was a good hour.', when: () => S.lev.alive },
     { t: 'Alyoshka prayed for you, out loud, by name, and did not ask if he could.', when: () => S.flags.baptist },
+    { t: 'You looked at the photograph by the light of the stove door, for as long as you wanted.', when: () => S.flags.photo },
+    { t: 'Your own boots, dry inside, under your head.', when: () => !S.flags.rubber && S.flags.urki && S.flags.urki !== 'warder' },
+    { t: 'Lev talked about Leningrad in the dark, in a whisper, without moving his lips, the way you both learned on the march.', when: () => S.lev.alive && S.flags.metLev },
   ],
   searchLead: [
     { t: 'Your turn. Jacket open, arms out.' },
@@ -247,5 +262,8 @@ const LINES = {
     { t: 'Night. Meltwater is running somewhere under the hut. It sounds like someone talking in the next room.', when: inMonths('may'), s: 'drip' },
     { t: 'Night. Kuzma is telling the stove about the priest and the tax collector. You fall asleep before the end. You always do.', when: () => S.kuzma.here, m: 'Kuzma\'s story, nearly to the end.' },
     { t: 'Night. Senka, in the bunk above, is drawing on the frost of the wall with his fingernail. You do not ask what.', when: () => !S.flags.senkaGone && S.flags.partner },
+    { t: 'Night. Your boots under your head, and your head on them, the way Kuzma said. Twice in the night a hand tries them, gently, and goes away.', when: () => !S.flags.rubber && ['fought', 'tribute', 'paid', 'brigade'].includes(S.flags.urki), w: 1.5 },
+    { t: 'Night. The urki are playing cards by the stove door. Once Vaska looks up, finds you in the dark, and goes back to his cards.', when: () => ['fought', 'warder'].includes(S.flags.urki), w: 1.5 },
+    { t: 'Night. You hang the rubber boots on the stove pipe and they steam, and stink, and are wet again by morning.', when: () => S.flags.rubber },
   ],
 };

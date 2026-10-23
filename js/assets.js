@@ -18,28 +18,22 @@ const ASSETS = {
     supper: [.48, .36], site_power_1: [.5, .45], site_power_2: [.5, .45], site_power_3: [.5, .45],
     site_timber_1: [.5, .5], site_timber_2: [.55, .55], site_timber_3: [.55, .55],
   },
-  // How the camera moves over each picture (frames.js, MOVES). A screen can choose another with o.cam.
-  // A frame not listed here uses its stand-in's move, then 'look'.
-  //   lean   over the bowl and back: slowly in, hold, slowly straighten (supper, breakfast)
-  //   stand  a cold man in a column: almost still, a slight sway, breathing (the count, the gate)
-  //   walk   a slow drift forward, a trudging sway (the river, the ice)
-  //   look   a slow push towards the subject, a long hold, a slow return (the stove, the lamp, Lev)
-  //   work   a slow rhythm of effort, then a rest (the sites)
-  //   still  nearly static (the title, the record, letters, the dead)
+  // The camera (frames.js, MOVES) is locked: the picture holds still. Only these pictures have a move,
+  // played once and then held until the screen changes. A screen can choose another with o.cam.
+  // The move belongs to the picture actually shown, so a stand-in stays locked.
+  //   lean   one slow lean over the bowl, about seven seconds, then he stays bent over the food
+  //   pano   a slow look round a wide (3:1) picture, like turning his head, over about fifty seconds
+  //   still  locked (everything not listed)
   cams: {
-    title: 'still', dead: 'still', letter: 'still', cells: 'still',
-    reveille: 'look', hut_morning: 'look', hut_night: 'look', stove: 'look', blizzard: 'look', easter: 'look',
-    office: 'look', noon: 'look', wire: 'look',
-    count: 'stand', inspection: 'stand', gate: 'stand',
     table: 'lean', table_nobread: 'lean', supper: 'lean', supper_b: 'lean',
     breakfast_400: 'lean', breakfast_550: 'lean', breakfast_650: 'lean',
-    site: 'work',
-    river: 'walk', ice_out: 'walk',
+    hut_night_pano: 'pano',
   },
-  // Picture sequences: while a screen with o.seq is up, the picture cycles through these steps.
+  // Picture sequences: while a screen with o.seq is up, the picture goes through these steps.
   //   frame  the picture (stand-ins work as usual)       hold  seconds until the next step, fade included
   //   sfx    a sound as the step begins (AUDIO.snd; a missing file is skipped)
   //   fade   seconds of crossfade into this step (default 1.1)
+  //   stay   true: the sequence stops at this step and stays on it (otherwise it loops)
   // If every step resolves to the same picture (none drawn yet), the screen keeps its own frame
   // and only the sounds keep the rhythm.
   sequences: {
@@ -49,7 +43,16 @@ const ASSETS = {
       { frame: 'gate_empty', hold: 2.5, sfx: 'ru_gate_next' },
       { frame: 'gate_next', hold: 4, sfx: 'pat_down' },
     ],
+    // reveille: the rail is struck while it sounds (the screen's sfx 'rail', about eight seconds of blows
+    // before the ring dies), then the man stands with the hammer lowered, and stays so
+    reveille: [
+      { frame: 'reveille', hold: 7.8 },
+      { frame: 'reveille_after', fade: 1.8, stay: true },
+    ],
   },
+  // Stand-ins that also go round the place's drawings by day, as the place itself would: while the
+  // panorama is not drawn, the night hut shows the hut's drawing of the day, with its own light.
+  inherit: ['hut_night_pano'],
   // A frame name may stand for a picture not drawn yet; it shows its stand-in until the file exists.
   // Stand-ins can chain: site_power_3 -> site_power_2 -> site_power_1 -> site.
   fallback: {
@@ -65,6 +68,23 @@ const ASSETS = {
     site_timber_1: 'site', site_timber_2: 'site_timber_1', site_timber_3: 'site_timber_2',
     // the fourth set: the count inside the wire, between the huts
     count_camp: 'count',
+    // the fifth set (prompts/frames.md, set five): the arrival, the hut at its true size, people moving
+    arrival_wagon: 'hut_night',        // inside the prison wagon, men on plank shelves, a crack of light
+    arrival_railhead: 'river',         // the train stopped in the snow, the convoy and dogs, men climbing down
+    arrival_march: 'river',            // the column strung out across white country, guards on both sides
+    arrival_march_dusk: 'arrival_march',   // the same march later, the light going, the camp's lights ahead
+    arrival_gate: 'gate',              // the gate at night, the new column counted in
+    arrival_processing: 'office',      // the guardhouse: a clerk's table, a lamp, a list, a man before it
+    arrival_hut: 'hut_night',          // the hut in the evening, new men with bundles, an old hand on his bunk
+    hut_night_pano: 'hut_night',       // the hut at its true size, two hundred men, wide, for a slow look round
+    reveille_after: 'reveille',        // the rail struck; the man stands with the hammer lowered
+    mess_table: 'table',               // the crowded mess table, the new master for breakfast and supper
+    // plates: a place with its workers removed, for the moving figures (js/sprites.js). The game shows a
+    // plate in place of its picture when it exists; asked for by name, a missing plate shows the picture.
+    site_timber_plate_1: 'site_timber_1', site_timber_plate_2: 'site_timber_2', site_timber_plate_3: 'site_timber_3',
+    site_settlement_plate_1: 'site_settlement_1', site_settlement_plate_2: 'site_settlement_2', site_settlement_plate_3: 'site_settlement_3',
+    site_power_plate_1: 'site_power_1', site_power_plate_2: 'site_power_2', site_power_plate_3: 'site_power_3',
+    noon_plate: 'noon',
     // the second set
     stove: 'hut_night',        // the stove, the urki, the cold snap
     letter: 'hut_morning',     // a letter or a parcel on the bunk
