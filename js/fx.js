@@ -48,6 +48,35 @@ const FX = (() => {
                    smoke: { x: .76, y: .23, color: 'ink', a: .06, r: [4, 14], life: 5, rate: 1.2, drift: [26, -5], spread: 6 } },
   };
 
+  // effects placed by hand on the other drawings of each place (positions as fractions of the frame)
+  const VARIANTS = {
+    'hut_morning-02': { glow: [{ x: .245, y: .37, r: .08, color: 'paper', a: .10, flicker: .3 }] },
+    'hut_morning-03': { glow: [{ x: .68, y: .45, r: .08, color: 'paper', a: .10, flicker: .3 }] },
+    'table-02': { smoke: { x: .375, y: .42, color: 'ink', a: .08, r: [8, 24], life: 3, rate: .8, drift: [6, -22], spread: 26 } },
+    'table-03': { smoke: { x: .56, y: .33, color: 'ink', a: .08, r: [8, 24], life: 3, rate: .8, drift: [6, -22], spread: 26 } },
+    'site-01': { smoke: { x: .04, y: .13, color: 'ink', a: .10, r: [6, 28], life: 4.5, rate: 1.2, drift: [14, -28], spread: 8 } },
+    'site-03': { smoke: { x: .965, y: .07, color: 'ink', a: .10, r: [6, 28], life: 4.5, rate: 1.2, drift: [14, -28], spread: 8 } },
+    'noon-01': { ember: { x: .55, y: .72, r: .06, sparks: true }, smoke: { x: .55, y: .67, color: 'ink', a: .07, r: [8, 30], life: 4, rate: 1, drift: [18, -30], spread: 14 } },
+    'noon-03': { ember: { x: .50, y: .71, r: .07, sparks: true }, smoke: { x: .50, y: .66, color: 'ink', a: .07, r: [8, 34], life: 4, rate: 1, drift: [18, -30], spread: 14 } },
+    'gate-02': { sweep: { x: .80, y: .08, a0: 125, a1: 190, period: 11, len: .9, spread: 14, color: 'warm' } },
+    'gate-03': { sweep: { x: .79, y: .25, a0: 140, a1: 205, period: 11, len: .9, spread: 14, color: 'warm' } },
+    'hut_night-02': { ember: { x: .265, y: .60, r: .05, floor: { x: .27, y: .72, rx: .11, ry: .03 } } },
+    'hut_night-03': { ember: { x: .665, y: .60, r: .05, floor: { x: .66, y: .72, rx: .11, ry: .03 } } },
+    'cells-02': { glow: [{ x: .62, y: .22, r: .06, color: 'paper', a: .08, flicker: .15 }] },
+    'cells-03': { glow: [{ x: .50, y: .26, r: .06, color: 'paper', a: .08, flicker: .15 }] },
+    'wire-01': { sweep: { x: .75, y: .47, a0: 185, a1: 235, period: 14, len: 1.0, spread: 9 } },
+    'stove-01': { ember: { x: .39, y: .53, r: .07, floor: { x: .40, y: .66, rx: .15, ry: .035 } } },
+    'stove-02': { ember: { x: .594, y: .53, r: .07, floor: { x: .59, y: .66, rx: .15, ry: .035 } } },
+    'letter-01': { glow: [{ x: .12, y: .08, r: .24, color: 'paper', a: .08, flicker: .05 }] },
+    'letter-02': { glow: [{ x: .12, y: .08, r: .24, color: 'paper', a: .08, flicker: .05 }] },
+    'blizzard-01': { snow: { n: 90, color: 'paper', wind: -120, speed: [140, 230], size: [.6, 1.4], streak: true, len: 9, clip: [.645, .17, .19, .37] } },
+    'blizzard-02': { snow: { n: 90, color: 'paper', wind: -120, speed: [140, 230], size: [.6, 1.4], streak: true, len: 9, clip: [.225, .17, .18, .36] } },
+    'office-01': { glow: [{ x: .86, y: .14, r: .2, color: 'warm', a: .12, flicker: .12 }] },
+    'office-02': { glow: [{ x: .27, y: .17, r: .2, color: 'warm', a: .12, flicker: .12 }] },
+    'easter-01': { ember: { x: .578, y: .64, r: .05, floor: { x: .56, y: .72, rx: .1, ry: .03 } } },
+    'easter-03': { ember: { x: .69, y: .57, r: .05, floor: { x: .67, y: .66, rx: .1, ry: .03 } } },
+  };
+
   let canvas, ctx, box, W = 0, H = 0, s = 1, cfg = null, name = null;
   let snow = [], puffs = [], sparks = [], motes = [], breathTimers = [], smokeAcc = 0, sparkAcc = 0;
   let raf = null, last = 0, t = 0, grain = [], grainIdx = 0, grainAt = 0;
@@ -72,7 +101,7 @@ const FX = (() => {
   }
   function resize() {
     if (!box) return;
-    const r = box.getBoundingClientRect();
+    const r = { width: box.clientWidth, height: box.clientHeight };   // layout size: the drift transform does not count
     if (!r.width) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     W = r.width; H = r.height; s = W / 680;
@@ -97,9 +126,19 @@ const FX = (() => {
     return { x: A.x + Math.random() * A.w, y: anywhere ? A.y + Math.random() * A.h : A.y - 4, vy: rnd(c.speed[0], c.speed[1]) * s, r: rnd(c.size[0], c.size[1]) * s, ph: rnd(0, 6.3), a: rnd(.5, 1) };
   }
 
+  // A variant drawing ("noon-03") uses its own entry if there is one (merged over the master's);
+  // otherwise it keeps only what does not depend on where things are in the picture.
+  const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke'];
+  function configFor(key) {
+    if (CONF[key] && !key.includes('-0')) return CONF[key];
+    const base = key.split('-0')[0], b = CONF[base] || {};
+    const out = {};
+    for (const k in b) if (!PLACED.includes(k) && !(k === 'snow' && b.snow.clip)) out[k] = b[k];
+    return Object.assign(out, VARIANTS[key] || {});
+  }
   function set(frameName) {
     name = frameName;
-    cfg = frameName ? (CONF[frameName] || {}) : null;   // an unconfigured frame still gets the grain
+    cfg = frameName ? configFor(frameName) : null;   // an unconfigured frame still gets the grain
     if (reduced) cfg = null;
     if (cfg) { resize(); start(); } else { stop(); if (ctx) ctx.clearRect(0, 0, W, H); }
   }

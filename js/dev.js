@@ -169,6 +169,7 @@ const DEV = (() => {
       const sc = TESTKIT.scenes()[q.get('scene')];
       if (sc) { if (sc.setup) sc.setup(); FLOW.auto = null; drive(sc.run); } else print('no scene ' + q.get('scene'));
     }
+    if (q.has('variant')) FRAME.variant(Number(q.get('variant')));
     if (q.has('frame')) FRAME.set(q.get('frame'));   // look at one frame, with its living overlay
     // ?frame=x&fxcheck: after three seconds, write the overlay's coverage as a 6×4 grid into the page,
     // for checking effects without eyes (headless Chrome --dump-dom). Each cell: mean alpha, and how many warm pixels.

@@ -7,7 +7,7 @@ function BEAT(id, day, at, run, extra) { BEATS.push(Object.assign({ id, day, at,
 function beatFor(at) {
   return BEATS.find(b => b.at === at && S.day >= b.day && !S.seen['beat:' + b.id] && (!b.when || b.when())) || null;
 }
-function runBeat(b) { S.seen['beat:' + b.id] = true; b.run(); }
+function runBeat(b) { S.seen['beat:' + b.id] = true; FLOW.story = true; b.run(); }
 
 // 24 to 30 January: the cold snap
 BEAT('cold_snap', 22, 'morning', () => {
@@ -41,6 +41,7 @@ BEAT('letter1', 33, 'noon', () => {
   const ch = [{ id: 'nowrite', label: 'Don\'t write. Nothing that is true gets through.', fn: () => { adj(-3); afterNoon(); } }];
   if (S.tobacco > 0) ch.unshift({ id: 'write', label: 'Write back. Paper costs a pinch of tobacco.', fn: () => {
     tob(-1); adj(4); S.flags.wrote = true;
+    mercy('A letter home.', 0);
     note('You wrote that you are well. It is the first lie you have told in weeks, and it felt like a kindness.');
     afterNoon();
   } });
@@ -76,7 +77,7 @@ BEAT('commission', 48, 'noon', () => {
 // 11 March: two men go through the wire
 BEAT('others_escape', 68, 'morning', () => {
   const senka = !S.flags.partner && !S.flags.senkaGone;
-  if (senka) S.flags.senkaGone = true;
+  if (senka) { S.flags.senkaGone = true; S.flags.senkaGoneDay = S.day; }
   S.flags.othersEscaped = senka ? 'senka' : 'two';
   S.until.searches = 76; S.until.cut = 71;
   stopRun('');
@@ -103,13 +104,14 @@ BEAT('parcel', 80, 'noon', () => {
   const ch = [
     { id: 'share', label: 'Share it with the brigade.', hint: 'the brigade remembers this kind of thing', fn: () => {
       brig(18); adj(6); tob(2);
+      mercy('A parcel, in her handwriting, shared.', 0);
       note('The lard went round the brigade on the point of a knife. Pasha took the smallest piece, which is how you know he is the foreman.', true);
       afterNoon();
     } },
-    { id: 'eat', label: 'Eat it yourself, slowly, over a week.', fn: () => { adj(18); tob(2); note('The lard, a little every night, in the dark, like a secret.'); afterNoon(); } },
+    { id: 'eat', label: 'Eat it yourself, slowly, over a week.', fn: () => { adj(18); tob(2); note('The lard, a little every night, in the dark, like a secret.'); mercy('A parcel, in her handwriting.', 0); afterNoon(); } },
   ];
   if (!S.flags.blade) ch.push({ id: 'trade', label: 'Trade the lard to the blacksmith\'s man.', hint: 'fifteen centimetres of steel', fn: () => {
-    S.flags.blade = true; tob(2); eye(5);
+    S.flags.blade = true; S.flags.bladeDay = S.day; tob(2); eye(5);
     note('The lard went into the blacksmith\'s man\'s coat. Fifteen centimetres of steel went into your boot.', true);
     afterNoon();
   } });
@@ -149,7 +151,7 @@ BEAT('easter', 117, 'noon', () => {
       ? 'In the evening, by the stove, he says to nobody and everybody: "Christ is risen." And from his bunk, without opening his eyes, Kuzma answers: "Truly he is risen."'
       : 'In the evening, by the stove, he says to nobody and everybody: "Christ is risen." Nobody answers. Kuzma would have answered.',
   ], [
-    { id: 'say', label: 'Say it too.', fn: () => { adj(4); note('You said it. You do not know whether you believe it. It was warm to say.'); afterNoon(); } },
+    { id: 'say', label: 'Say it too.', fn: () => { adj(4); note('You said it. You do not know whether you believe it. It was warm to say.'); mercy('Christ is risen, said out loud.', 0); afterNoon(); } },
     { id: 'quiet', label: 'Say nothing.', fn: afterNoon },
   ], { frame: 'easter', amb: 'amb_hut', voice: kuzma ? ['alyosha_easter', 'kuzma_easter'] : 'alyosha_easter' });
 });

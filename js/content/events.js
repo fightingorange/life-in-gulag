@@ -32,6 +32,7 @@ function runEvent(e) {
   S.last[e.id] = S.day;
   S.seen[e.id] = true;
   S.lastEventDay = S.day;
+  FLOW.story = true;
   e.run();
 }
 const onward = (label = 'Go on.') => [{ label, fn: afterNoon }];
@@ -85,6 +86,7 @@ EV('kuzma_worse', {
       { id: 'give', label: S.bread >= 200 ? 'Give him two hundred grams.' : 'Give him your soup.', fn: () => {
         giveFood(200); S.kuzma.helped = true;
         note('Kuzma ate. By evening he was telling the stove about the priest and the tax collector again, badly.', true);
+        mercy('Kuzma, telling stories again.', 0);
         afterNoon();
       } },
       { id: 'no', label: 'Look at your own bowl.', fn: () => { note('Kuzma will not see the river go out.', true); afterNoon(); } },
@@ -126,6 +128,7 @@ EV('lev_quote', {
   setup: () => { S.lev.helped = 2; },
   run() {
     adj(3);
+    mercy('Lev, with colour in his face.', 0);
     show([
       'Lev sits by you at the noon fire, out of the wind. He has colour today.',
       '"Pain and suffering," he says, "are always inevitable for a large intelligence and a deep heart."',
@@ -144,6 +147,7 @@ EV('lev_repay', {
       'Inside the bread there is a second page, folded small: the river, copied in pencil, every bend of it, and a cross where the settlement is. "Forty-one kilometres," Lev says. "Don\'t tell me what it\'s for."',
     ], [{ id: 'take', label: 'Take it.', fn: () => {
       S.bread += 300; S.flags.map = true;
+      mercy('Lev paid you back.', 0);
       S.lev.health = Math.min(100, S.lev.health + 25);
       note('The way: Lev\'s map, folded small in your boot.', true);
       afterNoon();
@@ -301,6 +305,7 @@ EV('urki_stove', {
       { id: 'pasha', label: 'Look at Pasha.', hint: S.brigade >= 20 ? 'the brigade might stand with you' : 'you have not earned that yet', fn: () => {
         if (S.brigade >= 20) {
           brig(3);
+          mercy('The brigade stood up for you.');
           show(['Pasha stands up. Then the brigade stands up, one at a time, without hurrying. Vaska looks at them, laughs, and goes back to his own side of the fire.'], onward());
         } else {
           S.tobacco = 0; S.until.nojacket = S.day + 4;
@@ -329,12 +334,29 @@ EV('cards', {
   run() {
     show(['The urki are playing cards on a jacket spread on the snow: cards cut from a cement sack and painted with burnt sugar. Vaska deals. "A pinch to sit down," he says. "Two if you win."'], [
       { id: 'play', label: 'Stake a pinch.', hint: 'they cheat; the question is how much', fn: () => {
-        if (chance(.38)) { tob(2); note('You won two pinches, which worries you more than losing would have.'); }
+        if (chance(.38)) { tob(2); note('You won two pinches, which worries you more than losing would have.'); mercy('Won at cards, against the urki.', 0); }
         else { tob(-1); note('You lost the pinch. Vaska was very sorry about it.'); }
         afterNoon();
       } },
       { id: 'watch', label: 'Watch, and keep your tobacco.', fn: afterNoon },
     ], noonFrame());
+  },
+});
+
+// ---------- the brigade gives back ----------
+EV('brigade_help', {
+  cooldown: 12, max: 3, force: () => S.strength < 25 && S.brigade >= 20 && S.day - (S.last.brigade_help || -99) >= 12,
+  setup: () => { S.strength = 20; S.brigade = 30; },
+  run() {
+    const who = S.kuzma.here && chance(.5) ? 'Kuzma' : 'Pasha';
+    adj(10); S.today.inside = S.today.inside || false;
+    mercy(who === 'Pasha' ? 'Pasha\'s bread, put by your bowl.' : 'Kuzma\'s bread, and his story with it.');
+    show(who === 'Pasha'
+      ? ['At the noon break Pasha sits down by you and puts a piece of bread by your bowl: two hundred grams, from his own. He does not look at you while he does it, and he does not say anything, and when you try to say something he gets up and goes.',
+         'Later you understand that the brigade has decided you are worth keeping. It is the first thing in weeks that has made you want to weep.']
+      : ['Kuzma sits down by you at the noon fire with his bread in his hand, breaks it, and gives you the larger half. "I am old," he says. "Old men do not need so much. Besides, you are thin, and thin men are bad luck in a brigade."',
+         'He tells you about the priest and the tax collector while you eat, so that you do not have to say anything.'],
+      onward(), { ...noonFrame(), voice: null });
   },
 });
 
@@ -364,7 +386,7 @@ EV('blade_trade', {
       '"I hear you are a man who thinks about fences," he says. "I have fifteen centimetres of good steel. Three pinches of tobacco. Not two. Three."',
     ], [
       can ? { id: 'pay', label: 'Pay him three.', hint: 'the wire needs a blade', fn: () => {
-        tob(-3); S.flags.blade = true; eye(5);
+        tob(-3); S.flags.blade = true; S.flags.bladeDay = S.day; eye(5);
         note('The blade is in your boot. You walk differently. You must stop walking differently.', true);
         afterNoon();
       } } : { id: 'cant', label: `You have ${numberWord(S.tobacco)}. Say so.`, fn: () => {

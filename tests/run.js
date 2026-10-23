@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const FILES = ['js/util.js', 'js/assets.js', 'js/engine.js', 'js/content/day.js', 'js/content/events.js', 'js/content/calendar.js',
+const FILES = ['js/util.js', 'js/assets.js', 'js/engine.js', 'js/content/lines.js', 'js/content/day.js', 'js/content/events.js', 'js/content/calendar.js',
   'js/content/escape.js', 'js/content/story.js', 'js/testkit.js'];
 
 function load() {
@@ -69,7 +69,25 @@ if (cmd === 'sim') {
   process.exit(r.errors.length ? 1 : 0);
 }
 
+// every script the page loads shares one global scope: two top-level declarations of the same
+// name stop the second file from loading at all. The node run cannot see this, so check it here.
+function globalClashes() {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const files = [...html.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
+  const seen = {}, clashes = [];
+  for (const f of files) {
+    const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    for (const m of src.matchAll(/^(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/gm)) {
+      if (seen[m[1]] && seen[m[1]] !== f) clashes.push(`${m[1]}: ${seen[m[1]]} and ${f}`);
+      seen[m[1]] = seen[m[1]] || f;
+    }
+  }
+  return { files: files.length, names: Object.keys(seen).length, clashes };
+}
 const t0 = Date.now();
+const g = globalClashes();
+console.log(`globals: ${g.files} scripts, ${g.names} top-level names, ${g.clashes.length} clashes` + (g.clashes.length ? '\n  ' + g.clashes.join('\n  ') : ''));
+if (g.clashes.length) failed = true;
 const c = T.checks();
 console.log(c.report);
 if (c.fails.length) failed = true;

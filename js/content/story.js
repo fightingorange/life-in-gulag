@@ -27,9 +27,10 @@ function intro() {
     'Article 58-10, anti-Soviet agitation. Ten years. You said something at a table.',
     'Ten years is not a thing a man can hold in his head. The old ones say: do not count the years, count the winter. When the ice goes out on the river in May, the worst of it is over.',
     'There is another way out: through the wire, and down the river on the ice. Most men who take it are found in the spring.',
+    'The old ones say something else as well. Learn to see a good day: a second bowl, dry foot cloths, eleven minutes of sun. A man who can still tell a good day from a bad one is not finished.',
     'You stopped counting on the train. This morning you start again, from one.',
     '~ Each day you choose how to eat, how to work and how to spend the night. Once you have lived a day, the days can run on their own, the way you lived it, until something happens.',
-  ], [{ id: 'wake', label: 'Wake.', fn: startDay }], { frame: 'hut_night', amb: 'amb_hut' });
+  ], [{ id: 'wake', label: 'Wake.', fn: startDay }], { frame: 'hut_night', amb: 'amb_hut', story: true });
 }
 
 // ---------- endings ----------
@@ -47,31 +48,41 @@ const ENDINGS = {
   shot: {
     stamp: 'УБИТ ПРИ ПОБЕГЕ', outcome: 'Shot while attempting to escape.', frame: 'wire', amb: null, sfx: 'shot',
     quote: () => QUOTES.goal,
-    text: () => [
-      S.flags.blade
+    text: () => {
+      const r = S.esc && S.esc.cause;
+      return [r === 'cut'
         ? 'The blade goes through the first wire and the second. The third is the one with the bell on it. The searchlight finds you four metres out. It is not even a decision for the man in the tower.'
-        : 'Without a blade there is only the gap under the wire by the latrine, and the gap under the wire by the latrine is known. The searchlight finds you four metres out. It is not even a decision for the man in the tower.',
-    ],
+        : r === 'post'
+          ? 'The post goes over, and the wire with it, and something on the wire rings. The searchlight finds you before you are up. It is not even a decision for the man in the tower.'
+          : 'The gap under the wire by the latrine is known. The searchlight finds you four metres out. It is not even a decision for the man in the tower.'];
+    },
   },
   frozen: {
     stamp: 'УМЕР', outcome: 'Absconded. Found in the spring.', frame: 'river', amb: 'amb_wind',
     quote: () => QUOTES.lie,
-    text: () => [
-      'You go through at the place where the post is rotten, and nobody shoots.',
-      'Two nights on the ice. On the third you sit down to rest for a minute, with your back to a log, out of the wind, and the minute is comfortable in a way nothing has been for a long time.',
-      'In the spring a surveyor finds the boots.',
-    ],
+    text: () => {
+      const c = S.esc && S.esc.cause;
+      if (c === 'ice') return ['The ice is grey now, and soft at the edges, and in the middle of the river, where it looked as strong as anywhere, it opens without a sound.', 'In the summer a fisherman finds a felt boot in his net. He hangs it on the fence, in case somebody comes for it.'];
+      if (c === 'walk') return ['You walk all night, and some time before morning you stop feeling your feet, and then your hands, and then the cold, which is the dangerous one.', 'You sit down on the ice for a minute, only a minute. The minute is comfortable in a way nothing has been for a long time.', 'In the spring a surveyor finds the boots.'];
+      if (c === 'lost') return ['Without the river in your head every bend is the same bend. On the third day you are walking upstream. On the fourth you understand it, and sit down.', 'Upriver there is nothing, Kuzma said. Nothing is better. He was right about the first part.'];
+      if (c === 'hunger') return ['On the third day the bread is gone and the river is not. You walk, and then you sit, and then you lie down in the lee of a log, out of the wind, and the snow is soft, and you are so tired.', 'In the spring a surveyor finds the boots.'];
+      return ['You sleep in the snow, under the bank, out of the wind. It is warmer than the hut. That is what everyone says, afterwards, about the ones who sleep in the snow: that they must have been warm.', 'In the spring a surveyor finds the boots.'];
+    },
   },
   escaped: {
     stamp: 'В БЕГАХ', outcome: 'Absconded. Not found.', frame: 'river', amb: 'amb_wind',
     quote: () => QUOTES.own,
-    text: () => [
-      'You go through at the place where the post is rotten. Nobody shoots. Nobody shoots because nobody sees, and nobody sees because the man in the tower is inside his coat.',
-      S.flags.partner && !S.flags.senkaGone
-        ? 'Senka walks in front. He does not look back once in three days, and you learn to be grateful for that.'
-        : 'You walk alone, on the river, downstream, because downstream is where the smoke is.',
-      'On the fourth day you see the smoke. A settlement of the free ones: released men, in a place they cannot leave. They give you soup. The man with the soup looks at your boots, then at the telephone on the wall. He does not pick it up. Not today.',
-    ],
+    text: () => {
+      const g = S.esc && S.esc.gave;
+      const first = g === 'blade' ? 'He picks up the blade, weighs it, puts it in his pocket. He does not pick up the telephone.'
+        : g === 'senka' ? 'Senka talks to him with his hands, for a long time. The man watches the hands, not the face. At the end he nods, once, and does not pick up the telephone.'
+        : g === 'tobacco' ? 'He takes the tobacco and rolls one, and smokes it all the way down, looking at you. He does not pick up the telephone.'
+        : g === 'bread' ? 'He looks at the bread, hard and grey, and pushes it back across the table to you. "Keep it," he says. "You will need it more." He does not pick up the telephone.'
+        : 'He looks at you while you eat. When you have finished he takes the bowl and fills it again. He does not pick up the telephone. Not today.';
+      return [first,
+        'In the morning he walks you to the edge of the settlement and points: south, along the winter road, to a railway town where nobody asks. He does not say good luck. Nobody here says good luck.',
+        'Somewhere behind you a man in a quilted jacket goes back inside and sits by a telephone for a long time.'];
+    },
   },
   spring: {
     stamp: 'ЖИВ', outcome: 'Alive at the breaking of the ice.', frame: 'ice_out', amb: 'amb_spring', sfx: 'ice_break',
@@ -87,13 +98,14 @@ const ENDINGS = {
 
 function finish(kind) {
   const E = ENDINGS[kind];
+  if (S.esc && S.esc.days) S.day = Math.min(ICE_OUT_DAY - 1, S.day + S.esc.days - 1);
   S.ended = kind;
   S.dead = kind !== 'escaped' && kind !== 'spring';
   FLOW.auto = null; FLOW.stop = null;
   if (STORE) STORE.clear();
   show([...E.text(), epigraph(E.quote())], [{ id: 'again', label: 'Again.', fn: title }], {
     frame: E.frame, amb: E.amb, sfx: E.sfx || null, voice: E.voice ? E.voice() : null,
-    record: recordFor(kind), ending: kind,
+    record: recordFor(kind), ending: kind, story: true,
   });
 }
 function die() { finish('died'); }
@@ -129,16 +141,20 @@ function unsaidLines() {
   if (st.cells) L.push(`${numberWord(st.cells, true)} ${plural(st.cells, 'day', 'days')} in the cells.`);
   const good = st.good || 0;
   L.push(good ? `${numberWord(good, true)} good ${plural(good, 'day', 'days')}. Almost happy ones.` : 'Not one good day. There were not many to be had.');
+  // the best day: the one with the most small mercies in it
+  let best = null;
+  for (const h of S.history) if (h.good && h.good.length && (!best || h.good.length > best.good.length || (h.good.length === best.good.length && h.v === 'good'))) best = h;
+  if (best) L.push(`The best day was ${fmtDate(best.day)}. ${best.good.join(' ')}`);
   return L;
 }
 
 // Lev's death is a morning, not an event: the day goes on after it.
 function levDeath() {
-  S.lev.alive = false; S.lev.diedOn = fmtDate(S.day);
+  S.lev.alive = false; S.lev.diedOn = fmtDate(S.day); S.lev.diedDay = S.day;
   S.bread += 100;
   stopRun('');
   show([
     'Lev did not get up. Lubimov hit the bunk with his stick, which is what you do, and then looked, and then went to get the orderly.',
     'Lev is lighter than his jacket. Pasha keeps his bread ration for the brigade, because the dead do not eat and the office does not know yet. A hundred grams of it is yours.',
-  ], [{ label: 'Keep it.', fn: () => go(count) }], { frame: 'dead', amb: 'amb_hut', sfx: 'rail' });
+  ], [{ label: 'Keep it.', fn: () => go(count) }], { frame: 'dead', amb: 'amb_hut', sfx: 'rail', story: true });
 }

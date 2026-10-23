@@ -30,6 +30,11 @@ const TESTKIT = (() => {
     list['day:cells'] = { run: () => cellsDay('Test.') };
     list['day:bootmakers'] = { setup: () => { S.flags.bootmakers = true; }, run: work };
     list['day:title'] = { run: title };
+    const escSetup = () => { S.flags.blade = true; S.flags.partner = true; S.flags.river = true; S.bread = 600; S.today.blizzard = true;
+      S.esc = { partner: true, bread: 600, blade: true, route: true, map: false, temp: -28, blizzard: true, thaw: false, strength: 60, days: 1, cause: null, gave: null }; };
+    list['esc:firstNight'] = { setup: escSetup, run: firstNight };
+    list['esc:settlement'] = { setup: () => { escSetup(); S.esc.days = 3; S.tobacco = 3; }, run: settlement };
+    list['esc:day2hut'] = { setup: () => { escSetup(); S.esc.days = 2; }, run: () => day2('hut') };
     list['day:intro'] = { run: intro };
     list['day:startDay'] = { run: startDay };
     for (const e of EVENTS) list['event:' + e.id] = { setup: e.setup, run: () => runEvent(e) };
@@ -55,7 +60,7 @@ const TESTKIT = (() => {
   function screenText(scr) {
     const o = scr.o || {};
     return [...(scr.paras || []), ...(scr.notes || []), ...(scr.choices || []).map(c => c.label + ' ' + (c.hint || '')),
-      ...(o.ledger ? [o.ledger.verdict, ...o.ledger.lines] : []),
+      ...(o.ledger ? [o.ledger.verdict, ...o.ledger.lines, ...(o.ledger.good || [])] : []),
       ...(o.plan ? o.plan.items.map(i => i.name + ' ' + i.where) : []),
       ...(o.record ? [o.record.outcome, ...o.record.unsaid, ...o.record.fields.map(f => f.join(' '))] : [])].join('\n');
   }
@@ -63,6 +68,7 @@ const TESTKIT = (() => {
     if (scr.error) { errs.push(`${where}: ${scr.error}`); return; }
     if (!scr.choices || !scr.choices.length) errs.push(`${where}: no choices`);
     for (const c of scr.choices || []) if (typeof c.fn !== 'function') errs.push(`${where}: choice "${c.label}" has no fn`);
+    if ((scr.paras || []).some(p => typeof p !== 'string' || !p.trim())) errs.push(`${where}: an empty paragraph`);
     const t = screenText(scr);
     const bad = t.match(/.{0,30}\b(undefined|NaN|null)\b.{0,20}|\[object [A-Za-z]+\]/);
     if (bad) errs.push(`${where}: bad text "${bad[0]}"`);
@@ -120,10 +126,14 @@ const TESTKIT = (() => {
     // the same, but goes through the wire when the odds are tolerable
     escaper: scr => smartChoice(scr, true),
   };
-  const PREFER = ['continue', 'begin', 'wake', 'remember', 'nod', 'yes', 'take', 'trust', 'pay', 'carry', 'mine', 'honest', 'share', 'silent', 'keep', 'say', 'give', 'deny', 'refuse', 'wait', 'push', 'watch'];
+  const PREFER = ['continue', 'run', 'begin', 'wake', 'remember', 'nod', 'yes', 'take', 'trust', 'pay', 'carry', 'mine', 'honest', 'share', 'silent', 'keep', 'say', 'give', 'deny', 'refuse', 'wait', 'push', 'watch'];
   function smartChoice(scr, wantsOut) {
     const o = scr.o;
     if (o.plan) return byId(scr, wantsOut && o.plan.pFence * o.plan.pIce >= .3 ? 'go' : 'wait');
+    if (o.escape === 'fence') return byId(scr, 'cut', 'post', 'gap');
+    if (o.escape === 'night') return byId(scr, S.esc.temp <= -30 && !S.esc.partner ? 'walk' : S.esc.temp <= -35 ? 'walk' : 'drift', 'walk');
+    if (o.escape === 'day2') return byId(scr, breadLeft() >= 200 && S.esc.route ? 'river' : 'hut');
+    if (o.escape === 'settlement') return byId(scr, 'blade', 'senka', 'tobacco', 'bread', 'nothing');
     if (o.ledger) return byId(scr, 'run');
     if (o.routine === 'morning') return byId(scr, S.strength < 35 ? 'sick' : 'up', 'up');
     if (o.routine === 'bread') {
@@ -208,7 +218,7 @@ const TESTKIT = (() => {
       if (head !== last) { L.push(`\n==== ${head} ====`); last = head; }
       if (scene.includes(' > ')) L.push(`\n  -- after "${scene.split(' > ')[1]}"`);
       for (const n of scr.notes || []) L.push(`  ! ${n}`);
-      if (scr.o.ledger) { L.push(`  [ledger ${scr.o.ledger.date}]`, ...scr.o.ledger.lines.map(l => '    ' + l), `    ${scr.o.ledger.verdict}`); }
+      if (scr.o.ledger) { L.push(`  [ledger ${scr.o.ledger.date}]`, ...scr.o.ledger.lines.map(l => '    ' + l), ...(scr.o.ledger.good || []).map(g => '    + ' + g), `    ${scr.o.ledger.verdict}`); }
       if (scr.o.plan) L.push(...scr.o.plan.items.map(i => `  [${i.have ? 'x' : ' '}] ${i.name}: ${i.where}`), `  fence: ${scr.o.plan.fence}; ice: ${scr.o.plan.ice}`);
       if (scr.o.record) L.push(`  [record] ${scr.o.record.stamp}: ${scr.o.record.outcome}`, ...scr.o.record.unsaid.map(u => '    ' + u));
       L.push(...scr.paras.map(p => '  ' + strip(p)));

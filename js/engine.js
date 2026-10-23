@@ -65,12 +65,22 @@ function go(fn) { if (S.dead && !S.ended) return die(); fn(); }
 // ---------- the flow of screens ----------
 // show() builds a screen. Normally it goes to RENDER. While the days are running on their own,
 // a routine screen is answered by habit instead, and the next step is queued for drive().
-const FLOW = { auto: null, stop: null, pending: null, inline: [], cues: [], screen: null };
+// FLOW.story: the screens being shown belong to the story (an event, a beat, the opening, an ending),
+// so the page holds their choices until the dialogue has been heard.
+const FLOW = { auto: null, stop: null, pending: null, inline: [], cues: [], screen: null, story: false };
 
 // A line of consequence: shown at the top of the next screen, and kept for the night's account.
 function note(text, major) {
   if (S.today) S.today.notes.push({ t: text, major: !!major });
   FLOW.inline.push(text);
+}
+// A small mercy: something good that happened today. The night's account lists them, they decide
+// whether it was a good day, and the camp record remembers the best day of the winter.
+function mercy(text, gain = 0) {
+  if (!S.today || !text || S.today.mercies.includes(text)) return;
+  S.today.mercies.push(text);
+  S.stats.mercies = (S.stats.mercies || 0) + 1;
+  if (gain) adj(gain);
 }
 // The same, for the night's account only, when the screen already says it.
 function remember(text, major) { if (S.today) S.today.notes.push({ t: text, major: !!major }); }
@@ -80,6 +90,7 @@ function cue(name) { FLOW.cues.push(name); }
 // screen options (o): frame, amb, sfx, voice, routine (true | habit key), title, ending,
 // ledger, plan, record. Choices: { label, fn, id?, hint?, habit? }.
 function show(paras, choices, o = {}) {
+  if (o.story === undefined && FLOW.story && !o.routine) o.story = true;
   const scr = { paras, choices, o, day: S ? S.day : 0 };
   if (FLOW.auto) {
     const ch = autoChoice(scr);

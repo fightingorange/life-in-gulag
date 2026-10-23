@@ -10,7 +10,7 @@ const tx = s => esc(typeset(s));   // typeset, then escape
 
 const UI = (() => {
   const top = $('#top'), text = $('#text'), cards = $('#cards'), choicesEl = $('#choices'), snd = $('#snd'), keep = $('#keep');
-  let current = null, last = {}, lockUntil = 0;
+  let current = null, last = {}, lockUntil = 0, held = false, holdId = 0;
 
   // ---------- status ----------
   function meter(key, label, pct, word, tip) {
@@ -83,6 +83,7 @@ const UI = (() => {
   function ledgerHtml(l) {
     return `<div class="card ledger" style="--i:0"><div class="hd"><span>${esc(l.date)} 1951</span><span>day ${l.day}</span></div>`
       + `<ul>${l.lines.map(x => `<li>${tx(x)}</li>`).join('')}</ul>`
+      + (l.good && l.good.length ? `<div class="good"><span>What was good</span><ul>${l.good.map(x => `<li>${tx(x)}</li>`).join('')}</ul></div>` : '')
       + `<div class="v v-${l.kind}">${esc(l.verdict)}</div></div>`;
   }
   function planHtml(p) {
@@ -112,11 +113,29 @@ const UI = (() => {
     document.body.classList.toggle('ending', !!o.ending);
     renderTop(o);
     AUDIO.scene(o);
+    if (S && !o.title) FRAME.mood(S.day, S.strength);
     if (o.frame) FRAME.set(o.frame);
     if ('amb' in o) AUDIO.ambient(o.amb);
     if (o.sfx) AUDIO.snd(o.sfx);
     for (const c of scr.cues || []) AUDIO.snd(c);
-    if (o.voice) AUDIO.say(o.voice);
+    // a story screen holds its choices until the voice has finished, or for a short reading time
+    const story = !!(o.story && !o.routine);
+    const chars = scr.paras.join(' ').length;
+    const minHold = story ? clamp(chars * 13, 1100, 4200) : 0;
+    const id = ++holdId;
+    held = story;
+    const t0 = performance.now();
+    let voiced = !o.voice;
+    const release = () => {
+      if (id !== holdId || !held) return;
+      const wait = minHold - (performance.now() - t0);
+      if (!voiced || wait > 0) return void setTimeout(release, Math.max(60, wait));
+      held = false;
+      choicesEl.classList.remove('held');
+    };
+    if (o.voice) AUDIO.say(o.voice, () => { voiced = true; release(); });
+    if (story) setTimeout(release, minHold);
+    setTimeout(() => { voiced = true; release(); }, 45000);   // never wait forever
     if (S) AUDIO.body(S.strength);
 
     // documents go under the picture: what the days that ran left behind, the record, the night's account, the wire
@@ -126,6 +145,7 @@ const UI = (() => {
     if (o.ledger) docs.push(ledgerHtml(o.ledger));
     if (o.ledger && STORE.mode() === null && S.day <= 3) docs.push(offerHtml());
     if (o.plan) docs.push(planHtml(o.plan));
+    for (const el of [...flow.querySelectorAll(':scope > .moved')]) el.remove();   // last screen's documents
     cards.innerHTML = docs.join('');
     // the prose goes beside it
     const parts = [];
@@ -138,6 +158,7 @@ const UI = (() => {
     if (quote) parts.push(paraHtml(quote, i++));
     text.innerHTML = parts.join('');
 
+    choicesEl.classList.toggle('held', held);
     choicesEl.innerHTML = scr.choices.map((c, k) =>
       `<button type="button" data-k="${k}" class="${c.id === 'go' ? 'danger' : ''}" style="--i:${k}"><span class="k">${k + 1}</span>`
       + `<span class="l">${tx(c.label)}${c.hint ? `<small>${tx(c.hint)}</small>` : ''}</span></button>`).join('');
@@ -157,15 +178,40 @@ const UI = (() => {
     while (box.scrollHeight > box.clientHeight + 6 && k > .8) { k = Math.round((k - .04) * 100) / 100; inner.style.zoom = k; }
     return k;
   }
-  function fit() {
+  // The documents start under the picture. If that column is crowded and the prose column has room,
+  // they move across one at a time, above the prose (the summary first, then the offer, then the
+  // night's account), before anything is shrunk.
+  const MOVABLE = ['.run', '.keep-offer', '.ledger'];
+  // lay out, shrinking where needed; report how far it overflows and how small it had to get
+  function measure() {
     const kr = shrink(right, flow), kl = shrink(left, cards);
-    document.body.dataset.fit = `${kl} ${kr}`;
+    const over = Math.max(0, right.scrollHeight - right.clientHeight - 6) + Math.max(0, left.scrollHeight - left.clientHeight - 6);
+    return { kl, kr, over, low: Math.min(kl, kr) };
+  }
+  const better = (a, b) => a.over !== b.over ? a.over < b.over : a.low > b.low;
+  function fit() {
+    for (const el of [...flow.querySelectorAll(':scope > .moved')]) { el.classList.remove('moved'); cards.appendChild(el); }
+    let best = measure(), bestMoved = 0;
+    const docs = MOVABLE.map(sel => cards.querySelector(':scope > ' + sel)).filter(Boolean);
+    if (wide() && (best.over || best.low < 1) && docs.length) {
+      // try moving the first one, then the first two, and so on; keep the best arrangement
+      for (let k = 1; k <= docs.length; k++) {
+        const el = docs[k - 1];
+        el.classList.add('moved');
+        flow.insertBefore(el, text);
+        const m = measure();
+        if (better(m, best)) { best = m; bestMoved = k; }
+      }
+      for (let k = docs.length; k > bestMoved; k--) { const el = docs[k - 1]; el.classList.remove('moved'); cards.appendChild(el); }
+      best = measure();
+    }
+    document.body.dataset.fit = `${best.kl} ${best.kr}`;
   }
   addEventListener('resize', () => { clearTimeout(fit.t); fit.t = setTimeout(fit, 80); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 
   function pickChoice(k) {
-    if (!current || performance.now() < lockUntil) return;
+    if (!current || held || performance.now() < lockUntil) return;
     const ch = current.choices[k];
     if (ch) choose(ch);
   }
