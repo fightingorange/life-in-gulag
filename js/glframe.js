@@ -52,7 +52,8 @@ const GLFRAME = (() => {
 
   function mount(stage) {
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-    if (/[?&](still|flat)\b/.test(location.search)) return false;   // ?still for screenshots, ?flat to compare
+    // Off by default: the trembling ink and the depth warp were too much. ?living turns it on to compare.
+    if (!/[?&]living\b/.test(location.search)) return false;
     canvas = document.createElement('canvas');
     canvas.id = 'gl';
     try { gl = canvas.getContext('webgl', { premultipliedAlpha: false, antialias: false }); } catch (e) { gl = null; }

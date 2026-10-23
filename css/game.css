@@ -72,7 +72,7 @@ body {
 #frame { position: relative; margin: 0 0 22px; aspect-ratio: 16 / 9; overflow: hidden; background: var(--paper); }
 /* the stage holds the print and its living overlay, and drifts slowly, like a held camera */
 /* the stage holds the print and its living overlay; frames.js moves it like a slow camera */
-#frame .stage { position: absolute; inset: 0; transform-origin: 50% 50%; transform: scale(1.1); will-change: transform;
+#frame .stage { position: absolute; inset: 0; transform-origin: 50% 50%; transform: scale(1.04); will-change: transform;
   filter: var(--season, none) grayscale(calc(var(--weak, 0) * .35)); transition: filter 4s ease; }
 #frame[data-month="jan"] { --season: brightness(.9) contrast(1.1); }
 #frame[data-month="feb"] { --season: brightness(.94) contrast(1.06); }

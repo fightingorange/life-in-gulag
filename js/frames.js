@@ -74,12 +74,14 @@ const FRAME = (() => {
   // and wide. Moves blend from wherever the camera is, so it never jumps, and it never shows an edge.
   const still = () => (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || /[?&]still\b/.test(location.search);
   const ease = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-  const cam = { s: 1.1, x: 0, y: 0 };
+  const cam = { s: 1.04, x: 0, y: 0 };
   let move = null, close = false, focus = null;
   const room = s => (s - 1) / (2 * s) * 100 * .92;      // how far it can pan at this zoom, in %
+  // gentle: the print should feel held, not moved. A push of a few percent towards the subject, then
+  // an even slower settle back; light and weather (fx.js) carry the life of the picture.
   function target(near) {
-    const s = near ? 1.16 + Math.random() * .06 : 1.07 + Math.random() * .04;
-    const m = room(s);
+    const s = near ? 1.06 + Math.random() * .015 : 1.035 + Math.random() * .01;
+    const m = room(s) * .6;
     let x, y;
     if (focus && near) { x = (.5 - focus[0]) * 100; y = (.5 - focus[1]) * 100; }      // bring the subject towards the middle
     else if (focus) { x = (.5 - focus[0]) * 30 + (Math.random() - .5) * m; y = (Math.random() - .5) * m * .5; }
@@ -90,7 +92,7 @@ const FRAME = (() => {
     if (still()) { move = null; Object.assign(cam, { s: 1.04, x: 0, y: 0 }); apply(); return; }
     close = opening ? true : !close;
     const to = target(close);
-    const secs = opening ? 16 + Math.random() * 4 : 12 + Math.random() * 6;
+    const secs = opening ? 26 + Math.random() * 6 : 32 + Math.random() * 10;
     move = { from: { ...cam }, to, t0: performance.now(), ms: secs * 1000 };
   }
   function apply() {
