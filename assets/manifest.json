@@ -92,6 +92,16 @@
         "style": 0.35
       },
       "oneoff": true
+    },
+    "prisoner": {
+      "name": "The prisoner (you)",
+      "oneoff": true,
+      "description": "A man of about forty with a Russian accent speaking English. Educated but worn down: quiet, hoarse from the cold, tired. He speaks plainly and briefly, without drama, like a man who has learned to say as little as possible.",
+      "settings": {
+        "stability": 0.6,
+        "similarity_boost": 0.8,
+        "style": 0.2
+      }
     }
   },
   "lines": {
@@ -233,6 +243,38 @@
     "nina_letter2": {
       "voice": "nina",
       "text": "They will not take Tanya at the institute, with a father like hers. The man at the district office says, if I sign the paper... I have signed it. Forgive me."
+    },
+    "prisoner_who": {
+      "voice": "prisoner",
+      "text": "Who said that."
+    },
+    "prisoner_deny": {
+      "voice": "prisoner",
+      "text": "I don't notice anything."
+    },
+    "prisoner_ask": {
+      "voice": "prisoner",
+      "text": "What would he want noticed?"
+    },
+    "prisoner_noname": {
+      "voice": "prisoner",
+      "text": "I don't have one."
+    },
+    "prisoner_kuzma": {
+      "voice": "prisoner",
+      "text": "Kuzma."
+    },
+    "prisoner_myname": {
+      "voice": "prisoner",
+      "text": "Put my name."
+    },
+    "prisoner_other": {
+      "voice": "prisoner",
+      "text": "Put somebody else's."
+    },
+    "prisoner_complaint": {
+      "voice": "prisoner",
+      "text": "The bread is short weight. The men are dying."
     }
   },
   "sfx": {

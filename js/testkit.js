@@ -236,6 +236,7 @@ const TESTKIT = (() => {
       for (const k of ['amb', 'sfx']) if (o[k]) need.sfx.add(o[k]);
       for (const c of scr.cues || []) need.sfx.add(c);
       for (const v of [].concat(o.voice || [])) if (v) need.voice.add(v);
+      for (const c of scr.choices || []) for (const v of [].concat(c.say || [])) need.voice.add(v);
     };
     for (const { scr } of walk().seen) take(scr);
     const prev = RENDER;

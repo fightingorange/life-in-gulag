@@ -65,7 +65,7 @@ BEAT('commission', 48, 'noon', () => {
     'One of them stops in front of the brigade. "Any complaints, prisoners? Speak freely. The Soviet state listens. Nobody is punished for an honest complaint."',
   ], [
     { id: 'silent', label: 'Look at his boots.', fn: () => { note('He nodded, satisfied, and moved on. Nobody in the brigade looked at anybody.'); afterNoon(); } },
-    { id: 'speak', label: '"The bread is short weight. The men are dying."', hint: 'true, and remembered by the wrong people', fn: () => {
+    { id: 'speak', say: 'prisoner_complaint', label: '"The bread is short weight. The men are dying."', hint: 'true, and remembered by the wrong people', fn: () => {
       eye(40); brig(12); S.flags.spoke = true;
       S.flags.pendingCells = true; S.flags.cellsWhy = 'Lubimov comes for you before reveille. "Complaints," he says, and writes it down. Five days. They give you one now and owe you the rest.';
       note('The woman wrote something down. That night Lubimov wrote something down too.', true);

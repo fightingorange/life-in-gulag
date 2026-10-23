@@ -29,7 +29,7 @@ The game saves at the start of each day, and only on this computer.
 - **Habits.** The everyday choices (how you eat, how you work, the queue, the night) are remembered. From the night's account, "Let the days run" lives the following days the same way until something happens: an event, a search that finds something, the body going, a blizzard when you have a blade, something on the wire coming into reach, or ten days.
 - **The status bar** shows the body, the brigade's regard and the warders' attention as meters with words, the bread you have hidden, tobacco, the four things an escape needs, and the winter as a strip of days marked good or bad.
 - **The wire** needs a blade, 600 g of bread, someone who has done it before, and the way. "Think about the wire" at night says what is missing, where it might be found, and how the fence and the ice look tonight, in words. Going is played in four stages: where to cross the wire, the first night on the ice, the fisherman's hut, and what you give the man with the telephone.
-- **The pictures live.** Each place moves to another of its three drawings every nine days, the prints darken in January and warm toward May, the vignette closes in as the body fails, and the whole frame drifts slowly under the snow, smoke and embers.
+- **The pictures live.** Each place shows another of its three drawings every day. A slow camera pans and zooms over the print, choosing a new move every twelve to eighteen seconds and with every new picture, carrying the snow, smoke and embers with it. The prints darken in January and warm toward May, and the vignette closes in as the body fails.
 - **Sound** fades in and out on a curve that follows the ear, ambient beds start at a different point of their loop each time, and every file is level-matched by `scripts/levels.py`.
 - **Endings** close on a camp record card, stamped, with what the record does not say: the bread you gave away, whether you gave a name, who lived.
 
@@ -64,7 +64,7 @@ node tests/run.js dump > script.txt  # the whole script, for reading
 
 The bots: **random** clicks anything; **careful** keeps the default habits and lets the days run; **smart** plays the economy; **escaper** goes through the wire when the odds are tolerable. Current balance: random never sees the spring, careful about 40%, smart about 75%, escaper gets out about a third of the time. Good days: careful almost never, smart about two in five.
 
-In the browser, `index.html?dev` or the backtick key opens a panel to jump to any scene with any state, skip to a day, run the bots, dump the script, and check that every screen fits the window ("does it fit?", or `DEV.fit()` in the console; resize the window and run it again). Everything the panel does is in test mode, so it never touches a saved game. Deep links work too: `?scene=event:lev_barrow`, `?skip=60`, `?seed=7`, `?state={"strength":20}`, `?still` (no animation), `?frame=stove` (one frame with its living overlay; add `&fxcheck` to print where the overlay draws, for headless checks).
+In the browser, `index.html?dev` or the backtick key opens a panel to jump to any scene with any state, skip to a day, run the bots, dump the script, and check that every screen fits the window ("does it fit?", or `DEV.fit()` in the console; resize the window and run it again). Everything the panel does is in test mode, so it never touches a saved game, and test pages are silent unless the link adds `&sound`. Deep links work too: `?scene=event:lev_barrow`, `?skip=60`, `?seed=7`, `?state={"strength":20}`, `?still` (no animation), `?frame=stove` (one frame with its living overlay; add `&fxcheck` to print where the overlay draws, for headless checks).
 
 ## Assets
 
@@ -72,7 +72,7 @@ Everything the game loads is listed in `assets/manifest.json`.
 
 - `assets/frames/` — nineteen selected linocut stills (PNG masters) and `web/` JPEG copies the game loads. Prompts and the locked style in `prompts/frames.md`; shared art direction in `prompts/frames-production.md`. Open `assets/frames/review.html` for the collection and all 58 variants; exact generation prompts and source paths are in `assets/frames/production/`. Stand-ins remain available in `js/assets.js` if a frame is missing. After adding a master: `sips -s format jpeg -s formatOptions 82 assets/frames/<name>.png --out assets/frames/web/<name>.jpg`.
 - `assets/sfx/` — ambient loops and one-shots, from `scripts/gen_sfx.py`.
-- `assets/voice/` — dialogue, from `scripts/gen_voice.py`. Ten characters, Russian-accented English; the Easter lines and the count are in Russian.
+- `assets/voice/` — dialogue, from `scripts/gen_voice.py`. Eleven voices, Russian-accented English; the Easter lines and the count are in Russian. The prisoner (you) speaks the few lines he says aloud: "Who said that." to Lev, and the spoken choices, which are heard when you pick them.
 
 ### ElevenLabs scripts
 
@@ -86,4 +86,4 @@ python3 scripts/gen_voice.py oneoff        # voices marked "oneoff" (see below)
 python3 scripts/gen_voice.py lines --force kuzma_river
 ```
 
-The account allows ten saved voices, and three of its ten were already in use, so the blacksmith's man, the commissioner and Nina are "oneoff" voices. Their lines are spoken by the voice-design step itself and are never saved as voices. Nina's two letters come from one take, split at the pause, so they share a voice. Alternative takes are in `assets/voice/previews/`; choose one with `oneoff --pick nina=1 --force`.
+The account allows ten saved voices, and three of its ten were already in use, so the blacksmith's man, the commissioner and Nina are "oneoff" voices. So is the prisoner. Their lines are spoken by the voice-design step itself and are never saved as voices. All of one character's lines are read in a single take, so they share a voice, and the take is cut into lines at the word timings from ElevenLabs speech-to-text. Alternative takes are in `assets/voice/previews/`; choose one with `oneoff --pick nina=1 --force`.

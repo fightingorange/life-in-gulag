@@ -8,6 +8,9 @@ const AUDIO = (() => {
   let ctx = null, lowpass = null;
   let on = true;
   try { on = localStorage.getItem('ten-years-sound') !== 'off'; } catch (e) {}
+  // test pages are silent unless the link asks for sound (&sound); nothing here touches the player's setting
+  let testing = typeof STORE !== 'undefined' && STORE.mode() === 'test';
+  if (testing) on = /[?&]sound\b/.test(location.search);
   const missing = {};
   const AMB_VOL = 0.5, SFX_VOL = 0.85, VOICE_VOL = 0.95;
   const AMB_IN = 3600, AMB_OUT = 2600;                 // ms
@@ -149,12 +152,17 @@ const AUDIO = (() => {
   }
   function toggle() {
     on = !on;
-    try { localStorage.setItem('ten-years-sound', on ? 'on' : 'off'); } catch (e) {}
+    if (!testing) try { localStorage.setItem('ten-years-sound', on ? 'on' : 'off'); } catch (e) {}
     ambs.forEach(a => { a.volume = on && a === ambs[ambIdx] ? vol(a, AMB_VOL * muff) : 0; });
     if (!on) { voice.pause(); queue = []; finishVoice(); pulse.pause(); }
     return on;
   }
   document.addEventListener('pointerdown', unlock, { once: true });
   document.addEventListener('keydown', unlock, { once: true });
-  return { ambient, snd, say, body, scene, toggle, unlock, speaking, isOn: () => on };
+  // the dev panel calls this: silence the page for testing, without saving it as the player's choice
+  function testMode() {
+    testing = true;
+    if (on && !/[?&]sound\b/.test(location.search)) toggle();
+  }
+  return { ambient, snd, say, body, scene, toggle, unlock, speaking, testMode, isOn: () => on };
 })();

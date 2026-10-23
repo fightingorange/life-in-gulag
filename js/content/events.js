@@ -134,7 +134,7 @@ EV('lev_quote', {
       '"Pain and suffering," he says, "are always inevitable for a large intelligence and a deep heart."',
       '"Who said that."',
       '"A man who did four years in Omsk. He wrote it afterwards, with a full stomach." He laughs, and then he coughs, and then he is quiet.',
-    ], onward(), { ...noonFrame(), voice: ['lev_quote', 'lev_omsk'] });
+    ], onward(), { ...noonFrame(), voice: ['lev_quote', 'prisoner_who', 'lev_omsk'] });
   },
 });
 EV('lev_repay', {
@@ -163,10 +163,10 @@ EV('fomin_recruit', {
       'Fomin finds you at the water barrel. Fomin is a trusty, which means he works indoors and eats.',
       '"The kum asked about you. Nothing bad. He likes to know who people are." He looks at your hands. "There is a place coming free in the bootmakers\'. Warm. He said you might be the kind who notices things."',
     ], [
-      { id: 'deny', label: '"I don\'t notice anything."', hint: 'the kum will remember that too', fn: () => {
+      { id: 'deny', say: 'prisoner_deny', label: '"I don\'t notice anything."', hint: 'the kum will remember that too', fn: () => {
         eye(10); note('Fomin went away smiling. Fomin always goes away smiling.'); afterNoon();
       } },
-      { id: 'ask', label: '"What would he want noticed?"', hint: 'a warm chair has a price', fn: () => {
+      { id: 'ask', say: 'prisoner_ask', label: '"What would he want noticed?"', hint: 'a warm chair has a price', fn: () => {
         S.flags.informer = true; S.flags.informerDay = S.day; eye(-20);
         show(['You have not said yes. You have said something that sounds like yes to a man who only needs that much.'], onward());
       } },
@@ -181,12 +181,12 @@ EV('kum_name', {
       'Fomin again. The kum has been patient, Fomin says, and patience is not free.',
       '"A name. Anyone. Kuzma talks at night. Everybody hears him."',
     ], [
-      { id: 'name', label: '"Kuzma."', hint: 'the bootmakers\' shop is warm', fn: () => {
+      { id: 'name', say: 'prisoner_kuzma', label: '"Kuzma."', hint: 'the bootmakers\' shop is warm', fn: () => {
         S.flags.betrayed = true; S.flags.named = true; S.flags.bootmakers = true; eye(-30);
         S.kuzma.here = false;
         show(['Kuzma is taken from the hut after the evening count, with his bag. His bunk is given to a Latvian who does not talk. The next morning you are told to report to the bootmakers\'.'], onward(), { sfx: 'door' });
       } },
-      { id: 'refuse', label: '"I don\'t have one."', fn: () => {
+      { id: 'refuse', say: 'prisoner_noname', label: '"I don\'t have one."', fn: () => {
         S.flags.informer = false; S.flags.refusedName = true; eye(30);
         show(['"Everyone has one," Fomin says, and goes. The kum will remember that you had the chance.'], onward(), { voice: 'fomin_everyone' });
       } },
@@ -229,13 +229,13 @@ EV('tufta', {
       'Pasha squats by you with the work sheet. "The percentage is a hundred and twenty." It is not. It is maybe sixty.',
       '"The inspector takes the sheet. Somebody has to have done the measuring. I need a name that is not mine." He is not asking. He is a good foreman. He is asking.',
     ], [
-      { id: 'mine', label: '"Put my name."', hint: 'the brigade eats on that sheet; so do you, if the inspector is lazy', fn: () => {
+      { id: 'mine', say: 'prisoner_myname', label: '"Put my name."', hint: 'the brigade eats on that sheet; so do you, if the inspector is lazy', fn: () => {
         brig(15);
         if (chance(.25)) { S.flags.pendingCells = true; S.flags.cellsWhy = 'The inspector checked the sheet. Your name was on it.'; }
         note('Your name is on the sheet. If the inspector looks, it is your name he finds.', true);
         afterNoon();
       } },
-      { id: 'other', label: '"Put somebody else\'s."', fn: () => {
+      { id: 'other', say: 'prisoner_other', label: '"Put somebody else\'s."', fn: () => {
         brig(-15); note('Pasha wrote another name. He did not look at you while he wrote it.', true); afterNoon();
       } },
     ], { frame: 'site', amb: 'amb_site', voice: ['pasha_percentage', 'pasha_name'] });

@@ -71,14 +71,9 @@ body {
 /* ---------- frame ---------- */
 #frame { position: relative; margin: 0 0 22px; aspect-ratio: 16 / 9; overflow: hidden; background: var(--paper); }
 /* the stage holds the print and its living overlay, and drifts slowly, like a held camera */
-#frame .stage { position: absolute; inset: 0; transform-origin: 50% 55%; animation: drift 84s ease-in-out infinite; will-change: transform;
+/* the stage holds the print and its living overlay; frames.js moves it like a slow camera */
+#frame .stage { position: absolute; inset: 0; transform-origin: 50% 50%; transform: scale(1.06); will-change: transform;
   filter: var(--season, none) grayscale(calc(var(--weak, 0) * .35)); transition: filter 4s ease; }
-@keyframes drift {
-  0%, 100% { transform: scale(1.045) translate(0, 0); }
-  25% { transform: scale(1.07) translate(-1.1%, .5%); }
-  50% { transform: scale(1.055) translate(.9%, -.7%); }
-  75% { transform: scale(1.075) translate(.5%, .9%); }
-}
 #frame[data-month="jan"] { --season: brightness(.9) contrast(1.1); }
 #frame[data-month="feb"] { --season: brightness(.94) contrast(1.06); }
 #frame[data-month="mar"] { --season: brightness(.98) contrast(1.02); }
@@ -241,5 +236,5 @@ body.title #text .small { font: 15px/1.4 var(--display); letter-spacing: .3em; c
 @media (prefers-reduced-motion: reduce) {
   #text > *, #choices button, .stamp, .m em, .t b { animation: none !important; }
   #frame img { transition: none; }
-  #frame .stage { animation: none; transform: scale(1.04); }
+  #frame .stage { transition: none !important; transform: scale(1.04) !important; }
 }

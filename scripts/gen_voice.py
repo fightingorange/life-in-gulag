@@ -174,6 +174,43 @@ def cut(src, dst, start, end):
     subprocess.run(cmd, check=True)
 
 
+def align_cut(take, lines):
+    """Cut a take into its lines at the word timings from ElevenLabs speech-to-text.
+    Returns False (and cuts nothing) if the words cannot be matched."""
+    import re, uuid, urllib.request
+    b = uuid.uuid4().hex
+    body = (f"--{b}\r\nContent-Disposition: form-data; name=\"model_id\"\r\n\r\nscribe_v1\r\n"
+            f"--{b}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.mp3\"\r\nContent-Type: audio/mpeg\r\n\r\n").encode() \
+        + take.read_bytes() + f"\r\n--{b}--\r\n".encode()
+    req = urllib.request.Request("https://api.elevenlabs.io/v1/speech-to-text", data=body, method="POST")
+    req.add_header("xi-api-key", api_key())
+    req.add_header("content-type", f"multipart/form-data; boundary={b}")
+    try:
+        words = [w for w in json.loads(urllib.request.urlopen(req, timeout=180).read())["words"] if w.get("type") == "word"]
+    except Exception as e:
+        print(f"  speech-to-text failed ({e}); falling back to pauses")
+        return False
+    norm = lambda t: re.sub(r"[^a-z']", "", t.lower())
+    spans, i = [], 0
+    for lid, line in lines:
+        want = [norm(w) for w in line["text"].split() if norm(w)]
+        while i < len(words) and norm(words[i]["text"]) != want[0]:
+            i += 1
+        j = i + len(want) - 1
+        if j >= len(words):
+            print(f"  {lid}: could not find it in the take; falling back to pauses")
+            return False
+        spans.append((lid, words[i]["start"], words[j]["end"]))
+        i = j + 1
+    for n, (lid, s0, e0) in enumerate(spans):
+        a, z = max(0, s0 - .12), e0 + .25
+        if n + 1 < len(spans):
+            z = min(z, (e0 + spans[n + 1][1]) / 2)
+        cut(take, VOICE_DIR / f"{lid}.mp3", a, z)
+        print(f"  {lid}.mp3  {a:.1f}s to {z:.1f}s (aligned)")
+    return True
+
+
 def cmd_oneoff(argv):
     force = "--force" in argv
     picks = dict((a.split("=", 1)[0], int(a.split("=", 1)[1])) for a in argv if "=" in a)
@@ -188,7 +225,7 @@ def cmd_oneoff(argv):
             continue
         take = [PREVIEW_DIR / f"{name}_take_{i}.mp3" for i in range(3)]
         if force or not take[0].exists():
-            text = " ... ".join(l["text"] for _, l in lines)
+            text = (" ... ... " if len(lines) > 2 else " ... ").join(l["text"] for _, l in lines)
             if len(text) < 100:
                 sys.exit(f"{name}: a one-off take needs at least 100 characters, has {len(text)}")
             body = {"voice_description": spec["description"], "text": text, "model_id": "eleven_multilingual_ttv_v2"}
@@ -203,15 +240,21 @@ def cmd_oneoff(argv):
             cut(src, VOICE_DIR / f"{lines[0][0]}.mp3", 0, None)
             print(f"  {lines[0][0]}.mp3  from take {picks.get(name, 0)}")
             continue
-        # split the take where the lines meet: the pause nearest each expected boundary
+        if align_cut(src, lines):
+            continue
+        # split the take where the lines meet. The lines are read with long pauses between them, so the
+        # longest pauses are the boundaries; with only two lines, take the pause nearest the expected point.
         pauses, dur = silences(src)
         sizes = [len(l["text"]) for _, l in lines]
-        total, bounds, acc = sum(sizes), [], 0
-        for n in sizes[:-1]:
-            acc += n
-            want = dur * acc / total
-            best = min(pauses, key=lambda p: abs((p[0] + p[1]) / 2 - want)) if pauses else (want, want)
-            bounds.append(best)
+        if len(lines) > 2 and len(pauses) >= len(lines) - 1:
+            bounds = sorted(sorted(pauses, key=lambda p: p[1] - p[0], reverse=True)[:len(lines) - 1])
+        else:
+            total, bounds, acc = sum(sizes), [], 0
+            for n in sizes[:-1]:
+                acc += n
+                want = dur * acc / total
+                best = min(pauses, key=lambda p: abs((p[0] + p[1]) / 2 - want)) if pauses else (want, want)
+                bounds.append(best)
         t0 = 0.0
         for i, (lid, _) in enumerate(lines):
             end = bounds[i][0] + 0.15 if i < len(bounds) else None

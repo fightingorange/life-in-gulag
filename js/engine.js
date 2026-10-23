@@ -67,7 +67,8 @@ function go(fn) { if (S.dead && !S.ended) return die(); fn(); }
 // a routine screen is answered by habit instead, and the next step is queued for drive().
 // FLOW.story: the screens being shown belong to the story (an event, a beat, the opening, an ending),
 // so the page holds their choices until the dialogue has been heard.
-const FLOW = { auto: null, stop: null, pending: null, inline: [], cues: [], screen: null, story: false };
+// FLOW.say: what you said aloud with your last choice, heard at the start of the next screen.
+const FLOW = { auto: null, stop: null, pending: null, inline: [], cues: [], screen: null, story: false, say: null };
 
 // A line of consequence: shown at the top of the next screen, and kept for the night's account.
 function note(text, major) {
@@ -97,6 +98,7 @@ function show(paras, choices, o = {}) {
     if (ch) { FLOW.inline.length = 0; FLOW.cues.length = 0; FLOW.pending = ch.fn; return; }
     scr.run = endRun();
   }
+  if (FLOW.say) { o.voice = [...FLOW.say, ...[].concat(o.voice || [])]; FLOW.say = null; }
   scr.notes = FLOW.inline.splice(0);
   if (o.ledger) scr.notes = scr.notes.filter(n => !o.ledger.lines.includes(n));   // the account already says it
   scr.cues = FLOW.cues.splice(0);
@@ -114,6 +116,7 @@ function autoChoice(scr) {
 function choose(ch) {
   const scr = FLOW.screen;
   if (scr && typeof scr.o.routine === 'string' && ch.id && ch.habit !== false) S.habits[scr.o.routine] = ch.id;
+  FLOW.say = ch.say ? [].concat(ch.say) : null;
   drive(ch.fn);
 }
 function drive(fn) {

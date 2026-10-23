@@ -257,6 +257,6 @@ const UI = (() => {
   snd.addEventListener('click', () => { AUDIO.unlock(); AUDIO.toggle(); sndLabel(); });
   sndLabel();
 
-  return { present, keepLabel, fit, refresh: () => current && present(current) };
+  return { present, keepLabel, fit, refreshSound: sndLabel, refresh: () => current && present(current) };
 })();
 RENDER = UI.present;

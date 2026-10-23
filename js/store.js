@@ -6,7 +6,7 @@
 // The game saves at the start of each day. Nothing ever leaves the computer.
 STORE = (() => {
   const KEY = 'ten-years-save', PREF = 'ten-years-keep';
-  const TEST_PARAMS = ['dev', 'test', 'scene', 'skip', 'seed', 'state', 'still', 'bot', 'frame', 'variant'];
+  const TEST_PARAMS = ['dev', 'test', 'scene', 'skip', 'seed', 'state', 'still', 'bot', 'frame', 'variant', 'sound'];
   const q = new URLSearchParams(location.search);
   let test = TEST_PARAMS.some(k => q.has(k));
   const local = f => { try { return f(window.localStorage); } catch (e) { return null; } };

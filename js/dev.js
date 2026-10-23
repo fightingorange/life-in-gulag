@@ -7,7 +7,7 @@ const DEV = (() => {
   const FLAGS = ['blade', 'partner', 'river', 'map', 'baptist', 'informer', 'betrayed', 'bootmakers', 'senkaGone'];
   const print = msg => { if (out) out.textContent = msg; console.log(msg); return msg; };
   // the dev tools never touch the player's save
-  const testing = () => { STORE.testMode(); if (typeof UI !== 'undefined') UI.keepLabel(); };
+  const testing = () => { STORE.testMode(); AUDIO.testMode(); if (typeof UI !== 'undefined') { UI.keepLabel(); UI.refreshSound(); } };
 
   function readState() {
     if (!panel) return;
