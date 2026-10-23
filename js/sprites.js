@@ -25,6 +25,7 @@
 //   or      a drawing shown while none of its own exist yet (the test cut-out); it does not cycle
 //   w       width as a fraction of the picture's width (the height follows the drawing)
 //   anchor  [ax, ay]: the point of the drawing that walks the path, as fractions of it (default [.5, 1], the feet)
+//   anchors { imageName: [ax, ay] }: measured contact points when pose drawings have different paper margins
 //   path    [[x, y], ...]: where the anchor goes, as fractions of the picture (one point: it stays there
 //           and only changes pose, like a man digging)
 //   secs    how long the path takes; ease 'inout' (default), 'linear', 'in', 'out'
@@ -45,55 +46,58 @@
 const SPRITES = (() => {
   // the haulers dragging their log up the bank (site_timber_1): drawn where they stand at the middle of
   // the path (.506, .798) and brought up from lower down the bank, thirty seconds, then round again
-  const HAUL = { anchor: [.5, 1], path: [[.44, .835], [.5063, .7981], [.56, .768]], secs: 30, ease: 'linear',
+  const HAUL = { anchor: [.5, .92], path: [[.44, .835], [.5063, .7981], [.56, .768]], secs: 30, ease: 'linear',
     loop: true, rest: 3, fade: 2.5, bob: .003, step: .8, sway: .4, scale: [1.03, .97], sfx: 'log_drag' };
-  // their mouths on test_haulers.png; measure again on haulers_a/b when they come
-  const HAUL_MOUTHS = [[.3, .36], [.945, .1]];
-  // stages two and three: the same two men a little smaller, the log at the same place on the bank
-  const HAUL_LATER = { ...HAUL, w: .45, path: [[.44, .81], [.5, .775], [.555, .745]] };
+  // Mouths and feet measured on the production haulers cutout, including its paper margin.
+  const HAUL_MOUTHS = [[.35, .31], [.90, .18]];
+  // Stages two and three: the same two men a little smaller, the log at the same place on the bank.
+  const HAUL_LATER = { ...HAUL, w: .50, path: [[.44, .81], [.5, .775], [.555, .745]] };
+  const DIG_FEET = { digger_a: [.45634, .93943], digger_b: [.45559, .90755] };
+  const SHOVEL_FEET = { shoveller_a: [.46950, .87779], shoveller_b: [.47936, .87885] };
+  const BRICK_FEET = { bricklayer_a: [.45410, .91817], bricklayer_b: [.45395, .91817] };
   const CONF = {
     // ---- the timber bank. Stand-ins: test_timber_plate (site_timber_1 with the two haulers removed by
     // hand) and test_haulers (the men cut out). Codex's plates and two-pose figures take over when they come.
     site_timber_plate_1: { over: 'site_timber_1', figures: [
-      { ...HAUL, poses: [{ img: 'haulers_a', hold: .9 }, { img: 'haulers_b', hold: .9 }], or: 'test_haulers', w: .4862, mouth: HAUL_MOUTHS },
-      // the axeman trimming a log on the stacks, right; place him when he is drawn
-      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .12, path: [[.83, .62]] },
+      { ...HAUL, poses: [{ img: 'haulers_a', hold: .9 }, { img: 'haulers_b', hold: .9 }], or: 'test_haulers', w: .54, mouth: HAUL_MOUTHS },
+      // The axeman trims a log beside the stacks, to the right.
+      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .23, anchor: [.36, .92], path: [[.79, .62]] },
     ] },
     test_timber_plate: { over: 'site_timber_1', figures: [
-      { ...HAUL, img: 'test_haulers', w: .4862, mouth: HAUL_MOUTHS },
+      { ...HAUL, anchor: [.5, 1], img: 'test_haulers', w: .4862, mouth: [[.3, .36], [.945, .1]] },
     ] },
     site_timber_plate_2: { over: 'site_timber_2', figures: [
       { ...HAUL_LATER, poses: [{ img: 'haulers_a', hold: .9 }, { img: 'haulers_b', hold: .9 }], or: 'test_haulers', mouth: HAUL_MOUTHS },
-      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .11, path: [[.86, .58]] },
+      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .21, anchor: [.36, .92], path: [[.82, .58]] },
     ] },
     site_timber_plate_3: { over: 'site_timber_3', figures: [
       { ...HAUL_LATER, poses: [{ img: 'haulers_a', hold: .9 }, { img: 'haulers_b', hold: .9 }], or: 'test_haulers', mouth: HAUL_MOUTHS },
-      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .11, path: [[.86, .58]] },
+      { poses: [{ img: 'axeman_a', hold: 1.1 }, { img: 'axeman_b', hold: .7, sfx: 'spot_axe' }], w: .21, anchor: [.36, .92], path: [[.82, .58]] },
     ] },
     // ---- the settlement: the nearest digger (left, feet at .12, .765) and a man shovelling the spoil
     // beside the man with the raised pick; they stay where they are and swing, each blow heard
     ...stages('site_settlement', [
-      { poses: [{ img: 'digger_a', hold: 1.3 }, { img: 'digger_b', hold: .8, sfx: 'spot_pick' }], w: .19, path: [[.125, .765]] },
-      { poses: [{ img: 'shoveller_a', hold: 1.4, sfx: 'spot_shovel' }, { img: 'shoveller_b', hold: 1 }], w: .08, path: [[.545, .55]], offset: .9 },
+      { poses: [{ img: 'digger_a', hold: 1.3 }, { img: 'digger_b', hold: .8, sfx: 'spot_pick' }], w: .49, anchors: DIG_FEET, path: [[.125, .765]] },
+      { poses: [{ img: 'shoveller_a', hold: 1.4, sfx: 'spot_shovel' }, { img: 'shoveller_b', hold: 1 }], w: .18, anchors: SHOVEL_FEET, path: [[.545, .55]], offset: .9 },
     ]),
     // ---- the power station: the nearest bricklayer, on the scaffold in the middle, bending to the
     // mortar and setting a brick; his planks are higher at each stage
     ...stages('site_power', [
-      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .085, path: [[.485, .49]] }],
-      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .085, path: [[.49, .29]] }],
-      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .085, path: [[.48, .32]] }],
+      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .23, anchors: BRICK_FEET, path: [[.485, .49]] }],
+      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .23, anchors: BRICK_FEET, path: [[.49, .29]] }],
+      [{ poses: [{ img: 'bricklayer_a', hold: 1.8, sfx: 'spot_trowel' }, { img: 'bricklayer_b', hold: 1.6, sfx: 'spot_brick' }], w: .23, anchors: BRICK_FEET, path: [[.48, .32]] }],
     ]),
     // ---- noon: the crouching men as one figure on the plate, hands to the fire and a moment later
     // shifted; slow, so it reads as men settling, not as a flicker. Their mouths for the breath.
     noon_plate: { over: 'noon', figures: [
-      { poses: [{ img: 'noon_men_a', hold: 5.5 }, { img: 'noon_men_b', hold: 3.5 }], blend: .35, w: .52, path: [[.495, .865]],
+      { poses: [{ img: 'noon_men_a', hold: 5.5 }, { img: 'noon_men_b', hold: 3.5 }], blend: .35, w: .52, anchor: [.5, .89], path: [[.495, .865]],
         mouthAt: [[.372, .556, 1], [.612, .584, -1]] },
     ] },
     // ---- the night hut at its true size: one man on the empty lower bunk in the near right third,
-    // turning in his sleep about every half minute, with a creak. Place him when the panorama is drawn.
+    // turning in his sleep about every half minute, with a creak. The paper margin sits above the berth.
     hut_night_pano: { figures: [
       { poses: [{ img: 'sleeper_turn_a', hold: 31 }, { img: 'sleeper_turn_b', hold: 27, sfx: 'spot_creak' }, { img: 'sleeper_turn_c', hold: 34, sfx: 'spot_creak' }],
-        w: .09, path: [[.78, .74]], vol: .25 },
+        w: .18, path: [[.85, .755]], vol: .25 },
     ] },
   };
   // a plate for each of a place's three stages: <place>_plate_1/2/3 over <place>_1/2/3. figs is one list
@@ -316,12 +320,12 @@ const SPRITES = (() => {
         if (!first && p && p.sfx && ph.a > .5) sound(p.sfx, f.vol || .35);
       }
       if (ph.a <= 0 || !L.rec) continue;
-      const [ax, ay] = f.anchor || [.5, 1];
       g.save();
       g.translate(L.x, L.y);
       if (L.rot) g.rotate(L.rot);
       if (f.flip) g.scale(-1, 1);
       for (const [rec, a] of L.ps.draw) {
+        const [ax, ay] = (f.anchors && f.anchors[rec.name]) || f.anchor || [.5, 1];
         g.globalAlpha = ph.a * a;
         g.drawImage(rec.el, -ax * L.w, -ay * L.h, L.w, L.h);
       }
@@ -339,7 +343,7 @@ const SPRITES = (() => {
       const L = layout(F, R);
       if (!L.rec || L.ph.a <= 0) continue;
       if (f.mouthAt) { for (const [mx, my, dir] of f.mouthAt) out.push({ x: (R.x + mx * R.w) / W, y: (R.y + my * R.h) / H, a: L.ph.a, dir: dir || 1 }); continue; }
-      const [ax, ay] = f.anchor || [.5, 1];
+      const [ax, ay] = (f.anchors && f.anchors[L.rec.name]) || f.anchor || [.5, 1];
       for (const [mx, my, dir] of f.mouth) {
         let dx = (mx - ax) * L.w * (f.flip ? -1 : 1), dy = (my - ay) * L.h;
         const c = Math.cos(L.rot || 0), s = Math.sin(L.rot || 0);

@@ -2,9 +2,9 @@
 // Frames that are written into the game but not drawn yet show a stand-in until they are.
 // When a new frame arrives in assets/frames/, it takes over automatically.
 const ASSETS = {
-  // Every place was drawn three times. The game moves between the drawings as the winter goes on;
-  // 'selected' is the master in assets/frames/, the others are in assets/frames/web/variants/.
-  variants: {"title": {"selected": 1, "all": [1, 2, 3]}, "hut_morning": {"selected": 1, "all": [1, 2, 3]}, "count": {"selected": 3, "all": [1, 2, 3]}, "table": {"selected": 1, "all": [1, 2, 3]}, "site": {"selected": 2, "all": [1, 2, 3]}, "noon": {"selected": 2, "all": [1, 2, 3]}, "gate": {"selected": 1, "all": [1, 2, 3]}, "hut_night": {"selected": 1, "all": [1, 2, 3]}, "cells": {"selected": 1, "all": [1, 2, 3]}, "wire": {"selected": 3, "all": [1, 2, 3]}, "river": {"selected": 2, "all": [1, 2, 3]}, "dead": {"selected": 1, "all": [1, 2, 3]}, "stove": {"selected": 3, "all": [1, 2, 3]}, "letter": {"selected": 3, "all": [1, 2, 3]}, "inspection": {"selected": 4, "all": [4]}, "blizzard": {"selected": 3, "all": [1, 2, 3]}, "office": {"selected": 3, "all": [1, 2, 3]}, "easter": {"selected": 2, "all": [1, 2, 3]}, "ice_out": {"selected": 2, "all": [1, 2, 3]}},
+  // Early places have alternate views. Tracked v5 scenes hold their selected masters so the new
+  // snow routes and figure registration remain in place. Other views live in web/variants/.
+  variants: {"title": {"selected": 1, "all": [1, 2, 3]}, "hut_morning": {"selected": 1, "all": [1, 2, 3]}, "count": {"selected": 3, "all": [3]}, "table": {"selected": 1, "all": [1, 2, 3]}, "site": {"selected": 2, "all": [1, 2, 3]}, "noon": {"selected": 2, "all": [2]}, "gate": {"selected": 1, "all": [1]}, "hut_night": {"selected": 1, "all": [1, 2, 3]}, "cells": {"selected": 1, "all": [1, 2, 3]}, "wire": {"selected": 3, "all": [3]}, "river": {"selected": 2, "all": [2]}, "dead": {"selected": 1, "all": [1, 2, 3]}, "stove": {"selected": 3, "all": [1, 2, 3]}, "letter": {"selected": 3, "all": [1, 2, 3]}, "inspection": {"selected": 4, "all": [4]}, "blizzard": {"selected": 3, "all": [1, 2, 3]}, "office": {"selected": 3, "all": [1, 2, 3]}, "easter": {"selected": 2, "all": [1, 2, 3]}, "ice_out": {"selected": 2, "all": [2]}},
   fixed: ["title", "dead"],   // these always show the master
   every: 1,                     // days before a place is seen from another angle
   // two versions of one picture that differ only in a hand or a door: the page fades slowly between them
@@ -14,8 +14,8 @@ const ASSETS = {
     count: [.5, .62], table: [.45, .42], river: [.31, .42], office: [.62, .38], site: [.25, .56],
     letter: [.47, .5], inspection: [.66, .3], ice_out: [.22, .56], dead: [.42, .62], title: [.42, .5],
     cells: [.5, .55], wire: [.25, .5], gate: [.36, .56],
-    reveille: [.42, .4], breakfast_400: [.55, .35], breakfast_550: [.58, .35], breakfast_650: [.55, .35],
-    supper: [.48, .36], site_power_1: [.5, .45], site_power_2: [.5, .45], site_power_3: [.5, .45],
+    reveille: [.42, .4], breakfast_400: [.524, .695], breakfast_550: [.524, .695], breakfast_650: [.524, .695],
+    mess_table: [.524, .695], supper: [.524, .695], supper_b: [.524, .695], site_power_1: [.5, .45], site_power_2: [.5, .45], site_power_3: [.5, .45],
     site_timber_1: [.5, .5], site_timber_2: [.55, .55], site_timber_3: [.55, .55],
   },
   // The camera (frames.js, MOVES) is locked: the picture holds still. Only these pictures have a move,

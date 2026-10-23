@@ -76,6 +76,7 @@ const FX = (() => {
                    breath: [B(.235, .465, 'paper', .6)], motes: { n: 10, region: [.55, .35, .4, .4] } },
     // the soup's steam and stirring are placed per picture in BOWLS, below
     table:       { pool: { x: .46, y: .36, r: .5, a: .3, swing: .05, period: 7.5, shade: true } },
+    mess_table:  { pool: { x: .524, y: .695, r: .56, a: .18, swing: .02, period: 7.5, shade: true } },
     cells:       { beam: { x: .5, y: .17, w: .03, angle: 92, spread: 16, len: .75, a: .32, land: { x: .48, y: .78, rx: .13, ry: .05 } },
                    glow: [{ x: .50, y: .11, r: .05, color: 'paper', a: .18, flicker: .15 }],
                    motes: { n: 16, region: [.42, .2, .16, .6] } },
@@ -144,13 +145,16 @@ const FX = (() => {
   // A name may point to another picture's line (the edits that only change the bread).
   const BOWLS = {
     table:            { x: .472, y: .342, rx: .095, ry: .054, steam: 3, rise: .2 },
-    table_nobread: 'table', breakfast_400: 'table', breakfast_550: 'table', breakfast_650: 'table',
+    table_nobread: 'table',
+    mess_table:       { x: .524, y: .695, rx: .095, ry: .043, steam: 3, rise: .2,
+                       keep: [[.57, .70, .045, .03]] },
+    breakfast_400: 'mess_table', breakfast_550: 'mess_table', breakfast_650: 'mess_table',
     'table-02':       { x: .395, y: .488, rx: .09, ry: .047, steam: 3, rise: .2 },
     'table-03':       { x: .557, y: .43, rx: .1, ry: .155, steam: 3, rise: .13 },        // looking straight down
-    // supper's own drawn steam rises at .47; the spoon lies in the soup (supper) or is lifted with a drip
-    // (supper_b, its twin, which fades in over it): neither turns
-    supper:           { x: .467, y: .354, rx: .098, ry: .055, steam: 2, rise: .19, at: [-.55, .32],
-                        keep: [[.51, .37, .05, .03], [.565, .352, .03, .018], [.538, .29, .052, .034], [.507, .33, .012, .028]] },
+    // The crowded v5 master keeps the player's bowl in the foreground. The spoon stays registered
+    // while supper_b lifts it; keep excludes it from the soup's stirring.
+    supper:           { x: .524, y: .695, rx: .095, ry: .043, steam: 2, rise: .19, at: [-.55, .32],
+                        keep: [[.57, .70, .045, .03], [.60, .67, .035, .04]] },
     supper_b: 'supper',
   };
   function bowlOf(key) {
@@ -301,7 +305,7 @@ const FX = (() => {
   const PLACED = ['ember', 'glow', 'breath', 'sweep', 'smoke', 'beam', 'spill', 'dark', 'pool', 'flame', 'firelight', 'lift'];
   // pictures that are edits of another share its effects: the breadless table is the table
   const ALIAS = {
-    table_nobread: 'table', breakfast_400: 'table', breakfast_550: 'table', breakfast_650: 'table', supper: 'table', supper_b: 'table',
+    table_nobread: 'table', breakfast_400: 'mess_table', breakfast_550: 'mess_table', breakfast_650: 'mess_table', supper: 'mess_table', supper_b: 'mess_table',
     site_power_2: 'site_power_1', site_power_3: 'site_power_1',
     site_settlement_1: 'site', site_settlement_2: 'site', site_settlement_3: 'site',
     site_timber_2: 'site_timber_1', site_timber_3: 'site_timber_1',
