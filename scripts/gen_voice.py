@@ -20,7 +20,7 @@ Lines are written to assets/voice/<line id>.mp3.
 import base64
 import json
 import sys
-from eleven import ASSETS, manifest, request, fail
+from eleven import ASSETS, manifest, request, fail, api_key, next_key
 
 VOICE_DIR = ASSETS / "voice"
 PREVIEW_DIR = VOICE_DIR / "previews"
@@ -177,7 +177,7 @@ def cut(src, dst, start, end):
 def align_cut(take, lines):
     """Cut a take into its lines at the word timings from ElevenLabs speech-to-text.
     Returns False (and cuts nothing) if the words cannot be matched."""
-    import re, uuid, urllib.request
+    import re, uuid, urllib.request, urllib.error
     b = uuid.uuid4().hex
     body = (f"--{b}\r\nContent-Disposition: form-data; name=\"model_id\"\r\n\r\nscribe_v1\r\n"
             f"--{b}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.mp3\"\r\nContent-Type: audio/mpeg\r\n\r\n").encode() \
@@ -186,7 +186,15 @@ def align_cut(take, lines):
     req.add_header("xi-api-key", api_key())
     req.add_header("content-type", f"multipart/form-data; boundary={b}")
     try:
-        words = [w for w in json.loads(urllib.request.urlopen(req, timeout=180).read())["words"] if w.get("type") == "word"]
+        try:
+            raw = urllib.request.urlopen(req, timeout=180).read()
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 402, 429) and next_key("speech-to-text"):
+                req.add_header("xi-api-key", api_key())
+                raw = urllib.request.urlopen(req, timeout=180).read()
+            else:
+                raise
+        words = [w for w in json.loads(raw)["words"] if w.get("type") == "word"]
     except Exception as e:
         print(f"  speech-to-text failed ({e}); falling back to pauses")
         return False
