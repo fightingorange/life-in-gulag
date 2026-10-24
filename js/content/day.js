@@ -522,7 +522,7 @@ function endDay() {
     { id: 'next', label: 'Sleep.', fn: nextDay },
     { id: 'run', label: 'Let the days run.', hint: habitsLine(), fn: () => { startRun(); nextDay(); } },
   ], {
-    frame: 'hut_night_pano', amb: t.blizzard ? 'amb_blizzard' : 'amb_hut', sfx: 'pencil', routine: true,
+    frame: 'hut_night_pano', amb: t.blizzard ? 'amb_blizzard' : 'amb_hut', sfx: 'pencil', routine: true, voice: t.kuzmaHalf ? 'kuzma_half' : null,
     ledger: { date: fmtDate(S.day), day: S.day, lines, good: t.mercies.slice(), verdict: VERDICTS[kind], kind },
   });
 }

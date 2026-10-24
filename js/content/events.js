@@ -181,7 +181,7 @@ EV('lev_warn', {
     show([
       'The planning officer comes out to measure the day\'s work, and Lev comes behind him with the tape and the board. While the officer writes, Lev drinks at the water barrel.',
       'He says to the ladle, not to you: "Lubimov and the sergeant are doing the whole column at the gate tonight. Every man, every lining. I saw the paper." Then he hangs the ladle on its nail and goes after the officer.',
-    ], ch, { frame: siteFrame(todaySite()), amb: 'amb_site' });
+    ], ch, { frame: siteFrame(todaySite()), amb: 'amb_site', voice: 'lev_warn' });
   },
 });
 EV('lev_quiet', {
@@ -194,7 +194,7 @@ EV('lev_quiet', {
     show([
       'The planning officer is measuring again, and Lev holds the end of the tape for him. When the officer walks off to argue with the site foreman, Lev says, without turning round:',
       '"Lubimov has the night off. The gate tonight is two conscripts from Ryazan. They are cold, and they want their supper more than they want your lining."',
-    ], onward('Nod.'), { frame: siteFrame(todaySite()), amb: 'amb_site' });
+    ], onward('Nod.'), { frame: siteFrame(todaySite()), amb: 'amb_site', voice: 'lev_quiet' });
   },
 });
 

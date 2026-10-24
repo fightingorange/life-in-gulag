@@ -167,7 +167,7 @@ function arrBoots(nothing) {
 // ---------- the hut: Kuzma tells you how it works ----------
 const ARR_HUT = { frame: 'arrival_hut', amb: 'amb_hut' };
 const KUZMA_ANSWERS = [
-  { id: 'q_bread', label: '"How much do they feed us?"', voice: 'kuzma_bread', paras: [
+  { id: 'q_bread', label: '"How much do they feed us?"', voice: ['kuzma_bread', 'kuzma_alyosha'], paras: [
     '"Five hundred and fifty grams of bread, if the brigade makes the norm. Four hundred if it does not. Eat it in the morning, all of it, or hide it where nobody looks."',
     'He says it the way other men say the date.',
     '"Alyoshka the Baptist keeps his under the boards by his bunk. He will keep yours, if you ask him."'] },
