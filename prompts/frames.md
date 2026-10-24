@@ -9,34 +9,11 @@ Claude leads the game's design and code (see `notes/design-2026-10-24.md`); this
 list of what the art, sound and voice side needs. Check it now and then; strike items as they land. Every
 name below already has a stand-in or is skipped gracefully by the game, so nothing is blocked on it.
 
-### The prisoner's own voice, in three states
+### Voice and sound: not Codex's
 
-The player's spoken choices are now heard (`say:` on the choice; the line plays at the start of the next
-screen, before the answer). The prisoner is no longer a one-off voice: `voices.prisoner` in the manifest
-is a saved voice with `states` (`thin`, `going`). Steps:
-
-1. `python3 scripts/gen_voice.py design` creates the prisoner's voice (a slot; if slots are short, a
-   fully recorded voice can be deleted first, as README says).
-2. `python3 scripts/gen_voice.py lines --force prisoner_who prisoner_deny ...` (every `prisoner_*` line,
-   old and new, so they are one man) records each line three times: `<id>.mp3`, `<id>_thin.mp3`,
-   `<id>_going.mp3`, with the state's settings. The game picks the take by the body and falls back to
-   the plain one, so partial sets are fine.
-3. Listen to `_thin` and `_going` against the plain take: the same man, slower and flatter, then hoarse
-   and nearly a whisper. If the settings alone do not get there, adjust `states.*.settings` in the
-   manifest (stability, style, speed) and re-record with `--force`.
-
-### Voice lines to record (`python3 scripts/gen_voice.py lines`)
-
-The texts are in `assets/manifest.json` under `lines`; the game already asks for them. Missing files
-are skipped, so record in any order.
-
-- every `prisoner_*` line (twenty-eight, in three takes each; see above)
-
-- `kuzma_half`, `kuzma_alyosha`, `kuzma_order` (Kuzma)
-- `lev_warn`, `lev_quiet` (Lev, from the planning office)
-- `lubimov_held` (Lubimov, at the count, reading a paper), `lubimov_what`, `lubimov_sums`, `lubimov_moscow` (Lubimov)
-- `pasha_banya`, `pasha_door`, `pasha_back`, `pasha_count`, `pasha_letter`, `pasha_again` (Pasha)
-- `vaska_turn`, `vaska_goodboots` (Vaska)
+The voice lines and the sound effects are recorded by Claude from `assets/manifest.json` with the scripts
+in `scripts/`; Codex need not run them. (Several were recorded from an earlier version of this brief,
+with thanks; they are committed.) This section is for pictures only.
 
 ### Sixth set: two prints for the late winter (v6)
 
@@ -46,11 +23,11 @@ Same style prefix, rules and production notes as before. The snow is lived on.
     one small lamp, a row of wooden tubs on a bench, men in silhouette washing, one pouring a tin of water
     over his head, clothes in bundles on hooks along the wall, a stove with a boiler. Steam is carved
     paper; the dark is ink. Crowded, quiet, no faces.
-69. **arrival_crack** (stand-in: arrival_railhead) — What the eye at the crack between the wagon's boards
+69. ~~**arrival_crack**~~ (landed 24 October) (stand-in: arrival_railhead) — What the eye at the crack between the wagon's boards
     sees: the slit itself as a black frame, and through it, moving past, snow and black trees, and once a
     station platform with no name on it, a woman in a shawl holding a child by the hand, looking at the
     wagon and then away. Mostly black; the world a narrow bright strip.
-70. **arrival_gate, redone at night** — the present print is drawn in daylight, and the screen is night
+70. ~~**arrival_gate, redone at night**~~ (landed 24 October) — the present print is drawn in daylight, and the screen is night
     (the march arrives after dark; the lights of the camp were seen from the road). An edit of the
     existing picture: the same gate, column and guard, but night: the sky and the ground black ink, the
     lamp on the arch and the searchlight beams the only paper, breath and the lamp's pool of light on the

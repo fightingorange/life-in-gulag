@@ -55,11 +55,22 @@
   },
   "alyosha": {
     "previews": [
-      "IePFdQUHWUOBSl2crJo2",
-      "0oOuJPIE0vDWIYzjcb1T",
-      "xHNoitd4ByZbT8bDARPj"
+      "7oDlufSt8KWDfQBVNZPB",
+      "58D1Ybwde7mOpf3dO3b5",
+      "PZjpEN63zvqLGsyBfnBh"
     ],
     "voice_id": "IePFdQUHWUOBSl2crJo2",
+    "picked": 0,
+    "retired": true,
+    "note": "deleted on 2026-10-24 to free a slot for the prisoner; both lines recorded; the id is dead; design again only if a new Alyoshka line is written"
+  },
+  "prisoner": {
+    "previews": [
+      "Ul4Vulu6wLMq8hwKSXCV",
+      "tD4fgTImnfSAMLP2m2Li",
+      "VttdNB1vWEwJLbjXuA5D"
+    ],
+    "voice_id": "Ul4Vulu6wLMq8hwKSXCV",
     "picked": 0
   }
 }
