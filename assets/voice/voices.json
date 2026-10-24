@@ -7,7 +7,25 @@
     ],
     "picked": 1,
     "voice_id": "oQkDBluZ0RNptRW0DSCM",
-    "account": "saved"
+    "account": "saved",
+    "clone": {
+      "voice_id": "xWqZLEzeZpp4ilDcymUo",
+      "account": "fresh",
+      "from": [
+        "lubimov_count.mp3",
+        "lubimov_moscow.mp3",
+        "lubimov_held.mp3",
+        "lubimov_proc.mp3",
+        "lubimov_dispute.mp3",
+        "lubimov_cells.mp3",
+        "lubimov_five.mp3",
+        "lubimov_tenmore.mp3",
+        "lubimov_boots.mp3",
+        "lubimov_sums.mp3",
+        "lubimov_what.mp3",
+        "lubimov_hoarding.mp3"
+      ]
+    }
   },
   "fomin": {
     "previews": [
