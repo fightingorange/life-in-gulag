@@ -66,7 +66,7 @@ function arrWhisper() {
   ], [
     { id: 'quiet', def: true, label: 'Say nothing more.', fn: arrHours },
     { id: 'ask', say: 'prisoner_paper', label: '"What paper?"', fn: () => arrSilenced('lev') },
-  ], MARCH);
+  ], { ...MARCH, voice: 'lev_march' });
 }
 function arrSilenced(who) {
   adj(-5); eye(6);

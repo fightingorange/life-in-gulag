@@ -19,7 +19,7 @@ with thanks; they are committed.) This section is for pictures only.
 
 Same style prefix, rules and production notes as before. The snow is lived on.
 
-67. **banya** (stand-in: cells) — The camp bathhouse from inside, at night: a low plank room full of steam,
+67. ~~**banya**~~ (landed 24 October) (stand-in: cells) — The camp bathhouse from inside, at night: a low plank room full of steam,
     one small lamp, a row of wooden tubs on a bench, men in silhouette washing, one pouring a tin of water
     over his head, clothes in bundles on hooks along the wall, a stove with a boiler. Steam is carved
     paper; the dark is ink. Crowded, quiet, no faces.
@@ -32,14 +32,14 @@ Same style prefix, rules and production notes as before. The snow is lived on.
     existing picture: the same gate, column and guard, but night: the sky and the ground black ink, the
     lamp on the arch and the searchlight beams the only paper, breath and the lamp's pool of light on the
     snow. Until it lands the page darkens the daylight print (`ASSETS.dark`).
-71. **yard_night** (stand-in: count_camp) — The street between two barracks at night, empty: trodden snow,
+71. ~~**yard_night**~~ (landed 24 October) (stand-in: count_camp) — The street between two barracks at night, empty: trodden snow,
     the lamps on their poles with their pools of light, the dark long walls of the huts with one or two
     windows faintly lit, the wire and a tower at the end with the searchlight's beam across the snow. No
     people. Seen from a hut doorway.
-72. **hut_outside_night** (stand-in: gate) — One barracks from outside at night, close: the long plank wall,
+72. ~~**hut_outside_night**~~ (landed 24 October) (stand-in: gate) — One barracks from outside at night, close: the long plank wall,
     the low roof under snow, the stove pipe with smoke going sideways, one window lit from inside and iced,
     a path trodden to the door, the door shut. The rest dark.
-68. **river_thaw** (stand-in: river) — The river in April from the bank, before it breaks: the ice still
+68. ~~**river_thaw**~~ (landed 24 October) (stand-in: river) — The river in April from the bank, before it breaks: the ice still
     whole but grey and sunk in the middle, water standing on it in dark sheets, a black lead of open water
     along the near bank where a spring comes in, a single man's track down to it and back. Wide sky, the
     far bank low. No column, no guards.

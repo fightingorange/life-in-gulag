@@ -24,7 +24,7 @@ const AUDIO = (() => {
   // a single event, heard once when the text says so: never dropped in now and then by a soundscape
   const ONCE = new Set(['crying', 'prayer', 'humming', 'rail', 'shot', 'fight', 'raven', 'pat_down', 'log_drag']);
   const LOOP_AT = 0.15;                                // s: where a seamless file's loop starts (scripts/gen_sfx.py)
-  let ambName = null, muff = 1;
+  let ambName = null, muff = 1;   // the body as a mixer: 1 is clear; see body()
   let queue = [], speakingId = 0, onDone = null;
 
   function el(loop) {
@@ -315,7 +315,7 @@ const AUDIO = (() => {
   // the body as a mixer: as strength drops the world muffles and a pulse comes up
   const PULSE = 'assets/sfx/pulse.mp3';
   function body(strength) {
-    muff = clamp((strength - 8) / 55, 0.2, 1);
+    muff = clamp((strength - 5) / 35, 0.2, 1);   // clear above 40; by 20 the world is through a wall; at 10 a pulse and a blanket
     if (lowpass) lowpass.frequency.setTargetAtTime(250 + Math.pow(muff, 2) * 18000, ctx.currentTime, 0.8);
     const a = ambs[ambIdx];
     if (ambName && !a.paused) a.volume = on ? Math.min(a.volume, vol(a, AMB_VOL * muff)) : 0;

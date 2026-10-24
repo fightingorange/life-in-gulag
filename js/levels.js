@@ -27,7 +27,7 @@ const LEVELS = {
   "door": 0.562,
   "drip": 0.582,
   "fight": 0.575,
-  "humming": 1.531,
+  "humming": 0.767,
   "ice_break": 0.562,
   "ladle": 6.0,
   "log_drag": 0.841,

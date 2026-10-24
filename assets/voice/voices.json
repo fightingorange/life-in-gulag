@@ -6,7 +6,8 @@
       "JLS6kuXwZbVmxeQfF2US"
     ],
     "picked": 1,
-    "voice_id": "oQkDBluZ0RNptRW0DSCM"
+    "voice_id": "oQkDBluZ0RNptRW0DSCM",
+    "account": "saved"
   },
   "fomin": {
     "previews": [
@@ -15,7 +16,8 @@
       "k9vSRIbsNicEL3NwsIbG"
     ],
     "voice_id": "IJh6b0lAHUNOlPrxeTzT",
-    "picked": 0
+    "picked": 0,
+    "account": "saved"
   },
   "pasha": {
     "previews": [
@@ -24,7 +26,8 @@
       "X718SrzhfUTmvm2XPsWO"
     ],
     "voice_id": "Q5VILMytXtK0CR6U4Nwz",
-    "picked": 0
+    "picked": 0,
+    "account": "saved"
   },
   "lev": {
     "previews": [
@@ -33,16 +36,25 @@
       "QaE9dVFBOeEUcuzppCC7"
     ],
     "picked": 2,
-    "voice_id": "QaE9dVFBOeEUcuzppCC7"
+    "voice_id": "QaE9dVFBOeEUcuzppCC7",
+    "account": "saved"
   },
   "kuzma": {
     "previews": [
-      "Au1qq6DpVhshuYR5CNkk",
-      "ICajduSejzasTjQZZLG1",
-      "mqsS159CPWUzMdAVaDDa"
+      "8DqDAiS4es7fQAmeZ74O",
+      "1C9N2n6wxzkKKQ1DiHJZ",
+      "lXN2SuRJoqNM7bT3duCe"
     ],
-    "voice_id": "Au1qq6DpVhshuYR5CNkk",
-    "picked": 0
+    "voice_id": "1C9N2n6wxzkKKQ1DiHJZ",
+    "picked": 1,
+    "account": "fresh",
+    "previous": [
+      {
+        "voice_id": "Au1qq6DpVhshuYR5CNkk",
+        "account": "saved",
+        "picked": 0
+      }
+    ]
   },
   "vaska": {
     "previews": [
@@ -51,7 +63,8 @@
       "hWak8ZEaSLdEqyYVuyWO"
     ],
     "voice_id": "o2glvlkZdDSKXOBlJRRU",
-    "picked": 0
+    "picked": 0,
+    "account": "saved"
   },
   "alyosha": {
     "previews": [
@@ -62,7 +75,8 @@
     "voice_id": "IePFdQUHWUOBSl2crJo2",
     "picked": 0,
     "retired": true,
-    "note": "deleted on 2026-10-24 to free a slot for the prisoner; both lines recorded; the id is dead; design again only if a new Alyoshka line is written"
+    "note": "deleted on 2026-10-24 to free a slot for the prisoner; both lines recorded; the id is dead; design again only if a new Alyoshka line is written",
+    "account": "saved"
   },
   "prisoner": {
     "previews": [
@@ -71,6 +85,7 @@
       "VttdNB1vWEwJLbjXuA5D"
     ],
     "voice_id": "Ul4Vulu6wLMq8hwKSXCV",
-    "picked": 0
+    "picked": 0,
+    "account": "saved"
   }
 }

@@ -58,6 +58,7 @@ const ENDINGS = {
   },
   escaped: {
     stamp: 'В БЕГАХ', outcome: 'Absconded. Not found.', frame: 'river', amb: 'amb_wind',
+    voice: () => { const g = S.esc && S.esc.gave; const first = { grigory: 'settler_net', bread: 'settler_keep', money: 'settler_wife', nothing: 'settler_notoday' }[g]; return first ? [first, 'settler_south'] : 'settler_south'; },
     text: () => {
       const g = S.esc && S.esc.gave;
       const first = g === 'blade' ? 'He picks up the blade, weighs it, puts it in his pocket. He does not pick up the telephone.'

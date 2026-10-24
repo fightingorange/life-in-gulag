@@ -3,11 +3,13 @@
 
     python3 scripts/gen_voice.py design            # create any voice that has no id yet
     python3 scripts/gen_voice.py design --pick lev=2   # recreate Lev from preview 2
+    python3 scripts/gen_voice.py design --redo kuzma   # a new voice for a character that has one (the briskest preview)
     python3 scripts/gen_voice.py lines             # record every missing line
     python3 scripts/gen_voice.py lines fomin_kum   # only these
     python3 scripts/gen_voice.py lines --force     # re-record everything
     python3 scripts/gen_voice.py oneoff            # voices marked "oneoff": spoken straight from voice design
     python3 scripts/gen_voice.py oneoff --pick nina=1 --force
+    python3 scripts/gen_voice.py oneoff settler --force   # only this one-off voice, a new take
 
 A "oneoff" voice is never saved to the account (custom voice slots are limited). Its lines are
 spoken by the voice-design step itself, all in one take so they share a voice, then split at the
@@ -32,7 +34,7 @@ SAMPLE = {
     "fomin": "Nothing bad, brother, nothing bad. The kum just likes to know who people are. There is a warm place coming free. Think about it. We can all help each other a little.",
     "pasha": "The percentage is a hundred and twenty. Do not argue with me, argue with the inspector. The quota is the quota. Somebody has to have done the measuring, and it will not be me.",
     "lev": "They gave me five years for a paper I read aloud. Pain and suffering are always inevitable for a large intelligence and a deep heart. A man who was never hungry wrote that.",
-    "kuzma": "Downriver, three days on the ice, there is a settlement of the free ones. They feed you, and then they sell you back. Upriver there is nothing. Nothing is better, I think.",
+    "kuzma": "Good boots. Everybody saw them at the gate. Sleep with them under your head, and your head on them. Downriver, three days on the ice, there is a settlement of the free ones. They feed you. Then they sell you back. Upriver there is nothing. Nothing is better.",
     "vaska": "Nice jacket. Warm, is it? Take it off, brother, I only want to see. No? Then we will sit here a while, the three of us, and talk about how warm it is.",
     "alyosha": "They will take the bread off you at the gate one day. Give it to me. God sees it, and so do the rats, but the rats are lazier than the warders. Christ is risen, brother.",
     "smith": "I hear you are a man who thinks about fences. I have fifteen centimetres of good steel. Three pinches of tobacco. Not two. Three. And you never saw me.",
@@ -81,10 +83,20 @@ def create_voice(name, spec, generated_id):
     return json.loads(data)["voice_id"]
 
 
+def duration(path):
+    import subprocess
+    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)], capture_output=True, text=True).stdout
+    try:
+        return float(out.strip())
+    except ValueError:
+        return 0.0
+
+
 def cmd_design(argv):
     picks = {}
+    redo = [argv[i + 1] for i, a in enumerate(argv) if a == "--redo" and i + 1 < len(argv)]
     for a in argv:
-        if a.startswith("--pick"):
+        if a.startswith("--pick") or a == "--redo" or a in redo:
             continue
         if "=" in a:
             k, v = a.split("=", 1)
@@ -95,6 +107,19 @@ def cmd_design(argv):
         if spec.get("oneoff"):
             continue
         st = state.setdefault(name, {})
+        if name in redo and "voice_id" in st:
+            # a new voice for this character: the old one is kept on its account for comparison;
+            # of the previews, the briskest (shortest for the same sample) is taken, unless picked
+            st.setdefault("previous", []).append({"voice_id": st["voice_id"], "account": st.get("account", "saved"), "picked": st.get("picked")})
+            st["previews"] = design_previews(name, spec)
+            durs = [duration(PREVIEW_DIR / f"{name}_{i}.mp3") for i in range(len(st["previews"]))]
+            pick = picks.get(name, durs.index(min(durs)) if durs else 0)
+            st["voice_id"] = create_voice(name, spec, st["previews"][pick])
+            st["picked"] = pick
+            st["account"] = __import__("eleven").LAST_KEY_NAME or "saved"
+            print(f"  {name}: new voice from preview {pick} ({', '.join(f'{d:.1f}s' for d in durs)}) on the {st['account']} account")
+            save_voices(state)
+            continue
         if name in picks:
             if "previews" not in st:
                 sys.exit(f"{name}: no previews recorded yet, run design first")
@@ -108,7 +133,8 @@ def cmd_design(argv):
             st["previews"] = design_previews(name, spec)
             st["voice_id"] = create_voice(name, spec, st["previews"][0])
             st["picked"] = 0
-            print(f"  {name}: voice created from preview 0")
+            st["account"] = __import__("eleven").LAST_KEY_NAME or "saved"
+            print(f"  {name}: voice created from preview 0 on the {st['account']} account")
         save_voices(state)
     print("done")
 
@@ -231,10 +257,11 @@ def align_cut(take, lines):
 def cmd_oneoff(argv):
     force = "--force" in argv
     picks = dict((a.split("=", 1)[0], int(a.split("=", 1)[1])) for a in argv if "=" in a)
+    only = [a for a in argv if not a.startswith("--") and "=" not in a]   # oneoff settler --force: only this voice
     m = manifest()
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
     for name, spec in m["voices"].items():
-        if not spec.get("oneoff"):
+        if not spec.get("oneoff") or (only and name not in only):
             continue
         lines = [(lid, l) for lid, l in m["lines"].items() if l["voice"] == name]
         if not force and all((VOICE_DIR / f"{lid}.mp3").exists() for lid, _ in lines):

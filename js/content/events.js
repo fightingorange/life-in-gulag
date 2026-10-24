@@ -457,7 +457,7 @@ EV('urki_knife', {
         show(paras, onward(), { sfx: 'fight' });
       } },
       settle,
-    ], { ...noonFrame(), urki: 'knife' });
+    ], { ...noonFrame(), urki: 'knife', voice: S.flags.rubber ? 'urka_rubber' : 'urka_hello' });
   },
 });
 // Pasha's protection lasts while the brigade thinks well of you
@@ -519,7 +519,7 @@ EV('cards', {
         afterNoon();
       } },
       { id: 'watch', def: true, label: 'Watch, and keep your tobacco.', fn: afterNoon },
-    ], noonFrame());
+    ], { ...noonFrame(), voice: 'vaska_pinch' });
   },
 });
 

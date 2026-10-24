@@ -38,11 +38,12 @@
     },
     "kuzma": {
       "name": "Kuzma (peasant)",
-      "description": "An old peasant in his sixties with a thick rural Russian accent speaking English. Warm, slow, storytelling cadence, gravelly, missing teeth. Sounds like he is talking to a stove.",
+      "description": "An old Russian peasant in his sixties with a thick rural accent speaking English. Dry, quick, clear and close to the ear, a little amused, the words bitten off short, a man who has told the same story a hundred times and tells it briskly. Not slow, not mumbling, no gravel, no rasp; a clean, plain voice, every word distinct.",
       "settings": {
-        "stability": 0.6,
+        "stability": 0.55,
         "similarity_boost": 0.8,
-        "style": 0.3
+        "style": 0.25,
+        "speed": 1.08
       }
     },
     "vaska": {
@@ -120,6 +121,36 @@
         }
       },
       "states_note": "Every prisoner line is recorded three times: <id>.mp3, <id>_thin.mp3, <id>_going.mp3 (scripts/gen_voice.py lines). The game picks the take by the body (js/audio.js) and falls back to the plain one."
+    },
+    "fisherman": {
+      "name": "The fisherman",
+      "oneoff": true,
+      "description": "A man of about fifty with a Russian accent speaking English, a river fisherman who lives alone with his family far from anywhere. Slow, low, unhurried, few words, each one considered; warm underneath but not showing it. Speaks as if to the table, not to the listener.",
+      "settings": {
+        "stability": 0.7,
+        "similarity_boost": 0.8,
+        "style": 0.15
+      }
+    },
+    "settler": {
+      "name": "Grigory (the free settlement)",
+      "oneoff": true,
+      "description": "A man in his forties with a Russian accent speaking English, a released prisoner who runs the free settlement store and keeps the telephone. Tired, dry, a little mocking, a man who has seen escapers before and sold some of them back. Flat and quiet, with a short laugh that has no pleasure in it.",
+      "settings": {
+        "stability": 0.6,
+        "similarity_boost": 0.8,
+        "style": 0.3
+      }
+    },
+    "urka": {
+      "name": "Vaska's man (young thief)",
+      "oneoff": true,
+      "description": "A young man of about twenty with a Russian accent speaking English, a camp thief, close to the ear, soft and friendly in a way that is a threat. Light voice, almost pleasant, unhurried, each sentence a little smile.",
+      "settings": {
+        "stability": 0.5,
+        "similarity_boost": 0.8,
+        "style": 0.4
+      }
     }
   },
   "lines": {
@@ -501,6 +532,58 @@
     "vaska_goodboots": {
       "voice": "vaska",
       "text": "Good boots."
+    },
+    "lev_march": {
+      "voice": "lev",
+      "text": "North. I am Lev. Leningrad. Five years. For a paper I read aloud."
+    },
+    "vaska_pinch": {
+      "voice": "vaska",
+      "text": "A pinch to sit down. Two if you win."
+    },
+    "fisherman_brother": {
+      "voice": "fisherman",
+      "text": "My brother had ten years. Kolyma."
+    },
+    "fisherman_grigory": {
+      "voice": "fisherman",
+      "text": "I never saw you. Downstream. Keep to the left bank. At the settlement ask for Grigory, and say the fisherman sent you. He owes me a net."
+    },
+    "fisherman_down": {
+      "voice": "fisherman",
+      "text": "Downstream. Keep to the left bank."
+    },
+    "fisherman_never": {
+      "voice": "fisherman",
+      "text": "I never saw you. Downstream. Keep to the left bank."
+    },
+    "settler_net": {
+      "voice": "settler",
+      "text": "A net. He would."
+    },
+    "settler_keep": {
+      "voice": "settler",
+      "text": "Keep it. You will need it more."
+    },
+    "settler_wife": {
+      "voice": "settler",
+      "text": "Your wife's?"
+    },
+    "settler_notoday": {
+      "voice": "settler",
+      "text": "Not today."
+    },
+    "settler_south": {
+      "voice": "settler",
+      "text": "South, along the winter road. A railway town, where nobody asks."
+    },
+    "urka_hello": {
+      "voice": "urka",
+      "text": "Vaska says hello. He says it is cold for the time of year. A man could lose his boots in this cold."
+    },
+    "urka_rubber": {
+      "voice": "urka",
+      "text": "Vaska says hello. He says the rubber boots suit you. He says you still owe him for the trouble."
     }
   },
   "sfx": {
@@ -777,6 +860,7 @@
     }
   },
   "frames": [
+    "arrival_crack",
     "arrival_gate",
     "arrival_hut",
     "arrival_march",
@@ -804,6 +888,7 @@
     "hut_morning_sun",
     "hut_night",
     "hut_night_pano",
+    "hut_outside_night",
     "ice_out",
     "inspection",
     "letter",
@@ -839,6 +924,7 @@
     "supper_b",
     "table",
     "title",
-    "wire"
+    "wire",
+    "yard_night"
   ]
 }

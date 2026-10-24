@@ -9,7 +9,7 @@ TARGET_AMB = -28.0     # ambient beds: mean dB
 TARGET_PEAK = -5.0     # one-shots: peak dB (a two-second ladle hit is mostly silence, so its mean says little)
 QUIET_ON_PURPOSE = {"amb_cells"}        # the cells are meant to be near silence
 BEDS = {"pulse", "ru_mess_murmur"}      # loops whose names do not say so
-TRIM = {"amb_hut": -3.0}                # dB under the matched level: the sleeping hut should be gentle
+TRIM = {"amb_hut": -3.0, "humming": -6.0}   # dB under the matched level: the sleeping hut should be gentle; Kuzma hums to himself, not to the room
 
 def measure(path):
     out = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path), "-af", "volumedetect", "-f", "null", "-"],

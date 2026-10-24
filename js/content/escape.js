@@ -233,7 +233,8 @@ function hutOutcome(said, pCaught) {
          '"I never saw you," he says. "Downstream. Keep to the left bank."'];
   E.bread += 200; E.route = true;
   if (said === 'truth') E.footcloths = true;
-  show(paras, [{ label: 'Go on.', fn: settlement }], { frame: 'stove', amb: 'amb_hut', story: true, escape: 'hut' });
+  const voice = said === 'truth' ? ['fisherman_brother', 'fisherman_grigory'] : said === 'lie' ? 'fisherman_down' : 'fisherman_never';
+  show(paras, [{ label: 'Go on.', fn: settlement }], { frame: 'stove', amb: 'amb_hut', story: true, escape: 'hut', voice });
 }
 function settlement() {
   const E = attempt();

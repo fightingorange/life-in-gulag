@@ -187,10 +187,12 @@ const SPRITES = (() => {
     for (let y = 0, i = 0; y < h; y++) for (let xx = 0; xx < w; xx++, i += 4) {
       let R = Math.min(255, p[i] * 255 / pr), G = Math.min(255, p[i + 1] * 255 / pg), B = Math.min(255, p[i + 2] * 255 / pb);
       const l = R * .3 + G * .59 + B * .11;
-      let k = l > 150 ? Math.min(1, (l - 150) / 50) : 0;                  // the knee: everything lighter than ink goes to white (a linocut has no greys)
+      let k = l > 150 ? Math.min(1, (l - 150) / 50) : 0;                  // the knee: everything lighter than ink is paper (a linocut has no greys)
       const e = Math.min(xx, y, w - 1 - xx, h - 1 - y);
       if (e < edge) k = Math.max(k, 1 - e / edge);                         // the edges fade out
-      p[i] = R + (255 - R) * k; p[i + 1] = G + (255 - G) * k; p[i + 2] = B + (255 - B) * k; p[i + 3] = 255;
+      // the paper is made transparent, not white: the plate's own paper shows through, and nothing
+      // depends on the blend to hide a rectangle
+      p[i] = R; p[i + 1] = G; p[i + 2] = B; p[i + 3] = Math.round(255 * (1 - k));
     }
     x.putImageData(d, 0, 0);
     return c;
@@ -308,7 +310,7 @@ const SPRITES = (() => {
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, canvas.width, canvas.height);
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.globalCompositeOperation = 'multiply';        // figures overlapping each other: ink on ink
+    g.globalCompositeOperation = 'source-over';    // the figures' paper is transparent; ink over ink is ink
     const R = pictureRect();
     for (const F of figs) {
       const f = F.f, L = layout(F, R), ph = L.ph;
