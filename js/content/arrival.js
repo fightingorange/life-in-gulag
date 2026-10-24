@@ -28,7 +28,7 @@ function intro() {
 function arrCrack() {
   arrive([
     'Snow, and black trees, and snow. Once a station with no name on it, and a woman on the platform with a child by the hand. She looks at the wagon, at the stove pipe and the little barred window, and then quickly at something else. She knows what a wagon like this carries.',
-  ], [{ label: 'Lie down again.', fn: arrRailhead }], { frame: 'arrival_wagon', amb: 'amb_train' });
+  ], [{ label: 'Lie down again.', fn: arrRailhead }], { frame: 'arrival_crack', amb: 'amb_train' });
 }
 function arrRailhead() {
   arrive([
@@ -54,8 +54,8 @@ function arrMarch() {
     'Your feet are warm. Nina sent felt boots to the transit prison in Kalinin, new ones, white, and somehow they reached you. They are the best thing you own. They are nearly the only thing.',
   ], [
     { id: 'walk', def: true, label: 'Walk. Eyes on the back in front of you.', fn: arrHours },
-    { id: 'whisper', label: 'Whisper to the boy on your right.', hint: 'the transit prisons teach you to talk without moving your lips', fn: arrWhisper },
-    { id: 'speak', label: 'Ask the big man on your left how far.', fn: () => arrSilenced('senka') },
+    { id: 'whisper', say: 'prisoner_where', label: 'Whisper to the boy on your right.', hint: 'the transit prisons teach you to talk without moving your lips', fn: arrWhisper },
+    { id: 'speak', say: 'prisoner_howfar', label: 'Ask the big man on your left how far.', fn: () => arrSilenced('senka') },
   ], MARCH);
 }
 function arrWhisper() {
@@ -65,7 +65,7 @@ function arrWhisper() {
     'The soldier on that side turns his head and looks along the column, and turns it back.',
   ], [
     { id: 'quiet', def: true, label: 'Say nothing more.', fn: arrHours },
-    { id: 'ask', label: '"What paper?"', fn: () => arrSilenced('lev') },
+    { id: 'ask', say: 'prisoner_paper', label: '"What paper?"', fn: () => arrSilenced('lev') },
   ], MARCH);
 }
 function arrSilenced(who) {
@@ -150,8 +150,8 @@ function arrProcess() {
   if (S.flags.struck) paras.push('He finds your name on the convoy\'s list, and something written beside it, and copies that into his own book as well: talked in the column.');
   paras.push(`From now on you are ${NUMBER}. A trusty paints it on strips of rag, and you sew them on your back, your cap and your knee, with a needle that goes down the line.`);
   arrive(paras, [
-    { id: 'answer', def: true, label: '"Fifty-eight ten. Ten years."', fn: () => arrBoots(false) },
-    { id: 'nothing', label: '"I was sentenced for nothing."', fn: () => arrBoots(true) },
+    { id: 'answer', def: true, say: 'prisoner_article', label: '"Fifty-eight ten. Ten years."', fn: () => arrBoots(false) },
+    { id: 'nothing', say: 'prisoner_nothing', label: '"I was sentenced for nothing."', fn: () => arrBoots(true) },
   ], { ...ARR_PROC, sfx: 'ru_proc_name', voice: 'lubimov_proc' });
 }
 function arrBoots(nothing) {
@@ -195,7 +195,7 @@ const KUZMA_ANSWERS = [
 function kuzmaChoices(asked) {
   const open = KUZMA_ANSWERS.filter(q => !asked.includes(q.id)).slice(0, 4);
   return [
-    ...open.map((q, i) => ({ id: q.id, def: i === 0 || undefined, label: q.label, fn: () => arrAsk(q, asked) })),
+    ...open.map((q, i) => ({ id: q.id, def: i === 0 || undefined, say: 'prisoner_' + q.id, label: q.label, fn: () => arrAsk(q, asked) })),
     { id: 'enough', def: !open.length || undefined, label: 'That\'s enough for tonight.', fn: arrSupper },
   ];
 }
@@ -277,7 +277,7 @@ BEAT('boots', 3, 'night', () => {
         'You sleep on your boots with your ribs singing. In the morning the brigade looks at you differently. So does the other side of the stove.',
       ], { sfx: 'fight', voice: 'vaska_remember' });
     } },
-    { id: 'bread', label: '"Take my bread instead. Tomorrow\'s, and the day after\'s."', hint: 'a man who pays once pays again', fn: () => {
+    { id: 'bread', say: 'prisoner_breadinstead', label: '"Take my bread instead. Tomorrow\'s, and the day after\'s."', hint: 'a man who pays once pays again', fn: () => {
       adj(-12);
       S.flags.urki = 'tribute'; S.flags.tributeDay = S.day;
       S.stats.tribute = (S.stats.tribute || 0) + 550;

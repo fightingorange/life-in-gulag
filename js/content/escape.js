@@ -213,8 +213,8 @@ function hut() {
     'He gives you soup without asking, and sits across the table with his hands flat on it, and looks at the number on your back, which he can see in the lamp, and waits.',
   ], [
     { id: 'nothing', def: true, label: 'Say nothing. Eat.', hint: 'he can read a number', fn: () => hutOutcome('nothing', E.partner ? .2 : .3) },
-    { id: 'truth', label: '"The camp. Four days ago. I will not tell anyone your name."', hint: 'the truth, to a man with children', fn: () => hutOutcome('truth', E.partner ? .2 : .28) },
-    { id: 'lie', label: '"A free settler. From upriver. Lost in the dark."', hint: 'upriver there is nothing; he knows that', fn: () => hutOutcome('lie', .45) },
+    { id: 'truth', say: 'prisoner_camp', label: '"The camp. Four days ago. I will not tell anyone your name."', hint: 'the truth, to a man with children', fn: () => hutOutcome('truth', E.partner ? .2 : .28) },
+    { id: 'lie', say: 'prisoner_settler', label: '"A free settler. From upriver. Lost in the dark."', hint: 'upriver there is nothing; he knows that', fn: () => hutOutcome('lie', .45) },
   ], { frame: 'stove', amb: 'amb_hut', story: true, escape: 'hut' });
 }
 function hutOutcome(said, pCaught) {
@@ -246,7 +246,7 @@ function settlement() {
   if (S.tobacco >= 2) ch.push({ id: 'tobacco', label: 'Give him your tobacco.', hint: `${numberWord(S.tobacco)} pinches`, fn: () => give('tobacco', .58 + Math.min(.12, S.tobacco * .02)) });
   if (S.flags.money) ch.push({ id: 'money', label: 'Put Nina\'s roubles on the table.', hint: 'twenty-five roubles; out here money is money again', fn: () => give('money', .55) });
   if (breadLeft() > 0) ch.push({ id: 'bread', label: 'Give him what is left of the bread.', hint: `${breadLeft()} g`, fn: () => give('bread', .52) });
-  if (E.fisherman === 'truth') ch.push({ id: 'grigory', label: '"The fisherman sent me. He says you owe him a net."', hint: 'a name, from a man who trusted you with his', fn: () => give('grigory', .74) });
+  if (E.fisherman === 'truth') ch.push({ id: 'grigory', say: 'prisoner_grigory', label: '"The fisherman sent me. He says you owe him a net."', hint: 'a name, from a man who trusted you with his', fn: () => give('grigory', .74) });
   ch.push({ id: 'nothing', def: true, label: 'Give him nothing. Eat the soup, and look at him.', hint: 'he was in a camp once too', fn: () => give('nothing', .36) });
   show(paras, ch, { frame: 'table', amb: 'amb_hut', story: true, escape: 'settlement' });
 }

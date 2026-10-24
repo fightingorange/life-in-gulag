@@ -45,7 +45,8 @@ footer{border-top:1px solid var(--line);margin-top:28px;padding-top:16px;font-si
   <div><h1>TEN YEARS</h1><p id="collection-summary" aria-live="polite">Loading the collection…</p></div>
   <nav aria-label="Frame collections">
     <a href="review.html" data-set="all">All frames</a>
-    <a href="review.html?set=v5" data-set="v5">Latest update</a>
+    <a href="review.html?set=latest" data-set="latest">Latest update</a>
+    <a href="review.html?set=v5" data-set="v5">Set five</a>
     <a href="review.html?set=arrival" data-set="arrival">Arrival</a>
     <a href="review.html?set=layers" data-set="layers">Layers and moments</a>
     <a href="review.html?set=figures" data-set="figures">Figures</a>
@@ -74,7 +75,7 @@ Generated and edited with built-in imagegen in parallel batches. PNG masters and
 <a href="production/v5-arrival-and-snow.json">arrival and snow</a>,
 <a href="production/v5-construction.json">construction plates and workers</a>,
 <a href="production/v5-barracks-and-meals.json">barracks and meals</a>,
-<a href="production/v5-gate-noon-and-timber.json">gate, noon and timber</a>.
+<a href="production/v5-gate-noon-and-timber.json">gate, noon and timber</a><span id="new-prompt-records"></span>.
 <a href="production/collection.json">Collection record</a>.
 </footer>
 </main>
@@ -105,12 +106,13 @@ const legacyV3=new Set(['reveille','hut_morning_dark','hut_morning_grey','hut_mo
   'breakfast_550','breakfast_400','breakfast_650','supper','supper_b',
   'site_power_1','site_power_2','site_power_3','site_settlement_1','site_settlement_2','site_settlement_3',
   'site_timber_1','site_timber_2','site_timber_3']);
-const labels={all:'Complete collection',v5:'Latest update',arrival:'Arrival',layers:'Layers and moments',
+const labels={all:'Complete collection',latest:'Latest update',v5:'Set five',v6:'Set six',arrival:'Arrival',layers:'Layers and moments',
   figures:'Figures',winter:'Winter additions',v3:'Set three',supper:'Supper pair'};
 const requestedSet=new URLSearchParams(location.search).get('set')||'all';
 const set=Object.hasOwn(labels,requestedSet)?requestedSet:'all';
 const grid=document.querySelector('#grid');
 const summary=document.querySelector('#collection-summary');
+let latestSet='v5';
 document.title='Ten Years — '+labels[set].toLowerCase();
 document.querySelectorAll('nav [data-set]').forEach(a=>{
   if(a.dataset.set===set)a.setAttribute('aria-current','page');
@@ -137,7 +139,8 @@ function originalSet(entry){
 }
 function inSet(entry){
   if(set==='figures')return entry.isFigure;
-  if(set==='v5')return entry.updated_in==='v5'||entry.set==='v5';
+  if(set==='latest')return entry.updated_in===latestSet||entry.set===latestSet;
+  if(set==='v5'||set==='v6')return entry.updated_in===set||entry.set===set;
   if(entry.isFigure)return false;
   if(set==='arrival')return entry.name.startsWith('arrival_');
   if(set==='layers')return /_plate(?:_[123])?$/.test(entry.name)||
@@ -208,10 +211,17 @@ async function renderCollection(){
     const response=await fetch('production/collection.json',{cache:'no-store'});
     if(!response.ok)throw new Error('Collection HTTP '+response.status);
     const collection=await response.json();
+    latestSet=collection.latest_update?.name||'v5';
+    const existingRecords=new Set([...document.querySelectorAll('footer a')].map(a=>a.getAttribute('href')));
+    const newRecords=document.querySelector('#new-prompt-records');
+    for(const record of collection.prompt_records||[]){
+      const href='production/'+record;
+      if(!existingRecords.has(href))newRecords.append(document.createTextNode(', '),link(href,record.replace(/\.json$/,'').replaceAll('-',' ')));
+    }
     const frames=(collection.frames||[]).map((entry,index)=>({...entry,index,isFigure:false}));
     const figures=(collection.figures||[]).map((entry,index)=>({...entry,index,isFigure:true}));
     const visible=frames.concat(figures).filter(inSet);
-    if(set==='v5'){
+    if(set==='v5'||(set==='latest'&&latestSet==='v5')){
       const order=['arrival_wagon','arrival_railhead','arrival_march','arrival_march_dusk',
         'arrival_gate','arrival_processing','arrival_hut','hut_night_pano','mess_table',
         'breakfast_400','breakfast_550','breakfast_650','supper','supper_b','count_camp',

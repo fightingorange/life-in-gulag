@@ -38,6 +38,7 @@ SAMPLE = {
     "smith": "I hear you are a man who thinks about fences. I have fifteen centimetres of good steel. Three pinches of tobacco. Not two. Three. And you never saw me.",
     "commissioner": "Any complaints, prisoners? Speak freely. The Soviet state listens. Comrade commandant, the paths are very clean. Write that down, please. Very clean.",
     "nina": "My dear. The collective farm paid for the year in workdays, which is to say in nothing. I paint carpets on canvas now and sell them at the station. Swans, mostly. Are you well?",
+    "prisoner": "Fifty-eight ten. Ten years. I said something at a table, in front of a man I had known for twenty years. How much do they feed us? What kills men here? I don't think about fences. Nothing. A worker.",
 }
 
 
@@ -126,6 +127,8 @@ def record_line(line_id, line, voices, settings):
             "use_speaker_boost": True,
         },
     }
+    if settings.get("speed"):
+        body["voice_settings"]["speed"] = settings["speed"]
     if line.get("lang"):
         body["language_code"] = line["lang"]
     status, data, ctype = request("POST", f"/v1/text-to-speech/{v}", body,
@@ -147,10 +150,16 @@ def cmd_lines(argv):
             continue
         if m["voices"][line["voice"]].get("oneoff"):
             continue
-        if (VOICE_DIR / f"{line_id}.mp3").exists() and not force:
-            print(f"  {line_id}.mp3  exists, skipped")
-            continue
-        record_line(line_id, line, voices, m["voices"][line["voice"]].get("settings", {}))
+        spec = m["voices"][line["voice"]]
+        takes = [(line_id, spec.get("settings", {}))]
+        # a voice with states (the prisoner): the same line again, thinner, then nearly gone
+        for state, st in (spec.get("states") or {}).items():
+            takes.append((f"{line_id}_{state}", {**spec.get("settings", {}), **st.get("settings", {})}))
+        for take_id, settings in takes:
+            if (VOICE_DIR / f"{take_id}.mp3").exists() and not force:
+                print(f"  {take_id}.mp3  exists, skipped")
+                continue
+            record_line(take_id, line, voices, settings)
     print("done")
 
 

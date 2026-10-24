@@ -411,7 +411,7 @@ EV('vaska_fence', {
       'Vaska Kosoi sits down beside you at the noon fire like an old friend, and gives you the end of his cigarette, which nobody refuses.',
       '"A man who pays is a man I can trust," he says. "And you look at the fence the way I look at a purse. I have fifteen centimetres of steel. Three hundred grams, and you never saw me."',
     ], [
-      { id: 'no', def: true, label: '"I don\'t think about fences."', fn: () => { note('"Nobody does," Vaska said, and laughed.'); afterNoon(); } },
+      { id: 'no', def: true, say: 'prisoner_fences', label: '"I don\'t think about fences."', fn: () => { note('"Nobody does," Vaska said, and laughed.'); afterNoon(); } },
       can ? { id: 'pay', label: 'Pay him three hundred grams.', hint: 'the wire needs a blade', fn: () => {
         S.bread -= 300; S.flags.blade = true; S.flags.bladeDay = S.day; eye(3);
         note('Vaska\'s steel is in your boot. You walk differently. You must stop walking differently.', true);
@@ -573,7 +573,7 @@ EV('blade_trade', {
         note('"Come back when you have three," he said. Mending boots pays in tobacco, if the thread holds.', true);
         afterNoon();
       } },
-      { id: 'no', label: '"I don\'t think about fences."', fn: () => { note('"Nobody does," he said, and was gone.'); afterNoon(); } },
+      { id: 'no', say: 'prisoner_fences', label: '"I don\'t think about fences."', fn: () => { note('"Nobody does," he said, and was gone.'); afterNoon(); } },
     ], { ...noonFrame(), voice: 'smith_three' });
   },
 });
@@ -691,7 +691,7 @@ EV('pasha_board', {
       'At the end of the shift Pasha holds out the board and the tape, the way he holds out everything: as if it were already yours and he were only reminding you.',
       '"You can count," he says. "Count." The brigade\'s percentage is written on that board every evening, and the brigade eats on the percentage.',
     ], [
-      { id: 'back', def: true, label: 'Hand it back. "I can\'t count."', hint: 'the brigade will remember who would not', fn: () => {
+      { id: 'back', def: true, say: 'prisoner_cantcount', label: 'Hand it back. "I can\'t count."', hint: 'the brigade will remember who would not', fn: () => {
         brig(-6);
         note('You handed Pasha the board back. He took it without a word, which was the word.', true);
         afterNoon();
@@ -779,12 +779,12 @@ EV('lubimov_what', {
       'At the noon break Lubimov comes out to the site with the planning officer, which he never does, and stands by the fire with his hands behind his back while the officer measures. Then he stops in front of you.',
       '"What were you," he says. "Before." It is not a question. He has the book under his arm.',
     ], [
-      { id: 'nothing', def: true, label: '"Nothing. A worker."', fn: () => {
+      { id: 'nothing', def: true, say: 'prisoner_worker', label: '"Nothing. A worker."', fn: () => {
         eye(3);
         note('"Nothing," Lubimov said, and wrote something, and it was longer than nothing.');
         afterNoon();
       } },
-      { id: 'truth', label: '"The bookkeeper. At the collective farm."', hint: 'a man who can count is a man they can use', fn: () => {
+      { id: 'truth', say: 'prisoner_bookkeeper', label: '"The bookkeeper. At the collective farm."', hint: 'a man who can count is a man they can use', fn: () => {
         S.flags.toldLubimov = S.day; eye(2);
         note('"A bookkeeper," Lubimov said, as if tasting it, and wrote it down. He will remember that you can add.', true);
         afterNoon();

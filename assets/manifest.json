@@ -95,13 +95,31 @@
     },
     "prisoner": {
       "name": "The prisoner (you)",
-      "oneoff": true,
-      "description": "A man of about forty with a Russian accent speaking English. Educated but worn down: quiet, hoarse from the cold, tired. He speaks plainly and briefly, without drama, like a man who has learned to say as little as possible.",
+      "description": "A man of about forty with a Russian accent speaking English. Educated but worn down: quiet, a little hoarse from the cold, tired. He speaks plainly and briefly, without drama, like a man who has learned to say as little as possible.",
       "settings": {
         "stability": 0.6,
         "similarity_boost": 0.8,
         "style": 0.2
-      }
+      },
+      "states": {
+        "thin": {
+          "settings": {
+            "stability": 0.45,
+            "style": 0.35,
+            "speed": 0.92
+          },
+          "note": "the same man, thinner: slower, flatter, a breath taken before the longer lines"
+        },
+        "going": {
+          "settings": {
+            "stability": 0.3,
+            "style": 0.5,
+            "speed": 0.82
+          },
+          "note": "the same man nearly gone: slow, hoarse, barely above a whisper, words dropped rather than finished"
+        }
+      },
+      "states_note": "Every prisoner line is recorded three times: <id>.mp3, <id>_thin.mp3, <id>_going.mp3 (scripts/gen_voice.py lines). The game picks the take by the body (js/audio.js) and falls back to the plain one."
     }
   },
   "lines": {
@@ -399,6 +417,86 @@
     "lubimov_moscow": {
       "voice": "lubimov",
       "text": "Examined. Weighed in the presence of the commandant. Found correct."
+    },
+    "prisoner_where": {
+      "voice": "prisoner",
+      "text": "Where are we going?"
+    },
+    "prisoner_howfar": {
+      "voice": "prisoner",
+      "text": "How far?"
+    },
+    "prisoner_paper": {
+      "voice": "prisoner",
+      "text": "What paper?"
+    },
+    "prisoner_article": {
+      "voice": "prisoner",
+      "text": "Fifty-eight ten. Ten years."
+    },
+    "prisoner_nothing": {
+      "voice": "prisoner",
+      "text": "I was sentenced for nothing."
+    },
+    "prisoner_q_bread": {
+      "voice": "prisoner",
+      "text": "How much do they feed us?"
+    },
+    "prisoner_q_day": {
+      "voice": "prisoner",
+      "text": "What happens in the morning?"
+    },
+    "prisoner_q_brigade": {
+      "voice": "prisoner",
+      "text": "Who is the man by the stove?"
+    },
+    "prisoner_q_urki": {
+      "voice": "prisoner",
+      "text": "And those, by the door?"
+    },
+    "prisoner_q_years": {
+      "voice": "prisoner",
+      "text": "How does a man do ten years?"
+    },
+    "prisoner_q_kills": {
+      "voice": "prisoner",
+      "text": "What kills men here?"
+    },
+    "prisoner_q_good": {
+      "voice": "prisoner",
+      "text": "How do you bear it?"
+    },
+    "prisoner_breadinstead": {
+      "voice": "prisoner",
+      "text": "Take my bread instead. Tomorrow's, and the day after's."
+    },
+    "prisoner_fences": {
+      "voice": "prisoner",
+      "text": "I don't think about fences."
+    },
+    "prisoner_worker": {
+      "voice": "prisoner",
+      "text": "Nothing. A worker."
+    },
+    "prisoner_bookkeeper": {
+      "voice": "prisoner",
+      "text": "The bookkeeper. At the collective farm."
+    },
+    "prisoner_cantcount": {
+      "voice": "prisoner",
+      "text": "I can't count."
+    },
+    "prisoner_camp": {
+      "voice": "prisoner",
+      "text": "The camp. Four days ago. I will not tell anyone your name."
+    },
+    "prisoner_settler": {
+      "voice": "prisoner",
+      "text": "A free settler. From upriver. Lost in the dark."
+    },
+    "prisoner_grigory": {
+      "voice": "prisoner",
+      "text": "The fisherman sent me. He says you owe him a net."
     }
   },
   "sfx": {
@@ -682,6 +780,7 @@
     "arrival_processing",
     "arrival_railhead",
     "arrival_wagon",
+    "banya",
     "blizzard",
     "breakfast_400",
     "breakfast_550",
@@ -711,6 +810,7 @@
     "reveille",
     "reveille_after",
     "river",
+    "river_thaw",
     "site",
     "site_power_1",
     "site_power_2",
@@ -737,4 +837,4 @@
     "title",
     "wire"
   ]
-}\n
+}

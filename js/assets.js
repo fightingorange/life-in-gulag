@@ -6,6 +6,8 @@ const ASSETS = {
   // snow routes and figure registration remain in place. Other views live in web/variants/.
   variants: {"title": {"selected": 1, "all": [1, 2, 3]}, "hut_morning": {"selected": 1, "all": [1, 2, 3]}, "count": {"selected": 3, "all": [3]}, "table": {"selected": 1, "all": [1, 2, 3]}, "site": {"selected": 2, "all": [1, 2, 3]}, "noon": {"selected": 2, "all": [2]}, "gate": {"selected": 1, "all": [1]}, "hut_night": {"selected": 1, "all": [1, 2, 3]}, "cells": {"selected": 1, "all": [1, 2, 3]}, "wire": {"selected": 3, "all": [3]}, "river": {"selected": 2, "all": [2]}, "dead": {"selected": 1, "all": [1, 2, 3]}, "stove": {"selected": 3, "all": [1, 2, 3]}, "letter": {"selected": 3, "all": [1, 2, 3]}, "inspection": {"selected": 4, "all": [4]}, "blizzard": {"selected": 3, "all": [1, 2, 3]}, "office": {"selected": 3, "all": [1, 2, 3]}, "easter": {"selected": 2, "all": [1, 2, 3]}, "ice_out": {"selected": 2, "all": [2]}},
   fixed: ["title", "dead"],   // these always show the master
+  // drawn by day but shown at night: the page darkens them until they are redrawn (set six)
+  dark: ['arrival_gate'],
   every: 1,                     // days before a place is seen from another angle
   // two versions of one picture that differ only in a hand or a door: the page fades slowly between them
   alternate: { supper: 'supper_b' },
@@ -72,6 +74,7 @@ const ASSETS = {
     arrival_wagon: 'cells',       // inside the prison wagon (drawn; the cell is the stand-in if it is ever missing)
     banya: 'cells',               // the bathhouse (set six)
     river_thaw: 'river',          // the river in April, grey, with open water by the bank (set six)
+    arrival_crack: 'arrival_railhead',   // what the eye at the crack sees: snow, black trees, a platform, a woman and a child (set six)
     arrival_railhead: 'river',         // the train stopped in the snow, the convoy and dogs, men climbing down
     arrival_march: 'river',            // the column strung out across white country, guards on both sides
     arrival_march_dusk: 'arrival_march',   // the same march later, the light going, the camp's lights ahead

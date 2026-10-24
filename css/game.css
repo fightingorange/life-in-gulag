@@ -78,6 +78,7 @@ body {
 #frame[data-month="mar"] { --season: brightness(.98) contrast(1.02); }
 #frame[data-month="apr"] { --season: sepia(.08) brightness(1.02); }
 #frame[data-month="may"] { --season: sepia(.16) brightness(1.05) saturate(1.1); }
+#frame[data-dark="1"] { --season: brightness(.5) contrast(1.25); }   /* a daylight print shown at night, until it is redrawn */
 #frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity var(--fade, 1.1s) ease; }
 #frame img.on { opacity: 1; }
 #frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }

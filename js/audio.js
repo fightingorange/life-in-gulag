@@ -288,17 +288,26 @@ const AUDIO = (() => {
     if (!on || !queue.length) return finishVoice();
     nextLine();
   }
+  // The body in the voice: a line of the prisoner's has three takes (<id>, <id>_thin, <id>_going;
+  // assets/manifest.json, voices.prisoner.states). The take follows the body; the plain one is the fallback.
+  function take(id) {
+    if (!/^prisoner_/.test(id) || typeof S === 'undefined' || !S) return null;
+    const st = S.strength < 25 ? '_going' : S.strength < 45 ? '_thin' : '';
+    return st && !missing[`assets/voice/${id}${st}.mp3`] ? id + st : null;
+  }
   function nextLine() {
     if (!on || !queue.length) return finishVoice();
-    const id = queue.shift();
+    let id = queue.shift(), alt = null;
+    const t = take(id);
+    if (t) { alt = id; id = t; }   // if the take is missing, the plain line follows
     const path = `assets/voice/${id}.mp3`;
-    if (missing[path]) return nextLine();
+    if (missing[path]) { if (alt) queue.unshift(alt); return nextLine(); }
     const token = ++speakingId;
     voice._fade = (voice._fade || 0) + 1;
     load(voice, path, 'voice');
     voice.volume = vol(voice, VOICE_VOL); voice.currentTime = 0;
     voice.onended = () => { if (speakingId === token) setTimeout(nextLine, 350); };
-    voice.onerror = () => { missing[path] = true; if (speakingId === token) nextLine(); };
+    voice.onerror = () => { missing[path] = true; if (alt) queue.unshift(alt); if (speakingId === token) nextLine(); };
     setTimeout(() => { if (speakingId === token) voice.play().catch(() => { if (speakingId === token) nextLine(); }); }, 400);
   }
   const speaking = () => !!onDone;

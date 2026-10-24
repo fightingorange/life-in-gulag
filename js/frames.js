@@ -304,6 +304,7 @@ const FRAME = (() => {
     resolve(name).then(r => { if (g !== gen) return; if (r) show(r[0], r[1]); });
   }
   function set(name, opts = {}) {
+    box.dataset.dark = (ASSETS.dark || []).includes(name) ? '1' : '';   // a daylight print on a night screen
     if (!name) return;
     const steps = stepsOf(opts.seq);
     camWish = opts.cam || null;
