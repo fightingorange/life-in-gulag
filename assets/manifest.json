@@ -387,6 +387,14 @@
     "pasha_again": {
       "voice": "pasha",
       "text": "Again."
+    },
+    "lubimov_what": {
+      "voice": "lubimov",
+      "text": "What were you. Before."
+    },
+    "lubimov_sums": {
+      "voice": "lubimov",
+      "text": "Add these. Correctly. Then go."
     }
   },
   "sfx": {

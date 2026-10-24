@@ -88,6 +88,21 @@ const SCAPES = {
     spots: [['spot_door_far', [12, 30], .3], ['cough', [10, 26], .3], ['ladle', [9, 20], .3],
       [['ru_mess_thick', 'ru_mess_move', 'ru_mess_spoon', 'ru_mess_shove', 'ru_mess_bowl', 'ru_mess_thick2'], [8, 18], .28]],
   },
+  // the hut the week after Kuzma's paper: the same beds, fewer sounds, nobody telling the stove anything
+  hut_quiet: {
+    beds: [['bed_wind_walls', .45], ['bed_stove', .3]],
+    spots: [['spot_creak', [18, 40], .25], ['spot_gust', [20, 45], .2]],
+  },
+  // the bunk by the door: the wind closer, the door often, the stove far off
+  hut_door: {
+    beds: [['bed_wind_walls', .6], ['bed_stove', .12]],
+    spots: [['spot_door_far', [5, 12], .5], ['spot_gust', [6, 14], .45], ['spot_creak', [12, 28], .25], ['cough', [20, 45], .2]],
+  },
+  // the bathhouse: the boiler, water, the men
+  banya: {
+    beds: [['bed_stove', .45], ['ru_mess_murmur', .25]],
+    spots: [['drip', [2, 6], .5], ['cough', [8, 20], .3], ['spot_door_far', [15, 35], .25]],
+  },
   // the cells: almost nothing, which is the point
   amb_cells: {
     beds: [['bed_wind_walls', .3]],

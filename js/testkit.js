@@ -32,6 +32,7 @@ const TESTKIT = (() => {
     list['day:title'] = { run: title };
     const escSetup = () => { S.flags.blade = true; S.flags.partner = true; S.flags.river = true; S.bread = 600; S.today.blizzard = true;
       S.esc = { partner: true, bread: 600, blade: true, route: true, map: false, temp: -28, blizzard: true, thaw: false, strength: 60, days: 1, cause: null, gave: null }; };
+    list['esc:bank'] = { setup: escSetup, run: bank };
     list['esc:firstNight'] = { setup: escSetup, run: firstNight };
     list['esc:settlement'] = { setup: () => { escSetup(); S.esc.days = 3; S.tobacco = 3; }, run: settlement };
     list['esc:day2hut'] = { setup: () => { escSetup(); S.esc.days = 2; }, run: () => day2('hut') };

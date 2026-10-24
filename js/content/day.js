@@ -395,8 +395,10 @@ function night() {
     fn: () => { cost(S.bread / 40, 'bread'); S.today.ate += S.bread; S.bread = 0; go(endDay); } });
   ch.push({ id: 'wire', habit: false, label: 'Think about the wire.', hint: planHint(), fn: plan });
   if (S.today.blizzard && (S.flags.blade || planItems() >= 2)) stopRun('A blizzard. From the window you cannot see the towers.');
+  // the hut's own sound tonight: quieter after Kuzma's paper, draughtier by the door (js/soundscapes.js)
+  const scape = S.today.blizzard ? undefined : S.kuzma.here && S.flags.kuzmaHeld && S.day - S.flags.kuzmaHeld <= 6 ? 'hut_quiet' : S.flags.door ? 'hut_door' : undefined;
   show(paras, ch, {
-    frame: S.today.blizzard ? 'blizzard' : 'hut_night_pano', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_hut',
+    frame: S.today.blizzard ? 'blizzard' : 'hut_night_pano', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_hut', scape,
     sfx: !S.today.blizzard && chance(.25) ? 'dogs' : null, routine: 'night',
   });
 }

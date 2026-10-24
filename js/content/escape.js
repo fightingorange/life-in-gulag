@@ -124,7 +124,24 @@ function fence(route) {
       : 'You go under the wire on your back, in the trough the others have worn, with the snow going down your collar. The searchlight passes over you twice and does not stop. Nobody shoots.';
   E.days = 1;
   show([how, 'Then the bank, and then the river: flat, white, and as wide as the sky. You walk until the camp lights are a smudge behind you, and then until they are gone.'],
-    [{ label: 'Keep walking.', fn: firstNight }], { frame: 'river', amb: 'amb_wind', story: true, escape: 'over' });
+    [{ label: 'Keep walking.', fn: bank }], { frame: 'river', amb: 'amb_wind', story: true, escape: 'over' });
+}
+// The bank: the dogs follow a trail along the near bank; on the ice they lose it, and the far bank is a
+// long way across in the dark.
+function bank() {
+  const E = attempt();
+  const paras = ['The river is wider than it looked from the camp. On this side the bank is low and the going is easy, and the dogs, when they come, will come along it. The far bank is a line of black trees, a long way across the ice.'];
+  if (E.thaw) paras.push('In the middle, where the current runs under it, the ice is grey. Kuzma said it does not like to hold a man there.');
+  show(paras, [
+    { id: 'near', def: true, label: 'Keep to the near bank. Save your legs.', hint: E.partner ? 'Senka shakes his head' : 'the dogs will come this way', fn: () => { E.far = false; firstNight(); } },
+    { id: 'far', label: 'Cross to the far bank, on the ice.', hint: 'the dogs lose a trail on ice; an hour across, in the open', fn: () => {
+      E.far = true;
+      adj(-4);
+      if (E.thaw && chance(.2)) { E.cause = 'ice'; return finish('frozen'); }
+      show(['An hour on the open ice with the wind across it and nothing to hide behind, and the camp a line of lights behind you that does not get smaller for a long time. Then the far bank, and the trees, and the dark under them.'],
+        [{ label: 'Go on.', fn: firstNight }], { frame: 'river', amb: 'amb_wind', story: true, escape: 'bank' });
+    } },
+  ], { frame: 'river', amb: 'amb_wind', story: true, escape: 'bank' });
 }
 function firstNight() {
   const E = attempt();
@@ -155,6 +172,7 @@ function night1(how) {
   if (S.eye >= 45) dogs += .1;
   if (S.until.searches) dogs += .1;
   if (E.blizzard) dogs -= .08;
+  if (E.far) dogs -= .08;   // the trail ends at the ice
   E.days = 2;
   if (chance(clamp(dogs, .02, .5))) return caught('On the second day, the dogs. You hear them a long time before you see them, and then you see them, and they do not hurry.', 2);
   const paras = [how === 'walk'

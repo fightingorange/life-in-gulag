@@ -598,7 +598,7 @@ EV('banya', {
   cooldown: 20, max: 5, weight: 2, minDay: 8, site: true,
   run() {
     const clean = () => { S.until.clean = S.day + 5; };
-    const BANYA = { frame: 'banya', amb: 'amb_hut' };
+    const BANYA = { frame: 'banya', amb: 'amb_hut', scape: 'banya' };
     show([
       'At the noon break Pasha stands up with his bowl and says it to the brigade the way he says everything, once: "Bathhouse tonight. The brigade after the fourth. Whoever is not clean by the count tomorrow is not in my brigade."',
       'The bathhouse is one boiler of hot water for forty men, and the first ten get it hot.',
@@ -765,5 +765,52 @@ EV('pasha_reply', {
       'A letter for Pasha. He cannot read it fast enough and will not let anyone else, so at noon he brings it to you and puts it in your hand and watches your face while you read it to him.',
       'Vologda. The technical school. She writes "foreman" twice, and "when you come home" once. Pasha says, "Again," and you read it again, and then he takes it back and puts it inside his jacket with the other thing he keeps there, which you have never seen.',
     ], onward('Give it back.'), { ...noonFrame(), voice: 'pasha_again' });
+  },
+});
+
+// ---------- Lubimov, once or twice, as a man ----------
+// He is the camp's weather. These do not soften him: he asks what you were, and uses it.
+EV('lubimov_what', {
+  once: true, minDay: 30, weight: 2, when: () => S.eye >= 20 && !S.today.inside,
+  setup: () => { S.eye = 25; },
+  run() {
+    show([
+      'At the noon break Lubimov comes out to the site with the planning officer, which he never does, and stands by the fire with his hands behind his back while the officer measures. Then he stops in front of you.',
+      '"What were you," he says. "Before." It is not a question. He has the book under his arm.',
+    ], [
+      { id: 'nothing', def: true, label: '"Nothing. A worker."', fn: () => {
+        eye(3);
+        note('"Nothing," Lubimov said, and wrote something, and it was longer than nothing.');
+        afterNoon();
+      } },
+      { id: 'truth', label: '"The bookkeeper. At the collective farm."', hint: 'a man who can count is a man they can use', fn: () => {
+        S.flags.toldLubimov = S.day; eye(2);
+        note('"A bookkeeper," Lubimov said, as if tasting it, and wrote it down. He will remember that you can add.', true);
+        afterNoon();
+      } },
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site', voice: 'lubimov_what' });
+  },
+});
+EV('lubimov_sums', {
+  once: true, weight: 4, when: () => S.flags.toldLubimov && S.day >= S.flags.toldLubimov + 8 && !S.today.inside,
+  setup: () => { S.flags.toldLubimov = S.day - 8; },
+  run() {
+    show([
+      'At noon the orderly comes for you by name: the guardhouse. Lubimov is at the table with the month\'s bread ledger open and a pencil, and the sums do not come out, and the commandant wants them by evening.',
+      '"Add these," he says. "Correctly. Then go." An hour at a table, in the warm, with a pencil, and the brigade walking past the window on its way back to the pits.',
+    ], [
+      { id: 'add', def: true, label: 'Add them. Correctly.', hint: 'an hour in the warm; the brigade sees where you went', fn: () => {
+        cost(4, 'the warm'); eye(-8); brig(-4);
+        S.flags.lubimovSums = true;
+        mercy('An hour at a table, with a pencil.');
+        note('The sums came out. Lubimov looked at the page, and at you, and said nothing, which from Lubimov is a receipt.', true);
+        afterNoon();
+      } },
+      { id: 'wrong', label: 'Add them wrong, a little, in the camp\'s favour.', hint: 'four hundred grams a day for a week, for somebody', fn: () => {
+        cost(4, 'the warm'); eye(10);
+        note('You made the ledger short by two hundred loaves. Somebody will eat them. Lubimov did not check your arithmetic, today.', true);
+        afterNoon();
+      } },
+    ], { frame: 'arrival_processing', amb: 'amb_cells', voice: 'lubimov_sums' });
   },
 });

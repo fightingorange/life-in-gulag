@@ -124,6 +124,7 @@ const LINES = {
     { t: 'Count. Lubimov stops in front of you, looks at you, and moves on. He has done it every morning since the commission.', when: () => S.flags.spoke, w: 2 },
     { t: 'Count. In the rubber boots you cannot feel the ground, only the cold coming up through it, like water into a hole.', when: () => S.flags.rubber && S.temp <= -25, w: 2 },
     { t: 'Count. Lubimov walks the line in new felt boots, white ones. He stops in front of you, and looks down at your feet, and then at his own.', when: () => S.flags.urki === 'warder', w: 2 },
+    { t: 'Count. Lubimov stops in front of you and says, "Bookkeeper," to nobody, and moves on. It is the nearest thing to a name anyone here has used.', when: () => S.flags.toldLubimov && since(S.flags.toldLubimov) <= 30, w: 1.5 },
   ],
 
   // breakfast, before the bread is weighed
@@ -320,6 +321,7 @@ const LINES = {
     { t: 'Night. Somewhere in the dark a man breaks a crust in two, and you know the sound: Kuzma, the first fortnight, holding out the half without a word.', when: () => S.flags.kuzmaHalf },
     { t: 'Night. The lice are quiet. The bathhouse boiled them out of the seams, and for a few nights the hut sleeps like a hut of men instead of a hut of men scratching.', when: () => !!S.until.clean, m: 'The lice, quiet.', w: 2 },
     { t: 'Night. Kuzma lies on his back with the paper on his chest, like a man who fell asleep over a book. He is not asleep.', when: () => S.kuzma.here && S.flags.kuzmaHeld && since(S.flags.kuzmaHeld) <= 6, w: 3 },
+    { t: 'Night. Through the hut window, across the yard, the guardhouse window is lit, and Lubimov is at the table writing in a book that is not the camp\'s. He licks the pencil like anyone.', when: () => S.flags.lubimovSums, w: 1 },
     { t: 'Night, by the door. Every man who goes out to the latrine lets the winter in over your feet, and every man who comes back lets it in again. You stop counting at thirty.', when: () => S.flags.door, w: 3 },
     { t: 'Night. From the bunk by the door the stove is a red mark a long way off, like a village seen from the road.', when: () => S.flags.door, w: 2 },
     { t: 'Night. The board is under your head with your boots, because a board can be stolen too, and a brigade that loses its board loses two days\' bread.', when: () => S.flags.measurer, w: 1.5 },
