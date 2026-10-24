@@ -259,8 +259,8 @@ const TESTKIT = (() => {
       for (const st of (o.seq && ASSETS.sequences && ASSETS.sequences[o.seq]) || []) { need.frame.add(st.frame); if (st.sfx) need.sfx.add(st.sfx); }
       const sc = typeof SCAPES !== 'undefined' && SCAPES[o.scape || o.amb];
       if (sc) for (const [f] of [...sc.beds, ...sc.spots]) for (const x of [].concat(f)) need.sfx.add(x);
-      for (const c of scr.cues || []) need.sfx.add(c);
-      for (const v of [].concat(o.voice || [])) if (v) (v.startsWith('sfx:') ? need.sfx.add(v.slice(4)) : need.voice.add(v));
+      for (const c of scr.cues || []) (c.startsWith('voice:') ? need.voice.add(c.slice(6)) : need.sfx.add(c));
+      for (const v of [].concat(o.voice || [])) if (v && !v.startsWith('pause:')) (v.startsWith('sfx:') ? need.sfx.add(v.slice(4)) : need.voice.add(v));
       for (const c of scr.choices || []) for (const v of [].concat(c.say || [])) need.voice.add(v);
     };
     for (const { scr } of walk().seen) take(scr);

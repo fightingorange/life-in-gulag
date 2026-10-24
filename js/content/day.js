@@ -126,7 +126,7 @@ function cellsDay(why, voice) {
   cost(-14, 'the cells');
   show([why,
     'The cells. A box of planks on bare ground, three hundred grams, hot food every third day. You sit on the edge of the bunk because the bunk is nailed up in daytime. You think about nothing, carefully, for a long time.',
-  ], [{ label: 'Let the day go.', fn: () => go(cellsNight) }], { frame: 'cells', amb: 'amb_cells', sfx: 'door', voice });
+  ], [{ label: 'Let the day go.', fn: () => go(cellsNight) }], { frame: 'cells', seq: 'round', amb: 'amb_cells', sfx: 'door', voice });
 }
 // The night in the cells: no stove, no Kuzma, and the bread, if it came in with you.
 // Alyoshka's boards are a hut away, so bread he keeps for you stays there.
@@ -303,7 +303,7 @@ function barracksDay() {
   show(paras, [
     { id: 'sleep', label: 'Sleep all day. Store it up.', fn: () => { cost(8, 'the warm'); go(noon); } },
     { id: 'mend', label: 'Mend boots for the Latvians. They pay in tobacco.', fn: () => { cost(2, 'the warm'); tob(1); S.stats.mended++; go(noon); } },
-  ], { frame: 'stove', amb: 'amb_hut', sfx: S.kuzma.here ? 'humming' : null, routine: true });
+  ], { frame: 'stove', seq: 'round', amb: 'amb_hut', sfx: S.kuzma.here ? 'humming' : null, routine: true });
 }
 function infirmary() {
   S.today.inside = true; S.today.warm = true;
@@ -321,7 +321,7 @@ function noon() {
 }
 function quietNoon() {
   show([L('quiet')], [{ label: 'Go on.', fn: afterNoon }],
-    { frame: S.today.inside ? 'stove' : 'noon', amb: S.today.inside ? 'amb_hut' : 'amb_wind', sfx: S.today.inside ? null : 'ru_site_smoke', routine: true });
+    { frame: S.today.inside ? 'stove' : 'noon', seq: 'round', amb: S.today.inside ? 'amb_hut' : 'amb_wind', sfx: S.today.inside ? null : 'ru_site_smoke', routine: true });
 }
 function afterNoon() { FLOW.story = false; go(S.today.inside ? dinner : eveningGate); }
 
@@ -389,7 +389,7 @@ function night() {
   }
   const ch = [{ id: 'sleep', label: 'Sleep.', fn: () => go(endDay) }];
   if (S.tobacco > 0) ch.push({ id: 'smoke', label: 'Smoke.', hint: 'a little warmth; one pinch less to trade', fn: () => { tob(-1); cost(3, 'the smoke'); mercy('A smoke, in the dark, slowly.'); go(endDay); } });
-  ch.push({ id: 'mend', label: 'Mend boots for the Latvians.', hint: 'a pinch of tobacco, if the thread holds', fn: mend });
+  ch.push({ id: 'mend', label: 'Mend boots for the Latvians.', hint: 'a pinch of tobacco, most nights; some nights the thread runs out', fn: mend });
   if (S.bread > 0) ch.push({ id: 'stash', habit: false, label: `Eat the ${S.bread} g you have kept.`,
     hint: breadForPlan() >= 600 ? 'that is your three days on the ice' : 'bread in the stomach cannot be stolen',
     fn: () => { cost(S.bread / 40, 'bread'); S.today.ate += S.bread; S.bread = 0; go(endDay); } });
@@ -404,8 +404,8 @@ function night() {
 }
 function mend() {
   adj(-2); S.stats.mended++;
-  if (chance(.5)) { tob(1); note('Two pairs, by the light of the stove door. The Latvian paid: a pinch of tobacco, as agreed.'); mercy('The Latvian paid, as agreed.', 0); }
-  else note('The thread ran out halfway through the second pair. The Latvian took his boots back and paid nothing.');
+  if (chance(.7)) { tob(1); note('Two pairs, by the light of the stove door. The Latvian paid: a pinch of tobacco, as agreed.', true); mercy('The Latvian paid, as agreed.', 0); }
+  else note('The thread ran out halfway through the second pair. The Latvian took his boots back and paid nothing. Next time, maybe.', true);
   go(endDay);
 }
 

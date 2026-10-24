@@ -48,7 +48,7 @@ BEAT('letter1', 33, 'noon', () => {
   show([
     'A letter. Four months old, a third of it blacked out. Your wife writes that the collective farm paid for the year in workdays, which is to say in nothing, and that she is painting carpets on canvas to sell at the station. Swans, mostly.',
     'She asks if you are well. She does not ask when.',
-  ], ch, { frame: 'letter', amb: 'amb_hut', sfx: 'paper', voice: 'nina_letter1' });
+  ], ch, { frame: 'letter', seq: 'round', amb: 'amb_hut', sfx: 'paper', voice: 'nina_letter1' });
 });
 
 // 18 to 20 February: the commission from Moscow
@@ -155,7 +155,7 @@ BEAT('easter', 117, 'noon', () => {
   ], [
     { id: 'say', label: 'Say it too.', fn: () => { adj(4); note('You said it. You do not know whether you believe it. It was warm to say.'); mercy('Christ is risen, said out loud.', 0); afterNoon(); } },
     { id: 'quiet', def: true, label: 'Say nothing.', fn: afterNoon },
-  ], { frame: 'easter', amb: 'amb_hut', voice: kuzma ? ['alyosha_easter', 'kuzma_easter'] : 'alyosha_easter' });
+  ], { frame: 'easter', seq: 'round', amb: 'amb_hut', voice: kuzma ? ['alyosha_easter', 'kuzma_easter'] : 'alyosha_easter' });
 });
 
 // 5 May: the thaw

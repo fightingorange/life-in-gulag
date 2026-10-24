@@ -79,7 +79,7 @@ function arrSilenced(who) {
     who === 'lev' ? 'Lev does not look down. Nobody does. You get up, because the column does not wait, and the only thing worse than the rifle is the dogs.'
       : 'The big man steps over your legs without looking down, and the column closes round you. You get up, because the column does not wait, and the only thing worse than the rifle is the dogs.',
     'The soldier says something to the next one, and they both look at you, so that they will know you.',
-  ], [{ label: 'Get up. Walk.', fn: arrHours }], { ...MARCH, sfx: who === 'lev' ? 'ru_march_quiet' : 'ru_march_quiet2' });
+  ], [{ label: 'Get up. Walk.', fn: arrHours }], { ...MARCH, voice: [who === 'lev' ? 'sfx:ru_march_quiet' : 'sfx:ru_march_quiet2', 'sfx:rifle_butt'] });   // the shout, then the butt, after what you said
 }
 function arrHours() {
   arrive([
@@ -89,7 +89,7 @@ function arrHours() {
   ], [
     { id: 'close', def: true, label: 'Close up.', fn: arrLights },
     { id: 'back', label: 'Look back.', fn: arrLookBack },
-  ], { ...MARCH, sfx: 'ru_march_close' });
+  ], { ...MARCH, voice: ['sfx:sit_snow', 'sfx:ru_march_close', 'pause:2600'] });   // a man sits down in the snow; close up; and no shot, for a long moment
 }
 function arrLookBack() {
   eye(2);
@@ -150,15 +150,15 @@ function arrProcess() {
   if (S.flags.struck) paras.push('He finds your name on the convoy\'s list, and something written beside it, and copies that into his own book as well: talked in the column.');
   paras.push(`From now on you are ${NUMBER}. A trusty paints it on strips of rag, and you sew them on your back, your cap and your knee, with a needle that goes down the line.`);
   arrive(paras, [
-    { id: 'answer', def: true, say: 'prisoner_article', label: '"Fifty-eight ten. Ten years."', fn: () => arrBoots(false) },
-    { id: 'nothing', say: 'prisoner_nothing', label: '"I was sentenced for nothing."', fn: () => arrBoots(true) },
+    { id: 'answer', def: true, say: 'prisoner_article', label: '"Orlov, Andrei Nikolayevich. Fifty-eight ten. Ten years."', fn: () => arrBoots(false) },
+    { id: 'nothing', say: 'prisoner_nothing', label: '"Orlov, Andrei Nikolayevich. I was sentenced for nothing."', hint: 'the name first; everyone gives the name', fn: () => arrBoots(true) },
   ], { ...ARR_PROC, sfx: 'ru_proc_name', voice: 'lubimov_proc' });
 }
 function arrBoots(nothing) {
   if (nothing) { eye(5); S.flags.nothing = true; }
   arrive([
     nothing ? '"For nothing they give five," Lubimov says, without looking up. "You have ten." He writes something. It is short.'
-      : '"Fifty-eight ten. Ten years." He writes it without looking up. He has written it a thousand times.',
+      : '"Orlov, Andrei Nikolayevich. Fifty-eight ten. Ten years." He writes it without looking up. He has written it a thousand times.',
     'Then he looks under the table at your feet, for longer than he looked at your face. "Felt boots. Own. One pair." He writes that down too.',
     'By the stove a trusty in a clean jacket is looking at your boots as well, and then at your face, as if to remember which face goes with them.',
   ], [{ label: 'Go where they point.', fn: arrHut }], { ...ARR_PROC, voice: nothing ? ['lubimov_five', 'lubimov_boots'] : 'lubimov_boots' });
@@ -236,7 +236,7 @@ function arrSleep() {
     'You put your own boots under your head, the way Kuzma said, and your head on them.',
     'You stopped counting the days on the train. In the morning you start again, from one.',
     '~ Each day you choose how to eat, how to work and how to spend the night. Once you have lived a day, the days can run on their own, the way you lived it, until something happens.',
-  ], [{ id: 'wake', label: 'Sleep.', fn: () => { S.day = 1; FLOW.story = false; startDay(); } }], { frame: 'hut_night', amb: 'amb_hut' });
+  ], [{ id: 'wake', label: 'Sleep.', fn: () => { S.day = 1; FLOW.story = false; startDay(); } }], { frame: 'hut_morning_dark', amb: 'amb_hut' });   // the bulb that stays on
 }
 
 // ---------- the third night: Vaska comes for the boots ----------
@@ -329,5 +329,5 @@ BEAT('boots', 3, 'night', () => {
     'After the evening count, before the bulb goes dim. Vaska Kosoi comes down the hut between the bunks, not hurrying, with two of his friends a step behind him. The hut goes quiet the way a field goes quiet before hail.',
     'He sits down on the end of your bunk. "Good boots," he says. "Felt, from home. My size, I think." He drops a pair of camp boots on the floor: tyre rubber and rag, wet through. "A swap. I am fair."',
     `${S.kuzma.here ? 'Kuzma has turned to the wall.' : 'The old men have turned to the wall.'} At the stove, Pasha is mending a mitten and does not look up. Not yet.`,
-  ], ch, { ...BOOTS_HUT, voice: 'vaska_boots', confront: 'boots' });
+  ], ch, { ...BOOTS_HUT, voice: ['vaska_boots_1', 'sfx:boots_drop', 'pause:1400', 'vaska_boots_2'], confront: 'boots' });   // the boots dropped between his two sentences, and a breath
 }, { when: () => !S.flags.urki });

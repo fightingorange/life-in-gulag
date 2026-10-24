@@ -262,6 +262,8 @@ const AUDIO = (() => {
     for (const l of layers) if (l._layer && l.paused && !missing[l.path]) l.play(true).then(() => { if (l._layer) fade(l, layerVol(l), AMB_IN); }).catch(() => {});
   }
   function snd(name) {
+    // 'voice:kuzma_song' as a cue (lines.js, s:): a line's own voice, after whatever is being said
+    if (name && name.startsWith('voice:')) { if (!on) return; if (onDone || queue.length) queue.push(name.slice(6)); else say([name.slice(6)]); return; }
     if (!on || !name || replay || screenSounds.has(name)) return;
     screenSounds.add(name);
     const path = `assets/sfx/${name}.mp3`;
@@ -298,6 +300,8 @@ const AUDIO = (() => {
   function nextLine() {
     if (!on || !queue.length) return finishVoice();
     let id = queue.shift(), alt = null;
+    // 'pause:1200' in a voice list: a silence of so many ms in its turn (the boots dropped, the hut quiet)
+    if (id.startsWith('pause:')) { const token = ++speakingId; setTimeout(() => { if (speakingId === token) nextLine(); }, +id.slice(6) || 800); return; }
     const t = take(id);
     if (t) { alt = id; id = t; }   // if the take is missing, the plain line follows
     // 'sfx:cough' in a voice list: a sound effect in its turn, after the words (the laugh, the cough)

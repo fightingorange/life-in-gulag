@@ -9,7 +9,7 @@ const typeset = s => String(s).replace(/"([^"]*)"/g, '“$1”').replace(/'/g, '
 const tx = s => esc(typeset(s));   // typeset, then escape
 
 const UI = (() => {
-  const top = $('#top'), text = $('#text'), cards = $('#cards'), choicesEl = $('#choices'), snd = $('#snd'), keep = $('#keep');
+  const top = $('#top'), text = $('#text'), cards = $('#cards'), choicesEl = $('#choices'), snd = $('#snd'), keep = $('#keep'), again = $('#again');
   let current = null, order = [], last = {}, lockUntil = 0, held = false, holdId = 0;
 
   // ---------- status ----------
@@ -174,6 +174,8 @@ const UI = (() => {
     }).join('');
     clockSet(timed ? choicesEl.querySelector('.clock') : null, d, clockTime(scr));
     if (!held) clockGo();
+    // hear it again: shown when the screen has anything to hear
+    again.classList.toggle('on', !!(o.voice || o.sfx || (scr.cues && scr.cues.length) || o.seq) && !o.title);
     window.scrollTo(0, 0);
     fit();
   }
@@ -331,6 +333,7 @@ const UI = (() => {
   });
   keepLabel();
 
+  again.addEventListener('click', () => { if (current) { AUDIO.unlock(); present(current); } });
   const sndLabel = () => { snd.textContent = AUDIO.isOn() ? 'sound on' : 'sound off'; };
   snd.addEventListener('click', () => { AUDIO.unlock(); AUDIO.toggle(); sndLabel(); });
   sndLabel();

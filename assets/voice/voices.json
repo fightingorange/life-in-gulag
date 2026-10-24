@@ -52,17 +52,22 @@
   },
   "lev": {
     "previews": [
-      "zJQIefIfQT9KqAbCHpd4",
-      "jov1ncYkWph1sAAlEF8T",
-      "DVKBLdr5B5WV1kYtdyly"
+      "ZMPkdEFrY9Urf0JsxlFL",
+      "3h7R5xak4nFFlHNfwFSm",
+      "kM2PXeL46uBozqPaNBuK"
     ],
     "picked": 2,
-    "voice_id": "DVKBLdr5B5WV1kYtdyly",
+    "voice_id": "kM2PXeL46uBozqPaNBuK",
     "account": "fresh",
     "previous": [
       {
         "voice_id": "QaE9dVFBOeEUcuzppCC7",
         "account": "saved",
+        "picked": 2
+      },
+      {
+        "voice_id": "DVKBLdr5B5WV1kYtdyly",
+        "account": "fresh",
         "picked": 2
       }
     ]

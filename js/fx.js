@@ -104,6 +104,10 @@ const FX = (() => {
                    sweep: { x: .945, y: .41, a0: 184, a1: 204, period: 13, len: .38, spread: 7 },
                    snow: { n: 70, color: 'paper', wind: -20, speed: [18, 40], size: [.6, 1.4] },
                    breath: [B(.385, .34, 'paper', .7)] },
+    // the wagon: grey light through the barred slit, coming and going as the trees pass; the stove
+    arrival_wagon: { glow: [{ x: .735, y: .165, r: .11, color: 'paper', a: .34, flicker: .28 }], ember: { x: .385, y: .685, r: .045, floor: { x: .385, y: .78, rx: .11, ry: .03 } } },
+    // the eye at the crack: the strip of world brightening and dimming as it moves past
+    arrival_crack: { glow: [{ x: .5, y: .44, r: .36, color: 'paper', a: .14, flicker: .3 }] },
     hut_morning_dark: { glow: [{ x: .668, y: .21, r: .05, color: 'paper', a: .4, flicker: .06 }],
                    beam: { x: .668, y: .23, w: .02, angle: 92, spread: 70, len: .5, a: .12, breathe: false, flicker: .05, land: { x: .67, y: .78, rx: .2, ry: .07 } },
                    motes: { n: 12, region: [.58, .25, .18, .45] } },

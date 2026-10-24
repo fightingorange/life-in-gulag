@@ -29,9 +29,11 @@ body {
 
 /* ---------- sound toggle ---------- */
 #top .tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 16px; flex: none; }
-#snd, #keep { all: unset; flex: none; cursor: pointer; font: 12px/1.4 var(--mono); color: var(--mute); letter-spacing: .02em; }
+#snd, #keep, #again { all: unset; flex: none; cursor: pointer; font: 12px/1.4 var(--mono); color: var(--mute); letter-spacing: .02em; }
 #keep.test { color: var(--red); cursor: default; }
-#snd:hover, #snd:focus-visible, #keep:hover, #keep:focus-visible { color: var(--red); }
+#again { display: none; }
+#again.on { display: inline; }
+#snd:hover, #snd:focus-visible, #keep:hover, #keep:focus-visible, #again:hover, #again:focus-visible { color: var(--red); }
 
 /* ---------- status ---------- */
 #top { font: 13px/1.45 var(--mono); color: var(--mute); padding: 0 0 10px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }

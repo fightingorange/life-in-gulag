@@ -70,7 +70,7 @@ function plan() {
     { id: 'wait', label: 'Not tonight.', fn: () => go(endDay) },
     { id: 'go', label: 'Tonight.', hint: `the fence: ${oddsWord(f)}; the ice: ${oddsWord(i)}`, fn: escape },
   ], {
-    frame: 'wire', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_wind', sfx: 'searchlight',
+    frame: 'wire', seq: 'round', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_wind', sfx: 'searchlight',
     plan: { items, fence: oddsWord(f), ice: oddsWord(i), pFence: f, pIce: i, have: planItems() },
   });
 }

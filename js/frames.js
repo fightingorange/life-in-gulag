@@ -60,6 +60,12 @@ const FRAME = (() => {
   }
   const vtag = name => [...variantsOf(name)].map(([n, v]) => n + v).join(',');
   function sources(name) {
+    // a drawing named outright ('hut_night-02', from a round): the master when it is the selected one
+    const mv = /^(.+)-0(\d)$/.exec(name);
+    if (mv && ASSETS.variants[mv[1]]) {
+      const base = mv[1], v = +mv[2], sel = ASSETS.variants[base].selected;
+      return v === sel ? [[base, `assets/frames/web/${base}.jpg`, false]] : [[name, `assets/frames/web/variants/${name}.jpg`, false]];
+    }
     const out = [], vs = variantsOf(name);
     for (const n of chain(name)) {
       const v = vs.has(n) ? vs.get(n) : null, sel = ASSETS.variants[n] && ASSETS.variants[n].selected;
@@ -258,9 +264,20 @@ const FRAME = (() => {
   // crossfading, and each step may sound as it begins. A sequence loops, unless it reaches a step
   // marked stay: there it stops, and the picture stays until the screen changes.
   let seq = null;
-  function stepsOf(s) {
+  function stepsOf(s, name) {
+    if (s === 'round') return roundOf(name);
     const steps = Array.isArray(s) ? s : s && ASSETS.sequences && ASSETS.sequences[s];
     return steps && steps.length ? steps : null;
+  }
+  // 'round': the place's own drawings one after another, the day's first, a quarter of a minute each,
+  // with long fades: a montage of the place rather than one still. Only for a place drawn more than once.
+  function roundOf(name) {
+    let base = name;
+    for (const n of chain(name)) if (ASSETS.variants[n] && ASSETS.variants[n].all.length > 1 && !ASSETS.fixed.includes(n)) { base = n; break; }
+    const v = ASSETS.variants[base];
+    if (!v || v.all.length < 2) return null;
+    const first = variantOf(base), order = [first, ...v.all.filter(k => k !== first)];
+    return order.map((k, i) => ({ frame: `${base}-0${k}`, hold: i === 0 ? 16 : 13, fade: 3.5 }));
   }
   function sound(name) { if (name && typeof AUDIO !== 'undefined') AUDIO.snd(name); }   // a missing file is skipped there
   function startSeq(steps, name, g) {
@@ -306,7 +323,7 @@ const FRAME = (() => {
   function set(name, opts = {}) {
     box.dataset.dark = (ASSETS.dark || []).includes(name) ? '1' : '';   // a daylight print on a night screen
     if (!name) return;
-    const steps = stepsOf(opts.seq);
+    const steps = stepsOf(opts.seq, name);
     camWish = opts.cam || null;
     const key = name + '@' + vtag(name) + (steps ? '#' + (typeof opts.seq === 'string' ? opts.seq : 'seq') : '');
     if (key === wanted) { if (shown) aim(shown); return; }

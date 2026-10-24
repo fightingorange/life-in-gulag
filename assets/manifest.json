@@ -15,7 +15,8 @@
       "settings": {
         "stability": 0.55,
         "similarity_boost": 0.8,
-        "style": 0.3
+        "style": 0.3,
+        "speed": 0.85
       }
     },
     "pasha": {
@@ -29,11 +30,12 @@
     },
     "lev": {
       "name": "Lev (student)",
-      "description": "A nineteen-year-old student from Leningrad with a soft Russian accent speaking English. A light, young, high tenor voice, thin and breathy from hunger, a little hoarse; quick, clever, ironic, quiet, with no self-pity. Clearly younger and lighter than the other men in the camp.",
+      "description": "A boy of nineteen with a Russian accent speaking English, a Leningrad student: a light, young, clear voice, high rather than deep, thoughtful and a little formal, tired and hungry underneath. Unhurried. Not gravelly, not a man's deep voice.",
       "settings": {
-        "stability": 0.45,
+        "stability": 0.5,
         "similarity_boost": 0.8,
-        "style": 0.4
+        "style": 0.2,
+        "speed": 0.85
       }
     },
     "kuzma": {
@@ -43,7 +45,7 @@
         "stability": 0.55,
         "similarity_boost": 0.8,
         "style": 0.25,
-        "speed": 1.08
+        "speed": 0.98
       }
     },
     "vaska": {
@@ -101,7 +103,8 @@
       "settings": {
         "stability": 0.6,
         "similarity_boost": 0.8,
-        "style": 0.2
+        "style": 0.2,
+        "speed": 0.85
       },
       "states": {
         "thin": {
@@ -328,7 +331,7 @@
     },
     "lubimov_proc": {
       "voice": "lubimov",
-      "text": "Surname. Name and patronymic. Article. Term."
+      "text": "Surname... Name and patronymic... Article... Term."
     },
     "lubimov_five": {
       "voice": "lubimov",
@@ -464,11 +467,11 @@
     },
     "prisoner_article": {
       "voice": "prisoner",
-      "text": "Fifty-eight ten. Ten years."
+      "text": "Orlov, Andrei Nikolayevich. Fifty-eight ten. Ten years."
     },
     "prisoner_nothing": {
       "voice": "prisoner",
-      "text": "I was sentenced for nothing."
+      "text": "Orlov, Andrei Nikolayevich. I was sentenced for nothing."
     },
     "prisoner_q_bread": {
       "voice": "prisoner",
@@ -591,6 +594,27 @@
       "model": "eleven_v3",
       "text": "[laughs] Hm. [coughs] [coughs]",
       "note": "after lev_omsk: he laughs, and then he coughs, and then he is quiet"
+    },
+    "vaska_boots_1": {
+      "voice": "vaska",
+      "text": "Good boots. Felt, from home. My size, I think."
+    },
+    "vaska_boots_2": {
+      "voice": "vaska",
+      "text": "A swap. I am fair."
+    },
+    "kuzma_song": {
+      "voice": "kuzma",
+      "model": "eleven_v3",
+      "lang": "ru",
+      "text": "[singing softly, slowly, an old man to himself] Ой ты, реченька, реченька широкая... [stops] [sighs]",
+      "note": "the noon line: he sings half a song and stops"
+    },
+    "kuzma_story": {
+      "voice": "kuzma",
+      "model": "eleven_v3",
+      "text": "[muttering low, telling a story to himself, amused] ...and the priest says to the tax collector, you count what is on the table, and I will count what is not. [chuckles]",
+      "note": "the night lines: he tells the stove the story"
     }
   },
   "sfx": {
@@ -674,7 +698,7 @@
     "humming": {
       "loop": false,
       "seconds": 12,
-      "text": "An old man humming a slow sad Russian folk melody very quietly to himself, no words, gravelly voice, intimate"
+      "text": "An old man humming a slow Russian folk tune very softly under his breath, warm and gentle, a little way off, no words, no rasp."
     },
     "pulse": {
       "loop": true,
@@ -709,7 +733,7 @@
     "pencil": {
       "loop": false,
       "seconds": 2,
-      "text": "A stub of pencil writing quickly on rough paper, close up, a few short strokes"
+      "text": "A soft pencil writing slowly on rough paper, quiet and close: a few gentle unhurried strokes, no scratching, no harshness."
     },
     "amb_hut_morning": {
       "loop": true,
@@ -876,6 +900,48 @@
       "seconds": 8,
       "highpass": 60,
       "text": "A fight outdoors in snow at a work site in winter: one punch, then three men beating one man, blows and grunts, boots stamping and sliding in packed snow, a padded jacket thudding, a shout from a foreman some way off, then it stops and a man spits. Wind. No music, no words."
+    },
+    "rifle_butt": {
+      "loop": false,
+      "seconds": 3,
+      "highpass": 60,
+      "text": "A rifle butt striking a man hard between the shoulder blades through a padded coat, a deep thud, a grunt, the man dropping to his knees in snow. Outdoors, winter. No voices."
+    },
+    "sit_snow": {
+      "loop": false,
+      "seconds": 6,
+      "highpass": 60,
+      "text": "A man in a padded coat sitting down heavily into deep snow, the snow crumping under him, then the boots of many men crunching past him in packed snow, a dog barking once far off, cold wind. No voices."
+    },
+    "boots_drop": {
+      "loop": false,
+      "seconds": 2,
+      "highpass": 60,
+      "text": "A pair of wet rubber boots dropped onto a plank floor from waist height, two heavy wet thuds, close, inside a wooden hut."
+    },
+    "geese": {
+      "loop": false,
+      "seconds": 7,
+      "highpass": 80,
+      "text": "Wild geese calling far off at night, a skein passing high overhead and fading, faint, cold still air. No wind."
+    },
+    "fly": {
+      "loop": false,
+      "seconds": 5,
+      "highpass": 80,
+      "text": "A single fly buzzing close by, circling, landing, buzzing again, outdoors in still spring air. Quiet otherwise."
+    },
+    "mosquito": {
+      "loop": false,
+      "seconds": 5,
+      "highpass": 80,
+      "text": "Mosquitoes whining close to the ear outdoors in spring, two or three of them, then a slap on skin. Quiet otherwise."
+    },
+    "bird_may": {
+      "loop": false,
+      "seconds": 6,
+      "highpass": 80,
+      "text": "One small bird singing at dawn at the edge of a northern forest, some way off, clear cold air, nothing else."
     }
   },
   "frames": [

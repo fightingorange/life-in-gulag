@@ -73,7 +73,7 @@ const SCAPES = {
   },
   // arrival: inside the goods wagon on the move (amb_train): a plank creaking, a man coughing, the wind at the boards
   amb_train: {
-    beds: [],
+    beds: [['bed_wind_walls', .55], ['bed_wind_snow', .3]],   // the wind through the boards, all the way
     spots: [['spot_creak', [8, 20], .3], ['cough', [12, 30], .3], ['spot_gust', [16, 36], .2]],
   },
   // arrival: the column marching from the railhead. The story plays ru_march_rule and ru_march_quiet itself.
