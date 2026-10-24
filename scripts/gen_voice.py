@@ -237,6 +237,8 @@ def align_cut(take, lines):
     spans, i = [], 0
     for lid, line in lines:
         want = [norm(w) for w in line["text"].split() if norm(w)]
+        if not want:
+            return False
         while i < len(words) and norm(words[i]["text"]) != want[0]:
             i += 1
         j = i + len(want) - 1

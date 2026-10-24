@@ -1,61 +1,71 @@
 {
   "lubimov": {
     "previews": [
-      "dcJAtNF7cjQwg2zjW6DD",
-      "oQkDBluZ0RNptRW0DSCM",
-      "JLS6kuXwZbVmxeQfF2US"
+      "nN2UnZjo9IOu9o6AH56L",
+      "ymbGha2FIjxYOkhVOnSR",
+      "PmRNi61lPH0CBIhJ7QBI"
     ],
     "picked": 1,
-    "voice_id": "oQkDBluZ0RNptRW0DSCM",
-    "account": "saved",
-    "clone": {
-      "voice_id": "xWqZLEzeZpp4ilDcymUo",
-      "account": "fresh",
-      "from": [
-        "lubimov_count.mp3",
-        "lubimov_moscow.mp3",
-        "lubimov_held.mp3",
-        "lubimov_proc.mp3",
-        "lubimov_dispute.mp3",
-        "lubimov_cells.mp3",
-        "lubimov_five.mp3",
-        "lubimov_tenmore.mp3",
-        "lubimov_boots.mp3",
-        "lubimov_sums.mp3",
-        "lubimov_what.mp3",
-        "lubimov_hoarding.mp3"
-      ]
-    }
+    "voice_id": "ymbGha2FIjxYOkhVOnSR",
+    "account": "fresh",
+    "previous": [
+      {
+        "voice_id": "oQkDBluZ0RNptRW0DSCM",
+        "account": "saved",
+        "picked": 1
+      }
+    ]
   },
   "fomin": {
     "previews": [
-      "IJh6b0lAHUNOlPrxeTzT",
-      "JrjbBkdVxBbLpkr1vwzA",
-      "k9vSRIbsNicEL3NwsIbG"
+      "WLMrncfszxp9pOSXiAc4",
+      "Jw8EhiZBWcV8KYsKfvew",
+      "493KrfOKvUtHFPGpxt3n"
     ],
-    "voice_id": "IJh6b0lAHUNOlPrxeTzT",
+    "voice_id": "WLMrncfszxp9pOSXiAc4",
     "picked": 0,
-    "account": "saved"
+    "account": "fresh",
+    "previous": [
+      {
+        "voice_id": "IJh6b0lAHUNOlPrxeTzT",
+        "account": "saved",
+        "picked": 0
+      }
+    ]
   },
   "pasha": {
     "previews": [
-      "Q5VILMytXtK0CR6U4Nwz",
-      "wALw0U39cImqypHavitV",
-      "X718SrzhfUTmvm2XPsWO"
+      "qmBt3mM6DLNVAGfiaED3",
+      "Ob5tOaOIA94g5XpemHbl",
+      "F7bWvTMtTpsKv2IugOj5"
     ],
-    "voice_id": "Q5VILMytXtK0CR6U4Nwz",
+    "voice_id": "qmBt3mM6DLNVAGfiaED3",
     "picked": 0,
-    "account": "saved"
+    "account": "fresh",
+    "previous": [
+      {
+        "voice_id": "Q5VILMytXtK0CR6U4Nwz",
+        "account": "saved",
+        "picked": 0
+      }
+    ]
   },
   "lev": {
     "previews": [
-      "eRxGPMoVDu608fdKSs1o",
-      "bmm9PDQi91YxtRMRdN50",
-      "QaE9dVFBOeEUcuzppCC7"
+      "zJQIefIfQT9KqAbCHpd4",
+      "jov1ncYkWph1sAAlEF8T",
+      "DVKBLdr5B5WV1kYtdyly"
     ],
     "picked": 2,
-    "voice_id": "QaE9dVFBOeEUcuzppCC7",
-    "account": "saved"
+    "voice_id": "DVKBLdr5B5WV1kYtdyly",
+    "account": "fresh",
+    "previous": [
+      {
+        "voice_id": "QaE9dVFBOeEUcuzppCC7",
+        "account": "saved",
+        "picked": 2
+      }
+    ]
   },
   "kuzma": {
     "previews": [
@@ -76,13 +86,20 @@
   },
   "vaska": {
     "previews": [
-      "o2glvlkZdDSKXOBlJRRU",
-      "qmPXYKHBLAJ0WM36ZTqL",
-      "hWak8ZEaSLdEqyYVuyWO"
+      "1T2Cjk3IcxYQcxnBW5ar",
+      "eICvrDq7Xn6CLx777Hfj",
+      "iZQDv1zXgrPvp8eoi5Pk"
     ],
-    "voice_id": "o2glvlkZdDSKXOBlJRRU",
-    "picked": 0,
-    "account": "saved"
+    "voice_id": "eICvrDq7Xn6CLx777Hfj",
+    "picked": 1,
+    "account": "fresh",
+    "previous": [
+      {
+        "voice_id": "o2glvlkZdDSKXOBlJRRU",
+        "account": "saved",
+        "picked": 0
+      }
+    ]
   },
   "alyosha": {
     "previews": [
@@ -98,12 +115,19 @@
   },
   "prisoner": {
     "previews": [
-      "Ul4Vulu6wLMq8hwKSXCV",
-      "tD4fgTImnfSAMLP2m2Li",
-      "VttdNB1vWEwJLbjXuA5D"
+      "BfWzohb8vQp2iJAysrVY",
+      "fKwpiL2woczYJXqvjIlo",
+      "6y989iiXlWDlcatT8MVQ"
     ],
-    "voice_id": "Ul4Vulu6wLMq8hwKSXCV",
+    "voice_id": "BfWzohb8vQp2iJAysrVY",
     "picked": 0,
-    "account": "saved"
+    "account": "fresh",
+    "previous": [
+      {
+        "voice_id": "Ul4Vulu6wLMq8hwKSXCV",
+        "account": "saved",
+        "picked": 0
+      }
+    ]
   }
 }

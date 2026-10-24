@@ -62,7 +62,8 @@
         "stability": 0.6,
         "similarity_boost": 0.8,
         "style": 0.2
-      }
+      },
+      "oneoff": true
     },
     "smith": {
       "name": "The blacksmith's man",
