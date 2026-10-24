@@ -133,6 +133,9 @@ function unsaidLines() {
   }[S.flags.urki];
   if (boots) L.push(boots);
   if (S.flags.toes) L.push('Two toes went in the cold, in Vaska\'s rubbers.');
+  if (S.flags.pashaLetter) L.push(S.flags.pashaReply ? 'You wrote Pasha\'s letter to Vologda, and read him the answer.' : 'You wrote Pasha\'s letter to Vologda.');
+  if (S.stats.measured) L.push(`You held the brigade\'s board ${numberWord(S.stats.measured)} ${plural(S.stats.measured, 'time', 'times')}${S.stats.tufta ? `, and wrote a hundred and twenty ${numberWord(S.stats.tufta)} of them` : ''}.`);
+  if (S.stats.doorNights) L.push(`${numberWord(S.stats.doorNights, true)} ${plural(S.stats.doorNights, 'night', 'nights')} by the door.`);
   if (S.flags.photo) L.push(S.day >= 100 ? 'You kept the photograph of Nina and Tanya, under your heel, all winter.' : 'You kept the photograph of Nina and Tanya under your heel.');
   if (S.flags.spoke) L.push('You told a commission from Moscow the truth.');
   if (S.flags.signed) L.push('You signed the paper, so that Tanya could study.');

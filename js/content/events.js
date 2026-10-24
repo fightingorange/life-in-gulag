@@ -651,3 +651,119 @@ EV('senka_date', {
     ], { frame: siteFrame(todaySite()), amb: 'amb_site' });
   },
 });
+
+// ---------- Pasha and the brigade ----------
+// The brigade's regard is a number (S.brigade); these give it a story. Below −20 you are moved to the
+// bunk by the door (S.flags.door: the cold costs more, the ladle reaches you last) until the brigade
+// forgives you. Above 30, once you have put your name on the sheet, Pasha hands you the board and the
+// tape (S.flags.measurer), and the brigade's percentage is yours to write.
+EV('brigade_door', {
+  force: () => !S.flags.door && S.brigade <= -20 && S.day >= 4,
+  setup: () => { S.brigade = -25; },
+  run() {
+    S.flags.door = true; S.flags.doorDay = S.day;
+    remember('Pasha moved you to the bunk by the door.', true);
+    show([
+      'At noon Pasha says your name, and points with his chin at the hut, and says the rest: "By the door. Until I say." That is all. The man who had the bunk by the door is already moving his things to yours.',
+      'The bunk by the door is the one the cold comes in over, every time the door opens, which is all night. It is where a brigade keeps the man it has not decided about, or has.',
+    ], onward('Say nothing.'), { ...noonFrame(), voice: 'pasha_door' });
+  },
+});
+EV('brigade_door_back', {
+  force: () => S.flags.door && S.brigade >= 0 && S.day >= (S.flags.doorDay || 0) + 4,
+  setup: () => { S.flags.door = true; S.flags.doorDay = S.day - 4; S.brigade = 5; },
+  run() {
+    S.flags.door = false;
+    mercy('Your old bunk back, away from the door.');
+    remember('Pasha moved you back from the door.', true);
+    show([
+      'At noon Pasha stops by you with his bowl and does not sit down. "Bring your things. Your place is here." He has already walked on by the time you understand it.',
+      'The man by the door does not look up when you take your blanket back. He knows where he is going.',
+    ], onward(), { ...noonFrame(), voice: 'pasha_back' });
+  },
+});
+EV('pasha_board', {
+  once: true, minDay: 25, weight: 3, site: true,
+  when: () => S.brigade >= 30 && S.seen.tufta && !S.flags.measurer && !S.flags.door,
+  setup: () => { S.brigade = 35; S.seen.tufta = true; },
+  run() {
+    show([
+      'At the end of the shift Pasha holds out the board and the tape, the way he holds out everything: as if it were already yours and he were only reminding you.',
+      '"You can count," he says. "Count." The brigade\'s percentage is written on that board every evening, and the brigade eats on the percentage.',
+    ], [
+      { id: 'back', def: true, label: 'Hand it back. "I can\'t count."', hint: 'the brigade will remember who would not', fn: () => {
+        brig(-6);
+        note('You handed Pasha the board back. He took it without a word, which was the word.', true);
+        afterNoon();
+      } },
+      { id: 'take', label: 'Take the board.', hint: 'the brigade eats on your arithmetic; so does the inspector', fn: () => {
+        S.flags.measurer = true; brig(4);
+        note('The board and the tape are yours. Every evening the brigade\'s bread is a number you write.', true);
+        afterNoon();
+      } },
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site', voice: 'pasha_count' });
+  },
+});
+EV('measure', {
+  minor: true, cooldown: 8, max: 6, weight: 3, site: true, when: () => S.flags.measurer,
+  setup: () => { S.flags.measurer = true; },
+  run() {
+    S.stats.measured = (S.stats.measured || 0) + 1;
+    const what = todaySite() && todaySite().key === 'power' ? 'the wall' : todaySite() && todaySite().key === 'timber' ? 'the stack' : 'the pits';
+    show([
+      `At the end of the shift you measure ${what} with the tape, and do the sum on the board with the stub of pencil, and it comes to sixty. Sixty is four hundred grams tomorrow, for forty men.`,
+      'Pasha is standing where he can see the board and not see it, which is a skill.',
+    ], [
+      { id: 'honest', def: true, label: 'Write sixty.', hint: 'four hundred grams tomorrow; nobody can be put in the cells for sixty', fn: () => {
+        S.flags.cutBread = true; brig(-6);
+        note('You wrote sixty. The brigade will eat four hundred grams on your arithmetic, and will know whose it was.', true);
+        afterNoon();
+      } },
+      { id: 'tufta', label: 'Write a hundred and twenty.', hint: 'six hundred and fifty grams for two days; your name on the sheet', fn: () => {
+        S.stats.tufta = (S.stats.tufta || 0) + 1;
+        S.until.bonus = S.day + 2; brig(8);
+        if (chance(.2)) {
+          S.flags.measurer = false;
+          S.flags.pendingCells = true; S.flags.cellsWhy = 'The inspector measured the wall himself, with his own tape, and the board said a hundred and twenty. Three days. They give you one of them now and owe you the others. Pasha has the board again.';
+          note('A hundred and twenty, in your hand, on the sheet. The inspector has a tape of his own.', true);
+        } else note('A hundred and twenty. Six hundred and fifty grams for two days, for forty men, on a number you made up. Nobody in the brigade thanks you. All of them know.', true);
+        afterNoon();
+      } },
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site' });
+  },
+});
+EV('pasha_letter', {
+  cooldown: 6, max: 2, weight: 2, minDay: 20,
+  when: () => S.brigade >= 10 && !S.flags.pashaLetter && !S.flags.door,
+  setup: () => { S.brigade = 15; },
+  run() {
+    show([
+      'At noon Pasha sits down beside you with a sheet of paper and a stub of pencil, and does not look at you. "You write. I\'ll say." He says it the way he says the norm.',
+      'A daughter in Vologda, sixteen, at the technical school. He wants her told that the camp is a timber works and he is the foreman of it, which is true, and that he is well, which is the usual lie. He does not say the word camp once.',
+    ], [
+      { id: 'later', def: true, label: 'Tell him there is no light to write by. Tomorrow.', fn: () => {
+        note('Pasha put the paper back inside his jacket. He did not ask again that day.');
+        afterNoon();
+      } },
+      { id: 'write', label: 'Write it.', hint: 'in your hand, in his words', fn: () => {
+        S.flags.pashaLetter = S.day; brig(8);
+        mercy('Pasha\'s letter to Vologda, in your handwriting.');
+        note('You wrote Pasha\'s letter, every word his, in your hand. He looked at the page a long time, as if your writing were a photograph of him.', true);
+        afterNoon();
+      } },
+    ], { ...noonFrame(), voice: 'pasha_letter' });
+  },
+});
+EV('pasha_reply', {
+  once: true, weight: 4,
+  when: () => S.flags.pashaLetter && S.day >= S.flags.pashaLetter + 40 && S.brigade >= 0 && !S.flags.door,
+  setup: () => { S.flags.pashaLetter = S.day - 40; S.brigade = 15; },
+  run() {
+    S.flags.pashaReply = true; brig(6);
+    mercy('Pasha\'s daughter, at the technical school, in her own hand.');
+    show([
+      'A letter for Pasha. He cannot read it fast enough and will not let anyone else, so at noon he brings it to you and puts it in your hand and watches your face while you read it to him.',
+      'Vologda. The technical school. She writes "foreman" twice, and "when you come home" once. Pasha says, "Again," and you read it again, and then he takes it back and puts it inside his jacket with the other thing he keeps there, which you have never seen.',
+    ], onward('Give it back.'), { ...noonFrame(), voice: 'pasha_again' });
+  },
+});

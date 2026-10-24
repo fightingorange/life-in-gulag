@@ -103,6 +103,9 @@ const LINES = {
     { t: 'Kuzma is already sitting up, with the paper folded small in his hand. He has not told the stove anything since the first of May. The men talk round him, carefully, the way men walk round a hole.', when: () => S.kuzma.here && S.flags.kuzmaHeld && since(S.flags.kuzmaHeld) <= 6, w: 3 },
     { t: 'Kuzma told the stove about the priest and the tax collector last night, from the beginning, for the first time since the paper. The hut let out a breath it had been holding for a week.', when: () => S.kuzma.here && S.flags.kuzmaHeld && since(S.flags.kuzmaHeld) >= 7 && since(S.flags.kuzmaHeld) <= 9, w: 4 },
     { t: 'Senka has stopped drawing. He sleeps in his boots now, with his hands inside his jacket, and wakes before the rail.', when: () => S.flags.senkaDate && S.flags.partner && !S.flags.senkaGone, w: 3 },
+    // the brigade: the bunk by the door; the bench by the stove
+    { t: 'The door opened eleven times in the night, by your count, and the cold came in over you each time and lay down on the blanket. The bunk by the door is for counting.', when: () => S.flags.door, w: 3 },
+    { t: 'Pasha\'s men sleep by the stove, and you are one of the men who sleep by the stove now. Nobody said so. You were simply not moved when the places were taken.', when: () => S.brigade >= 30 && !S.flags.door, w: 1.5 },
     { t: 'Four days. Five. Nobody has been brought back. Somebody says Senka reached the railway town; somebody always says that. You find that you believe it, and you keep that to yourself.', when: () => S.flags.senkaFree && since(S.flags.senkaGoneDay) >= 4 && since(S.flags.senkaGoneDay) <= 20, w: 3 },
   ],
 
@@ -143,6 +146,8 @@ const LINES = {
     { t: 'Pasha looks at the sky, then at the ground, then at the brigade, in that order, and does the arithmetic.' },
     { t: 'Pasha nods at you as he passes. Pasha does not nod at everyone.', when: () => S.brigade >= 25 },
     { t: 'Pasha does not look at you. That is a decision, and you know it is.', when: () => S.brigade <= -20 },
+    { t: 'Pasha hands you the board without a word and goes to the far end of the work, where he cannot see what you write on it.', when: () => S.flags.measurer, w: 2 },
+    { t: 'Pasha counts heads and his eyes go past you to the next man, the way they go past a post.', when: () => S.flags.door, w: 2 },
   ],
   // what the season does to the work
   // (the settlement digs, the power station lays brick, the timber bank hauls; S.today.site says which)
@@ -194,6 +199,8 @@ const LINES = {
     { t: 'Noon. The men look at the gap in the wire by the latrine, mended now with new wire, bright as a coin. Then they stop looking.', when: () => S.flags.othersEscaped && S.day < 100 },
     { t: 'Noon. You look for Lev by the barrow, out of habit, and then remember.', when: () => !S.lev.alive && since(S.lev.diedDay) <= 15, w: 2 },
     { t: 'Noon. Kuzma sits with the brigade and eats, and says nothing, and nobody asks him anything. Somebody has to tell the story about the priest, so somebody does, badly, and Kuzma does not correct him.', when: () => S.kuzma.here && S.flags.kuzmaHeld && since(S.flags.kuzmaHeld) <= 6, w: 3 },
+    { t: 'Noon. Two men from the brigade argue about the percentage, and stop when they see you, and start again more quietly. The sum is yours now, and so is the argument.', when: () => S.flags.measurer && outdoors(), w: 2 },
+    { t: 'Noon. The brigade eats in a ring with its back to the wind, and the ring has a gap in it where you sit, a little outside, the way a dog sits outside a door.', when: () => S.flags.door && outdoors(), w: 3 },
   ],
 
   // the gate in the evening
@@ -251,6 +258,7 @@ const LINES = {
     { t: 'You found a crust in the snow by the bakery, frozen, that nobody else had found.' },
     { t: 'The lice were quiet tonight.' },
     { t: 'Clean foot cloths, and skin that does not itch, for once.', when: () => !!S.until.clean, w: 3 },
+    { t: 'A place by the stove, because the brigade keeps one for you now.', when: () => S.brigade >= 30 && !S.flags.door && cold(-15)(), w: 2 },
     { t: 'You remembered the name of your street in Kalinin. It had been gone a week.' },
     { t: 'A warm wind for an hour in the afternoon, from the south. It smelled of nothing at all.', when: inMonths('mar', 'apr', 'may') },
     { t: 'You walked back on dry ground for the first time since October.', when: inMonths('may') },
@@ -312,5 +320,8 @@ const LINES = {
     { t: 'Night. Somewhere in the dark a man breaks a crust in two, and you know the sound: Kuzma, the first fortnight, holding out the half without a word.', when: () => S.flags.kuzmaHalf },
     { t: 'Night. The lice are quiet. The bathhouse boiled them out of the seams, and for a few nights the hut sleeps like a hut of men instead of a hut of men scratching.', when: () => !!S.until.clean, m: 'The lice, quiet.', w: 2 },
     { t: 'Night. Kuzma lies on his back with the paper on his chest, like a man who fell asleep over a book. He is not asleep.', when: () => S.kuzma.here && S.flags.kuzmaHeld && since(S.flags.kuzmaHeld) <= 6, w: 3 },
+    { t: 'Night, by the door. Every man who goes out to the latrine lets the winter in over your feet, and every man who comes back lets it in again. You stop counting at thirty.', when: () => S.flags.door, w: 3 },
+    { t: 'Night. From the bunk by the door the stove is a red mark a long way off, like a village seen from the road.', when: () => S.flags.door, w: 2 },
+    { t: 'Night. The board is under your head with your boots, because a board can be stolen too, and a brigade that loses its board loses two days\' bread.', when: () => S.flags.measurer, w: 1.5 },
   ],
 };

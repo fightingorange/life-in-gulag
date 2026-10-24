@@ -367,6 +367,26 @@
     "vaska_turn": {
       "voice": "vaska",
       "text": "A pinch for your turn, brother. Hot water is for people who can pay for it."
+    },
+    "pasha_door": {
+      "voice": "pasha",
+      "text": "By the door. Until I say."
+    },
+    "pasha_back": {
+      "voice": "pasha",
+      "text": "Bring your things. Your place is here."
+    },
+    "pasha_count": {
+      "voice": "pasha",
+      "text": "You can count. Count."
+    },
+    "pasha_letter": {
+      "voice": "pasha",
+      "text": "You write. I'll say."
+    },
+    "pasha_again": {
+      "voice": "pasha",
+      "text": "Again."
     }
   },
   "sfx": {

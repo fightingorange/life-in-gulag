@@ -26,7 +26,8 @@ function drain() {
   const cold = Math.max(0, -S.temp - 20) / 3.2;
   const feet = S.flags.rubber ? (S.temp <= -35 ? 2 : S.temp <= -15 ? 1 : 0) : 0;   // Vaska's tyre-rubber boots (arrival.js)
   const ribs = S.until.ribs ? 2 : 0;   // the boots fight (arrival.js)
-  return Math.round(6.4 + cold + S.day / 40 + (S.until.nojacket ? 3 : 0) + feet + ribs);
+  const door = S.flags.door ? 1 : 0;   // the bunk by the door (events.js, brigade_door)
+  return Math.round(6.4 + cold + S.day / 40 + (S.until.nojacket ? 3 : 0) + feet + ribs + door);
 }
 
 function startDay() {
@@ -36,9 +37,10 @@ function startDay() {
   if (S.day >= ICE_OUT_DAY) return spring();
   S.temp = S.day === 1 ? -27 : rollTemp(S.day);   // the first day always marches out
   const before = S.strength;
-  const ribs = S.until.ribs ? 2 : 0;
-  cost(-(drain() - ribs), 'the cold');
+  const ribs = S.until.ribs ? 2 : 0, door = S.flags.door ? 1 : 0;
+  cost(-(drain() - ribs - door), 'the cold');
   if (ribs) cost(-ribs, 'the ribs');
+  if (door) { cost(-door, 'the door'); S.stats.doorNights = (S.stats.doorNights || 0) + 1; }
   eye(S.eye > 30 ? -2 : -1);   // the eye forgets, slowly
   if (S.brigade > 0) brig(-Math.round(S.brigade / 15));  // the brigade remembers what you did lately
   levDaily();
@@ -197,7 +199,7 @@ function count() {
 // ---------- bread ----------
 // a jacket lining hides about seven hundred grams; Alyoshka's boards a little more
 function breadCap() { return S.flags.baptist ? 900 : 700; }
-function ration() { return S.until.inspection ? 650 : (S.flags.cutBread || S.until.cut) ? 400 : 550; }
+function ration() { return (S.until.inspection || S.until.bonus) ? 650 : (S.flags.cutBread || S.until.cut) ? 400 : 550; }   // bonus: the percentage you wrote (events.js, measure)
 function breakfast() {
   const g = ration();
   S.flags.cutBread = false;
@@ -259,6 +261,10 @@ function work() {
   const paras = [season ? `${site.text} ${season}` : site.text, S.until.inspection
     ? 'The commission may come to the site. Pasha has the brigade working like a picture in a newspaper.'
     : (S.day === 1 ? 'Pasha counts heads and does not say anything. The quota is the quota.' : L('foreman'))];
+  if (S.flags.measurer) paras.push('The board and the tape are yours today. Pasha does not look at them. That is the point of giving them to you.');
+  else if (S.flags.door) paras.push(site.key === 'timber' ? 'You get the end of the log that goes into the water. Nobody says why. Nobody needs to.'
+    : site.key === 'power' ? 'You get the wind side of the wall, and the mortar to carry up to it. Nobody says why. Nobody needs to.'
+    : 'You get the shovel with the split handle and the pit with the water in it. Nobody says why. Nobody needs to.');
   show(paras, [
     { id: 'proper', label: 'Work. Properly.', hint: S.temp <= -35 ? 'in this cold, sweat freezes in the clothes' : 'hard on the body; the brigade sees it', fn: () => {
       cost(S.temp <= -35 ? -15 : -11, 'the work'); brig(4);
@@ -362,7 +368,10 @@ function dinner() {
     mercy('The thick part, from the bottom of the pot.', 0);
     go(night);
   } });
-  show([S.day === 1 ? LINES.dinner[0].t : L('dinner')], ch, { frame: 'supper', amb: 'amb_queue', routine: 'dinner' });
+  const paras = [S.day === 1 ? LINES.dinner[0].t : L('dinner')];
+  if (S.flags.door) paras.push('You eat by the door, where the cold comes in with every man who comes in, and the ladle reaches you last and scrapes.');
+  else if (S.brigade >= 30) paras.push('You eat at the end of the bench by the stove, where Pasha\'s men eat. Nobody moved up to make room. There was room.');
+  show(paras, ch, { frame: 'supper', amb: 'amb_queue', routine: 'dinner' });
 }
 
 // ---------- night ----------
