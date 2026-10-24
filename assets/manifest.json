@@ -335,6 +335,38 @@
     "pasha_mine": {
       "voice": "pasha",
       "text": "He is in my brigade. His feet work for my brigade."
+    },
+    "kuzma_half": {
+      "voice": "kuzma",
+      "text": "Thin men are bad luck in a brigade. Eat."
+    },
+    "kuzma_alyosha": {
+      "voice": "kuzma",
+      "text": "Alyoshka the Baptist keeps his under the boards by his bunk. He will keep yours, if you ask him."
+    },
+    "lev_warn": {
+      "voice": "lev",
+      "text": "Lubimov and the sergeant are doing the whole column at the gate tonight. Every man, every lining. I saw the paper."
+    },
+    "lev_quiet": {
+      "voice": "lev",
+      "text": "Lubimov has the night off. The gate tonight is two conscripts from Ryazan. They are cold, and they want their supper more than they want your lining."
+    },
+    "lubimov_held": {
+      "voice": "lubimov",
+      "text": "Served. Held until special order. Next."
+    },
+    "kuzma_order": {
+      "voice": "kuzma",
+      "text": "Until special order. That is what the paper says. I asked him what order, and when. He did not know. Nobody knows."
+    },
+    "pasha_banya": {
+      "voice": "pasha",
+      "text": "Bathhouse tonight. The brigade after the fourth. Whoever is not clean by the count tomorrow is not in my brigade."
+    },
+    "vaska_turn": {
+      "voice": "vaska",
+      "text": "A pinch for your turn, brother. Hot water is for people who can pay for it."
     }
   },
   "sfx": {

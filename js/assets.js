@@ -69,7 +69,9 @@ const ASSETS = {
     // the fourth set: the count inside the wire, between the huts
     count_camp: 'count',
     // the fifth set (prompts/frames.md, set five): the arrival, the hut at its true size, people moving
-    arrival_wagon: 'cells',            // inside the prison wagon, men on plank shelves, a crack of light (a plank box with a bench and a barred window)
+    arrival_wagon: 'cells',       // inside the prison wagon (drawn; the cell is the stand-in if it is ever missing)
+    banya: 'cells',               // the bathhouse (set six)
+    river_thaw: 'river',          // the river in April, grey, with open water by the bank (set six)
     arrival_railhead: 'river',         // the train stopped in the snow, the convoy and dogs, men climbing down
     arrival_march: 'river',            // the column strung out across white country, guards on both sides
     arrival_march_dusk: 'arrival_march',   // the same march later, the light going, the camp's lights ahead

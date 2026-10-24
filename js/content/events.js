@@ -591,3 +591,63 @@ EV('medic_orderly', {
     ], noonFrame());
   },
 });
+
+// ---------- the bathhouse ----------
+// Every three weeks or so: the one hot thing in the camp. Five clean days afterwards (S.until.clean).
+EV('banya', {
+  cooldown: 20, max: 5, weight: 2, minDay: 8, site: true,
+  run() {
+    const clean = () => { S.until.clean = S.day + 5; };
+    const BANYA = { frame: 'banya', amb: 'amb_hut' };
+    show([
+      'At the noon break Pasha stands up with his bowl and says it to the brigade the way he says everything, once: "Bathhouse tonight. The brigade after the fourth. Whoever is not clean by the count tomorrow is not in my brigade."',
+      'The bathhouse is one boiler of hot water for forty men, and the first ten get it hot.',
+    ], [
+      { id: 'old', def: true, label: 'Let the old men go first.', hint: 'warm water, by the time it is yours', fn: () => {
+        brig(4); cost(2, 'the bathhouse'); clean();
+        mercy('The bathhouse, what was left of the hot.');
+        show(['By the time it is your turn the water is warm, not hot, and grey. You wash anyway, all of you, with the lye soap that takes the skin, and the clothes go into the boiler with the lice in them and come out with the lice dead. For five days you will not scratch.'],
+          onward(), BANYA);
+      } },
+      { id: 'first', label: 'Push to the front. Get the hot water.', hint: 'hot, and remembered', fn: () => {
+        brig(-4); cost(5, 'the bathhouse'); clean();
+        mercy('Hot water, first.');
+        show(['Hot. Hot enough to hurt. You pour it over your head with the tin and stand in it and are, for a minute, a man in a bathhouse and nothing else. Behind you the queue watches the water go grey. In the morning Pasha looks at you a moment longer than usual.'],
+          onward(), BANYA);
+      } },
+      { id: 'sell', label: 'Sell your turn to Vaska\'s man for a pinch.', hint: 'tobacco; the lice stay', fn: () => {
+        tob(1);
+        note('You sold your turn at the bathhouse. The lice kept theirs.');
+        show(['Vaska\'s man takes your place in the queue and gives you the pinch without looking at you, the way money changes hands at a station. You sit on your bunk and scratch, and smoke, and it is nearly worth it.'],
+          onward(), { frame: 'hut_night', amb: 'amb_hut', voice: 'vaska_turn' });
+      } },
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site', voice: 'pasha_banya' });
+  },
+});
+
+// ---------- Senka names a date ----------
+// April, if he is still with you: the first of May, before the ice goes bad. The wire screen says so
+// every night until then (escape.js); if you have not gone, he goes without you (calendar.js, senka_goes).
+EV('senka_date', {
+  once: true, minDay: 96, weight: 4, site: true,
+  when: () => S.flags.partner && !S.flags.senkaGone && !S.flags.tried && !S.flags.senkaDate,
+  setup: () => { S.flags.partner = true; S.day = Math.max(S.day, 96); },
+  run() {
+    const date = () => { S.flags.senkaDate = 119; };
+    show([
+      'At the noon break Senka squats by the lean-to, where the snow has gone to mud, and draws with a nail the way he drew on the frost: the river, the bend, the cross. Then, beside it, four marks: 1. V.',
+      'The first of May. Before the ice goes bad. He looks at you, and holds up two fingers, and then one, and rubs the two out with his thumb.',
+    ], [
+      { id: 'away', def: true, label: 'Look at the mud until he rubs it out.', fn: () => {
+        date();
+        note('Senka rubbed the river out with his boot. He goes on the first of May, whether you nodded or not.', true);
+        afterNoon();
+      } },
+      { id: 'nod', label: 'Nod.', hint: 'the first of May, together', fn: () => {
+        date();
+        note('Senka goes on the first of May. With you, or without you.', true);
+        afterNoon();
+      } },
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site' });
+  },
+});

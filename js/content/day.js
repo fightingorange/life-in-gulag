@@ -140,7 +140,7 @@ function cellsNight() {
     ch, { frame: 'cells', amb: 'amb_cells', routine: 'night' });
 }
 function sickDay() {
-  cost(14, 'the warm'); brig(-4);
+  cost(12, 'the warm'); brig(-4);
   S.today.warm = true; S.today.inside = true;
   mercy('A whole day in the warm.', 0);
   show([
@@ -302,7 +302,7 @@ function barracksDay() {
 function infirmary() {
   S.today.inside = true; S.today.warm = true;
   show(['Floors. The water is warm when you start and cold when you finish. Men die in the beds around you, politely, without much noise. The orderly gives you the end of somebody\'s soup.'],
-    [{ label: 'Work.', fn: () => { cost(6, 'the warm'); mercy('Warm water, and the end of somebody\'s soup.', 0); go(noon); } }], { frame: morningFrame(), amb: 'amb_cells', routine: true });
+    [{ label: 'Work.', fn: () => { cost(5, 'the warm'); mercy('Warm water, and the end of somebody\'s soup.', 0); go(noon); } }], { frame: morningFrame(), amb: 'amb_cells', routine: true });
 }
 
 // ---------- noon ----------
@@ -347,7 +347,7 @@ function dinner() {
     { id: 'bowl', label: 'Eat your bowl and get out.', hint: 'one bowl, certain', fn: () => { cost(9, 'the bowl'); S.stats.bowls++; go(night); } },
     { id: 'queue', label: 'Work the queue for a second bowl.', hint: S.brigade >= 10 ? 'Pasha\'s man is on the ladle tonight' : 'nobody here owes you anything yet', fn: () => {
       if (S.brigade >= 10 && chance(.6)) {
-        cost(16, 'the bowl'); S.today.bowl = true; S.stats.bowls += 2;
+        cost(14, 'the bowl'); S.today.bowl = true; S.stats.bowls += 2;
         note('A second bowl slid across the counter. Nobody saw.');
         mercy('A second bowl.', 0);
       } else {
@@ -358,7 +358,7 @@ function dinner() {
     } },
   ];
   if (S.tobacco > 0) ch.push({ id: 'trade', label: 'A cigarette to the cook for a bowl from the bottom.', hint: 'the thick part, where the groats sink', fn: () => {
-    tob(-1); cost(14, 'the bowl'); S.today.bowl = true; S.stats.bowls++;
+    tob(-1); cost(13, 'the bowl'); S.today.bowl = true; S.stats.bowls++;
     mercy('The thick part, from the bottom of the pot.', 0);
     go(night);
   } });

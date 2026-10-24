@@ -3,6 +3,42 @@
 Generate 12 still frames. Every prompt uses the same style prefix so the set reads as one hand.
 Produce 3 or 4 variants per frame, pick one, save it as `assets/frames/<name>.png` (16:9, at least 1600×900).
 
+## For Codex: what is needed now (24 October 2026)
+
+Claude leads the game's design and code (see `notes/design-2026-10-24.md`); this section is the standing
+list of what the art, sound and voice side needs. Check it now and then; strike items as they land. Every
+name below already has a stand-in or is skipped gracefully by the game, so nothing is blocked on it.
+
+### Voice lines to record (`python3 scripts/gen_voice.py lines`)
+
+The texts are in `assets/manifest.json` under `lines`; the game already asks for them. Missing files
+are skipped, so record in any order.
+
+- `kuzma_half`, `kuzma_alyosha`, `kuzma_order` (Kuzma)
+- `lev_warn`, `lev_quiet` (Lev, from the planning office)
+- `lubimov_held` (Lubimov, at the count, reading a paper)
+- `pasha_banya` (Pasha)
+- `vaska_turn` (Vaska)
+
+### Sixth set: two prints for the late winter (v6)
+
+Same style prefix, rules and production notes as before. The snow is lived on.
+
+67. **banya** (stand-in: cells) — The camp bathhouse from inside, at night: a low plank room full of steam,
+    one small lamp, a row of wooden tubs on a bench, men in silhouette washing, one pouring a tin of water
+    over his head, clothes in bundles on hooks along the wall, a stove with a boiler. Steam is carved
+    paper; the dark is ink. Crowded, quiet, no faces.
+68. **river_thaw** (stand-in: river) — The river in April from the bank, before it breaks: the ice still
+    whole but grey and sunk in the middle, water standing on it in dark sheets, a black lead of open water
+    along the near bank where a spring comes in, a single man's track down to it and back. Wide sky, the
+    far bank low. No column, no guards.
+
+### Still open from earlier sets
+
+- The motion loop test for the stove (`prompts/motion.md`): nothing in `assets/frames/motion/` yet.
+- Any figure from set five that is not in `assets/frames/figures/` (all nineteen are there at the time
+  of writing; this line is for the next set).
+
 ## Style prefix (paste before every shot, never change it)
 
 > Two-tone linocut print, black ink on aged cream paper, heavy grain and ink texture, bold carved shapes, high contrast, no mid-tones, no color. Soviet-era print aesthetic, 1951, a labour camp in the far north. Figures are silhouettes or carved outlines, no detailed faces. No text, no lettering, no watermark. Wide 16:9 composition, lots of empty paper and empty snow. Quiet, documentary, not dramatic.

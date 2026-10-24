@@ -61,6 +61,11 @@ function plan() {
   if (S.temp <= -35) paras.push('It is too cold for the ice. Men freeze on the river at this temperature with bread in their pockets.');
   if (S.day >= THAW_DAY) paras.push('The ice is going bad. Kuzma said after the tenth it would not hold a man.');
   if (S.flags.rubber) paras.push('And your feet. Three days on the ice in tyre rubber and rag: the river would have your toes by the second night.');
+  if (S.flags.senkaDate && S.flags.partner && !S.flags.senkaGone) {   // Senka named the first of May (events.js)
+    const left = S.flags.senkaDate - S.day;
+    paras.push(left > 1 ? `Senka goes on the first of May, with you or without you. That is ${numberWord(left)} nights away.`
+      : 'Senka goes tonight, or tomorrow night. He has not said which. He has stopped looking at you.');
+  }
   show(paras, [
     { id: 'wait', label: 'Not tonight.', fn: () => go(endDay) },
     { id: 'go', label: 'Tonight.', hint: `the fence: ${oddsWord(f)}; the ice: ${oddsWord(i)}`, fn: escape },

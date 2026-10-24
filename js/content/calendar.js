@@ -164,6 +164,66 @@ BEAT('thaw', THAW_DAY, 'morning', () => {
   if (S.kuzma.here) paras.push('Kuzma looks at the river a long time. "After the tenth the river will not hold a man. Before that it holds him, but it does not like it."');
   else paras.push('The old men look at the river and say the ice will not hold a man after the tenth. Kuzma would have known the exact day.');
   paras.push('If anyone is going on the ice, it has to be now.');
+  if (S.flags.baptist && S.bread > 0) {   // the meltwater finds Alyoshka's boards before the warders did
+    const lost = Math.round(S.bread / 2);
+    S.bread -= lost; S.stats.lost += lost;
+    paras.push(`Under Alyoshka's boards the water came up in the night. Half of what you had there is grey paste in a sock. He gives you the rest, ${S.bread} grams, and says that God kept what He could.`);
+    remember('The thaw took half the bread under Alyoshka\'s boards.', true);
+  }
   stopRun('');
-  show(paras, [{ label: 'Go on.', fn: () => go(count) }], { frame: 'river', amb: 'amb_spring', voice: S.kuzma.here ? 'kuzma_tenth' : null });
+  show(paras, [{ label: 'Go on.', fn: () => go(count) }], { frame: 'river_thaw', amb: 'amb_spring', voice: S.kuzma.here ? 'kuzma_tenth' : null });
 });
+
+// 1 May: Kuzma's fifteen years are up. In the morning his number is read; at night he is back with a paper.
+BEAT('kuzma_release', 119, 'morning', () => {
+  S.flags.kuzmaCalled = S.day;
+  stopRun('');
+  show([
+    'Count. The first of May; nobody says so. At the end of the second count Lubimov reads a number off a paper, and it is Kuzma\'s. Fifteen years, from the spring of thirty-six. Served.',
+    'Kuzma steps out of his five the way a man steps out of a queue he has stood in a long time: carefully, as if the place might close behind him. "Office," Lubimov says. Kuzma goes. The column goes the other way.',
+  ], [{ label: 'Stand.', fn: () => go(breakfast) }], { frame: 'count_camp', amb: 'amb_wind', scape: 'count', sfx: 'boots', voice: 'lubimov_held' });
+}, { when: () => S.kuzma.here && !S.flags.betrayed });
+BEAT('kuzma_held', 119, 'night', () => {
+  S.flags.kuzmaHeld = S.day;
+  const ch = [
+    { id: 'sit', def: true, label: 'Sit on the end of his bunk. Say nothing.', fn: () => {
+      mercy('You sat with Kuzma.');
+      note('You sat with Kuzma until the bulb went dim. He did not tell the story. You did not ask for it.');
+      go(endDay);
+    } },
+    { id: 'leave', label: 'Leave him be. Men want to be left.', fn: () => {
+      note('You left Kuzma to it. In the morning he was still on his back, and the paper was gone, into the stove or into his jacket.');
+      go(endDay);
+    } },
+  ];
+  if (S.tobacco > 0) ch.push({ id: 'tobacco', label: 'Roll him one from your tobacco.', hint: 'a pinch less to trade', fn: () => {
+    tob(-1);
+    mercy('Kuzma, smoking your tobacco, slowly.');
+    note('He smoked it to the end without a word, and gave you back the last of it, which is what a man does with a cigarette that was not his.');
+    go(endDay);
+  } });
+  show([
+    'Night. Kuzma is on his bunk with his boots on, which he never does, and a paper on his chest. He has read it. He does not need to read it again.',
+    '"Until special order," he says, to the planks above him. "That is what it says. Served, and held until special order. I asked him what order. He did not know. I asked him when. Nobody knows when."',
+    'The stove is lit. Nobody has told it anything tonight.',
+  ], ch, { frame: 'hut_night_pano', amb: 'amb_hut', voice: 'kuzma_order' });
+}, { when: () => S.flags.kuzmaCalled && S.kuzma.here });
+
+// Senka named a date (events.js, senka_date). If you have not gone by then, he goes without you.
+BEAT('senka_goes', 121, 'morning', () => {
+  S.flags.senkaGone = true; S.flags.senkaGoneDay = S.day; S.flags.partner = false; S.flags.senkaBread = false;
+  S.flags.senkaFree = chance(.4);
+  S.until.searches = S.day + 7; S.until.cut = S.day + 3;
+  eye(10);
+  stopRun('');
+  show([
+    'Count. The count comes out wrong, and wrong again, and the guards go quiet. Senka\'s boots were not above your face this morning. You had known since the first of May that they would not be, and you lay still, and listened to him go.',
+    'Pasha says what everyone knows. Searches for a week. Bread cut for three days. Lubimov walks the line looking at faces, and stops at yours, and moves on.',
+  ], [{ label: 'Stand.', fn: () => go(breakfast) }], { frame: 'count_camp', amb: 'amb_wind', scape: 'count', sfx: 'dogs', voice: 'pasha_escape' });
+}, { when: () => !!S.flags.senkaDate && !S.flags.senkaGone && !S.flags.tried });
+BEAT('senka_back', 125, 'morning', () => {
+  show([
+    'They bring Senka back on the fourth day, in a lorry, on his back. He is laid by the gate for three days so that the column can see what a man looks like who tried.',
+    'On the first day you look. On the second you look at the top of the gate, like the others.',
+  ], [{ label: 'Go on.', fn: () => go(count) }], { frame: 'gate', amb: 'amb_march', sfx: 'lorry' });
+}, { when: () => !!S.flags.senkaDate && S.flags.senkaGone && S.flags.senkaFree === false });

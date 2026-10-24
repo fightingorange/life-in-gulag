@@ -121,6 +121,8 @@ function unsaidLines() {
   else L.push(`Lev died on ${S.lev.diedOn}.`);
   if (!S.kuzma.here) L.push(S.flags.betrayed ? 'Kuzma was taken away with his bag.' : `Kuzma died on ${S.kuzma.diedOn}. Somebody else tells the stove stories now.`);
   else if (S.kuzma.helped) L.push('Kuzma\'s cough went the way it came.');
+  if (S.flags.kuzmaCalled && S.kuzma.here) L.push('Kuzma\'s fifteen years ended on the first of May. He is still here.');
+  if (S.flags.senkaDate && S.flags.senkaGone) L.push(S.flags.senkaFree ? 'Senka went on the first of May, without you. They did not find him.' : 'Senka went on the first of May, without you. They brought him back on the fourth day.');
   const boots = {
     gave: 'You gave Vaska Kosoi your boots on the third night.',
     fought: 'You fought Vaska Kosoi for your boots on the third night.',
