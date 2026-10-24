@@ -36,7 +36,7 @@ are skipped, so record in any order.
 - `lev_warn`, `lev_quiet` (Lev, from the planning office)
 - `lubimov_held` (Lubimov, at the count, reading a paper), `lubimov_what`, `lubimov_sums`, `lubimov_moscow` (Lubimov)
 - `pasha_banya`, `pasha_door`, `pasha_back`, `pasha_count`, `pasha_letter`, `pasha_again` (Pasha)
-- `vaska_turn` (Vaska)
+- `vaska_turn`, `vaska_goodboots` (Vaska)
 
 ### Sixth set: two prints for the late winter (v6)
 
@@ -55,6 +55,13 @@ Same style prefix, rules and production notes as before. The snow is lived on.
     existing picture: the same gate, column and guard, but night: the sky and the ground black ink, the
     lamp on the arch and the searchlight beams the only paper, breath and the lamp's pool of light on the
     snow. Until it lands the page darkens the daylight print (`ASSETS.dark`).
+71. **yard_night** (stand-in: count_camp) — The street between two barracks at night, empty: trodden snow,
+    the lamps on their poles with their pools of light, the dark long walls of the huts with one or two
+    windows faintly lit, the wire and a tower at the end with the searchlight's beam across the snow. No
+    people. Seen from a hut doorway.
+72. **hut_outside_night** (stand-in: gate) — One barracks from outside at night, close: the long plank wall,
+    the low roof under snow, the stove pipe with smoke going sideways, one window lit from inside and iced,
+    a path trodden to the door, the door shut. The rest dark.
 68. **river_thaw** (stand-in: river) — The river in April from the bank, before it breaks: the ice still
     whole but grey and sunk in the middle, water standing on it in dark sheets, a black lead of open water
     along the near bank where a spring comes in, a single man's track down to it and back. Wide sky, the

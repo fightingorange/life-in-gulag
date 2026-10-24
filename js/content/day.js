@@ -398,7 +398,7 @@ function night() {
   // the hut's own sound tonight: quieter after Kuzma's paper, draughtier by the door (js/soundscapes.js)
   const scape = S.today.blizzard ? undefined : S.kuzma.here && S.flags.kuzmaHeld && S.day - S.flags.kuzmaHeld <= 6 ? 'hut_quiet' : S.flags.door ? 'hut_door' : undefined;
   show(paras, ch, {
-    frame: S.today.blizzard ? 'blizzard' : 'hut_night_pano', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_hut', scape,
+    frame: S.today.blizzard ? 'blizzard' : 'hut_night', seq: S.today.blizzard ? undefined : 'night_round', amb: S.today.blizzard ? 'amb_blizzard' : 'amb_hut', scape,
     sfx: !S.today.blizzard && chance(.25) ? 'dogs' : null, routine: 'night',
   });
 }
@@ -533,7 +533,7 @@ function endDay() {
     { id: 'next', label: 'Sleep.', fn: nextDay },
     { id: 'run', label: 'Let the days run.', hint: habitsLine(), fn: () => { startRun(); nextDay(); } },
   ], {
-    frame: 'hut_night_pano', amb: t.blizzard ? 'amb_blizzard' : 'amb_hut', sfx: 'pencil', routine: true, voice: t.kuzmaHalf ? 'kuzma_half' : null,
+    frame: 'hut_night', seq: t.blizzard ? undefined : 'night_round', amb: t.blizzard ? 'amb_blizzard' : 'amb_hut', sfx: 'pencil', routine: true, voice: t.kuzmaHalf ? 'kuzma_half' : null,
     ledger: { date: fmtDate(S.day), day: S.day, lines, good: t.mercies.slice(), verdict: VERDICTS[kind], kind },
   });
 }

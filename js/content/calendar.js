@@ -206,7 +206,7 @@ BEAT('kuzma_held', 119, 'night', () => {
     'Night. Kuzma is on his bunk with his boots on, which he never does, and a paper on his chest. He has read it. He does not need to read it again.',
     '"Until special order," he says, to the planks above him. "That is what it says. Served, and held until special order. I asked him what order. He did not know. I asked him when. Nobody knows when."',
     'The stove is lit. Nobody has told it anything tonight.',
-  ], ch, { frame: 'hut_night_pano', amb: 'amb_hut', voice: 'kuzma_order' });
+  ], ch, { frame: 'hut_night', amb: 'amb_hut', voice: 'kuzma_order' });
 }, { when: () => S.flags.kuzmaCalled && S.kuzma.here });
 
 // Senka named a date (events.js, senka_date). If you have not gone by then, he goes without you.

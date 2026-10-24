@@ -187,7 +187,7 @@ const SPRITES = (() => {
     for (let y = 0, i = 0; y < h; y++) for (let xx = 0; xx < w; xx++, i += 4) {
       let R = Math.min(255, p[i] * 255 / pr), G = Math.min(255, p[i + 1] * 255 / pg), B = Math.min(255, p[i + 2] * 255 / pb);
       const l = R * .3 + G * .59 + B * .11;
-      let k = l > 200 ? Math.min(1, (l - 200) / 45) : 0;                  // the knee: near-paper goes to white
+      let k = l > 150 ? Math.min(1, (l - 150) / 50) : 0;                  // the knee: everything lighter than ink goes to white (a linocut has no greys)
       const e = Math.min(xx, y, w - 1 - xx, h - 1 - y);
       if (e < edge) k = Math.max(k, 1 - e / edge);                         // the edges fade out
       p[i] = R + (255 - R) * k; p[i + 1] = G + (255 - G) * k; p[i + 2] = B + (255 - B) * k; p[i + 3] = 255;

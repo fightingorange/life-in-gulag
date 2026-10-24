@@ -39,17 +39,26 @@ const ASSETS = {
   // If every step resolves to the same picture (none drawn yet), the screen keeps its own frame
   // and only the sounds keep the rhythm.
   sequences: {
+    // the night: the hut, then out of the window, the street between the huts, the wire and the towers,
+    // the hut from outside, and back: a slow look round the camp, a quarter of a minute to a picture
+    night_round: [
+      { frame: 'hut_night', hold: 18, fade: 3 },
+      { frame: 'yard_night', hold: 14, fade: 3.5 },
+      { frame: 'hut_outside_night', hold: 14, fade: 3.5 },
+      { frame: 'wire', hold: 12, fade: 3.5 },
+    ],
     // the evening search at the gate: a man patted down, nobody, "Next!", the next man, arms going up
     gate_search: [
       { frame: 'gate_search', hold: 5 },
       { frame: 'gate_empty', hold: 2.5, sfx: 'ru_gate_next' },
       { frame: 'gate_next', hold: 4, sfx: 'pat_down' },
     ],
-    // reveille: the rail is struck while it sounds (the screen's sfx 'rail', about eight seconds of blows
-    // before the ring dies), then the man stands with the hammer lowered, and stays so
+    // reveille: the rail is struck while it sounds (the screen's sfx 'rail': the blows, then a ring that is
+    // gone by about seven seconds), then the man stands with the hammer lowered, and stays so. The change
+    // begins as the ring dies and is done a second after.
     reveille: [
-      { frame: 'reveille', hold: 7.8 },
-      { frame: 'reveille_after', fade: 1.8, stay: true },
+      { frame: 'reveille', hold: 6.6 },
+      { frame: 'reveille_after', fade: 1.4, stay: true },
     ],
   },
   // Stand-ins that also go round the place's drawings by day, as the place itself would: while the
@@ -74,6 +83,8 @@ const ASSETS = {
     arrival_wagon: 'cells',       // inside the prison wagon (drawn; the cell is the stand-in if it is ever missing)
     banya: 'cells',               // the bathhouse (set six)
     river_thaw: 'river',          // the river in April, grey, with open water by the bank (set six)
+    yard_night: 'count_camp',          // the street between the huts at night, empty, lamps and the searchlight (set six)
+    hut_outside_night: 'gate',         // a barracks from outside at night, one window lit, smoke (set six)
     arrival_crack: 'arrival_railhead',   // what the eye at the crack sees: snow, black trees, a platform, a woman and a child (set six)
     arrival_railhead: 'river',         // the train stopped in the snow, the convoy and dogs, men climbing down
     arrival_march: 'river',            // the column strung out across white country, guards on both sides

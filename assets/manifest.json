@@ -497,6 +497,10 @@
     "prisoner_grigory": {
       "voice": "prisoner",
       "text": "The fisherman sent me. He says you owe him a net."
+    },
+    "vaska_goodboots": {
+      "voice": "vaska",
+      "text": "Good boots."
     }
   },
   "sfx": {

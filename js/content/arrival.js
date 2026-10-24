@@ -227,7 +227,7 @@ function arrSupper() {
     'The mess hut, the last sitting, for the new ones. Skilly: hot water with a memory of cabbage, and at the bottom, if you are lucky, a fish head looking up at you. No bread. Bread is in the morning.',
     'Kuzma eats beside you, slowly, from the top, so that the warmth lasts. He does not tell you to. He shows you.',
     'Somebody behind you in the queue says "Good boots," to nobody in particular. You turn round. A man with a squint, smiling at the ceiling.',
-  ], ch, { frame: 'supper', amb: 'amb_queue' });
+  ], ch, { frame: 'supper', amb: 'amb_queue', voice: 'vaska_goodboots' });
 }
 function arrSleep() {
   const paras = ['Lights out is a bulb that stays on. The stove ticks. Two hundred men breathe, and the boots above your face sway a little when their owner turns over.'];
