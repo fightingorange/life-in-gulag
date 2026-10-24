@@ -77,12 +77,35 @@ const ENDINGS = {
     text: () => [
       'In the night the river makes a sound like artillery, a long way off. In the morning the ice is moving: grey plates the size of huts, turning, shouldering each other, going north to the sea.',
       'The whole column stops on the bank to watch, and the guards let it, because they are watching too.',
+      ...springBank(),
       'The worst of it is over, the old men say. The old men said that last year.',
       `Tomorrow is day ${S.day + 1}. There are ${fmtInt(SENTENCE + S.extra - S.day)} to go.`,
     ],
   },
 };
 
+// Who is on the bank with you when the ice goes: the ending ends on the people, not the number.
+function springBank() {
+  const out = [];
+  const f = S.flags;
+  if (S.kuzma.here) out.push(f.kuzmaCalled
+    ? 'Kuzma stands at the end of the five with the paper still inside his jacket, and watches the river go, and says, to nobody, "Well. It went." He has seen it go fifteen times. He counts this one.'
+    : 'Kuzma stands at the end of the five and watches the river go, the way he has watched it go fifteen times, and says, to nobody, "Well. It went."');
+  else if (f.betrayed) out.push('Kuzma is not on the bank. You know where he is not, and you do not know where he is.');
+  else out.push('Kuzma is not on the bank. He would have known the day.');
+  if (S.lev.alive) out.push(f.levOffice
+    ? 'Lev has come out of the office to stand with the brigade, in the jacket with no number on the knee, and does not say anything about steam engines.'
+    : 'Lev is beside you, thinner than the jacket, alive, looking at the water as if it were an argument he had won.');
+  else out.push(f.levPencil ? 'Lev\'s pencil is in your boot. You do not take it out.' : 'Lev did not see it. You look at the water for him, which is nothing, and the only thing.');
+  if (f.senkaFree) out.push('Senka is somewhere past where the river goes. Somebody says the railway town; somebody always says that. You decide to believe it, here, on the bank.');
+  else if (f.senkaGone) out.push('Senka\'s boots are not above your face any more. You look at the river a long time, in case.');
+  else if (f.partner) out.push('Senka is beside you, watching the ice go out as if it had been his idea and he had thought better of it. He does not look at you. That is his way of saying something.');
+  if (f.door) out.push('You stand a little apart from the brigade, where a man by the door stands. Nobody moves you back. Nobody moves you further off.');
+  else if (f.measurer) out.push('Pasha stands with the board under his arm, which is yours now, and does not look at the river. He is looking at the brigade, counting, as he does.');
+  else if (f.pashaReply) out.push('Pasha stands with the brigade, with his daughter\'s letter inside his jacket, and watches the river go towards Vologda, which is the wrong way, and does not care.');
+  else if (S.brigade >= 30) out.push('Pasha stands with the brigade and you stand with Pasha, which nobody decided and everybody knows.');
+  return out;
+}
 function finish(kind) {
   const E = ENDINGS[kind];
   if (S.esc && S.esc.days) S.day = Math.min(ICE_OUT_DAY - 1, S.day + S.esc.days - 1);
