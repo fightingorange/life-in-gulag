@@ -246,7 +246,7 @@ EV('found_out', {
     show([
       'Three of the brigade in the latrine, and you, and no one in the door. Nobody says the word. They do not need the word.',
       'Afterwards you wash your face in snow. Nothing is broken. That was deliberate. Broken men go to the medic, and the medic asks.',
-    ], onward(), { ...noonFrame(), sfx: 'fight' });
+    ], onward(), { ...noonFrame(), voice: 'sfx:fight_hut' });   // the latrine: heard before anything is read on
   },
 });
 EV('fomin_parcel', {
@@ -347,7 +347,7 @@ EV('urki_stove', {
       { id: 'fight', label: 'Hit him first.', hint: 'you will lose; the question is what else', fn: () => {
         adj(-14); brig(10); eye(5); S.flags.urkiGrudge = S.day;
         note('The brigade saw you hit Vaska Kosoi. So did the urki.', true);
-        show(['You hit him once, well, and then the three of them hit you for a while. Nobody stops it, and then Pasha stops it, which is not the same thing.', '"I\'ll remember you," Vaska says, wiping his mouth.'], onward(), { sfx: 'fight', voice: 'vaska_remember' });
+        show(['You hit him once, well, and then the three of them hit you for a while. Nobody stops it, and then Pasha stops it, which is not the same thing.', '"I\'ll remember you," Vaska says, wiping his mouth.'], onward(), { voice: ['sfx:fight_fire', 'vaska_remember'] });   // the fight at the fire, then Vaska
       } },
       { id: 'pasha', label: 'Look at Pasha.', hint: S.brigade >= 20 ? 'the brigade might stand with you' : 'you have not earned that yet', fn: () => {
         if (S.brigade >= 20) {

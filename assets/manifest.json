@@ -863,6 +863,18 @@
       "seconds": 12,
       "text": "A long column of men walking slowly through deep packed snow, many felt boots crunching, steady, outdoors in winter, no voices, no music",
       "highpass": 50
+    },
+    "fight_hut": {
+      "loop": false,
+      "seconds": 10,
+      "highpass": 60,
+      "text": "A fight at night inside a crowded wooden barracks, in the narrow space between plank bunks: one hard punch lands, then three men set on one man, a flurry of blows and grunts, a body slammed against planks, the bunk frame creaking and knocking, boots scuffing on boards, men around muttering and shifting, then it is pulled apart and there is hard breathing. No music, no voices speaking words."
+    },
+    "fight_fire": {
+      "loop": false,
+      "seconds": 8,
+      "highpass": 60,
+      "text": "A fight outdoors in snow at a work site in winter: one punch, then three men beating one man, blows and grunts, boots stamping and sliding in packed snow, a padded jacket thudding, a shout from a foreman some way off, then it stops and a man spits. Wind. No music, no words."
     }
   },
   "frames": [

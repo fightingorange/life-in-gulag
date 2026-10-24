@@ -275,7 +275,7 @@ BEAT('boots', 3, 'night', () => {
         'It goes on for a while. Then Pasha and two men from the brigade pull them off, not quickly, and not gently either.',
         '"I\'ll remember you," Vaska says, wiping his mouth. He leaves the rubber boots on the floor, as if he will be back for the felt ones.',
         'You sleep on your boots with your ribs singing. In the morning the brigade looks at you differently. So does the other side of the stove.',
-      ], { sfx: 'fight', voice: 'vaska_remember' });
+      ], { voice: ['sfx:fight_hut', 'vaska_remember'] });   // the fight between the bunks, then Vaska
     } },
     { id: 'bread', say: 'prisoner_breadinstead', label: '"Take my bread instead. Tomorrow\'s, and the day after\'s."', hint: 'a man who pays once pays again', fn: () => {
       adj(-12);
