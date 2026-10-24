@@ -4,6 +4,8 @@ A text game about one winter in a Soviet labour camp, 1951. Ten years is too lon
 
 ## Play
 
+Online: <https://fightingorange.github.io/life-in-gulag/> (the `main` branch, as pushed). Locally:
+
 ```bash
 python3 scripts/serve.py
 ```
