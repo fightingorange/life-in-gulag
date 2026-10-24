@@ -190,7 +190,7 @@ const UI = (() => {
         if (typeof breakfastFrame === 'function' && typeof ration === 'function') names.push(breakfastFrame(ration()));
         if (typeof siteFrame === 'function' && typeof SITES !== 'undefined') for (const s of SITES) names.push(siteFrame(s));
       } catch (e) { /* the day's helpers are not ready: warm the rest */ }
-      names.push('noon', 'gate', 'supper', 'supper_b', 'hut_night_pano', 'stove', 'wire');
+      names.push('noon', 'gate', 'supper', 'supper_b', 'hut_night', 'yard_night', 'hut_outside_night', 'stove', 'wire');
       FRAME.warm(names);
     });
   }
