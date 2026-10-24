@@ -7,6 +7,8 @@
 //   when()      extra condition
 //   force()     happens as soon as it can (consequences of earlier choices)
 //   setup()     state that makes it reachable, for the dev panel and tests
+//   minor       a small thing: while the days run, it is answered the way you answered it last time
+//               (S.habits['ev:' + id], js/engine.js), and the run goes on
 
 const EVENTS = [];
 function EV(id, def) { EVENTS.push(Object.assign({ id, weight: 1 }, def)); }
@@ -23,7 +25,7 @@ function eventOk(e) {
 function pickEvent() {
   for (const e of EVENTS) if (e.force && eventOk(e) && e.force()) return e;
   const since = S.day - S.lastEventDay;
-  const p = S.day <= 1 ? 0 : S.day === 2 ? 1 : since < 2 ? .1 : .34;
+  const p = S.day <= 1 ? 0 : S.day === 2 ? 1 : since < 2 ? .1 : FLOW.auto ? .2 : .34;   // fewer while the days run
   if (!chance(p)) return null;
   return weighted(EVENTS.filter(e => !e.force && eventOk(e)), e => typeof e.weight === 'function' ? e.weight() : e.weight);
 }
@@ -33,6 +35,7 @@ function runEvent(e) {
   S.seen[e.id] = true;
   S.lastEventDay = S.day;
   FLOW.story = true;
+  FLOW.event = e;   // show() puts it on the event's first screen
   e.run();
 }
 const onward = (label = 'Go on.') => [{ label, fn: afterNoon }];
@@ -60,7 +63,7 @@ EV('kuzma_river', {
   },
 });
 EV('kuzma_cough', {
-  once: true, minDay: 58, weight: 1.5, when: () => S.kuzma.here && !S.flags.betrayed,
+  once: true, minDay: 35, weight: 1.5, when: () => S.kuzma.here && !S.flags.betrayed,
   run() {
     show([
       'Kuzma has a cough that does not sound like the others. At noon he sits with his back against the wall and does not tell the fire anything.',
@@ -98,7 +101,7 @@ EV('kuzma_worse', {
 
 // ---------- Lev ----------
 EV('lev_barrow', {
-  cooldown: 5, weight: 3, site: true, when: () => S.lev.alive,
+  minor: true, cooldown: 5, weight: 3, site: true, when: () => S.lev.alive && !S.flags.levOffice,
   run() {
     const first = S.count.lev_barrow === 1;
     const paras = first ? [
@@ -123,7 +126,7 @@ EV('lev_barrow', {
         note(S.lev.refused >= 2 ? 'Lev has stopped asking with his eyes. That is worse.' : 'Lev looked at the barrow too.');
         afterNoon();
       } },
-    ], { frame: siteFrame(null), amb: 'amb_site' });
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site' });
   },
 });
 EV('lev_quote', {
@@ -149,12 +152,49 @@ EV('lev_repay', {
       'He gives you three hundred grams of bread wrapped in a page of somebody\'s production report. "I told you I would pay you back. You didn\'t believe me. Neither did I."',
       'Inside the bread there is a second page, folded small: the river, copied in pencil, every bend of it, and a cross where the settlement is. "Forty-one kilometres," Lev says. "Don\'t tell me what it\'s for."',
     ], [{ id: 'take', label: 'Take it.', fn: () => {
-      S.bread += 300; S.flags.map = true;
+      S.bread += 300; S.flags.map = true; S.flags.levOffice = true;
       mercy('Lev paid you back.', 0);
       S.lev.health = Math.min(100, S.lev.health + 25);
       note('The way: Lev\'s map, folded small in your boot.', true);
       afterNoon();
     } }], { frame: 'office', amb: 'amb_hut', voice: ['lev_repay', 'lev_map'] });
+  },
+});
+
+// Lev in the planning office: now and then he comes out to the site behind the planning officer,
+// and what he has seen on the office table comes with him. The two share a cooldown (S.last.lev_office).
+const levOfficeOk = () => S.flags.levOffice && S.lev.alive && S.day - (S.last.lev_office || 0) >= 9;
+EV('lev_warn', {
+  max: 4, weight: 3, site: true, when: levOfficeOk,
+  setup: () => { S.flags.levOffice = true; S.bread = 400; },
+  run() {
+    S.last.lev_office = S.day;
+    S.flags.warnedDay = S.day;
+    const can = S.bread > 0 && !S.flags.baptist;   // bread under Alyoshka's boards is not on you to eat
+    const ch = [];
+    if (can) ch.push({ id: 'eat', def: true, label: `Eat the ${S.bread} g you have kept. Here, at the barrel.`, hint: 'bread in the stomach cannot be stolen', fn: () => {
+      adj(S.bread / 40); S.today.ate += S.bread; S.bread = 0;
+      note('You ate the kept bread at the barrel, with your back to the wind, in small bites, the way Lev eats.');
+      afterNoon();
+    } });
+    ch.push(can ? { id: 'keep', label: 'Keep it on you.', hint: 'Lubimov opens every lining tonight', fn: afterNoon } : { id: 'keep', label: 'Nod.', fn: afterNoon });
+    show([
+      'The planning officer comes out to measure the day\'s work, and Lev comes behind him with the tape and the board. While the officer writes, Lev drinks at the water barrel.',
+      'He says to the ladle, not to you: "Lubimov and the sergeant are doing the whole column at the gate tonight. Every man, every lining. I saw the paper." Then he hangs the ladle on its nail and goes after the officer.',
+    ], ch, { frame: siteFrame(todaySite()), amb: 'amb_site' });
+  },
+});
+EV('lev_quiet', {
+  max: 4, weight: 3, site: true, when: levOfficeOk,
+  setup: () => { S.flags.levOffice = true; S.bread = 400; },
+  run() {
+    S.last.lev_office = S.day;
+    S.until.noSearch = S.day;
+    mercy('Lubimov has the night off, Lev says.');
+    show([
+      'The planning officer is measuring again, and Lev holds the end of the tape for him. When the officer walks off to argue with the site foreman, Lev says, without turning round:',
+      '"Lubimov has the night off. The gate tonight is two conscripts from Ryazan. They are cold, and they want their supper more than they want your lining."',
+    ], onward('Nod.'), { frame: siteFrame(todaySite()), amb: 'amb_site' });
   },
 });
 
@@ -242,16 +282,16 @@ EV('tufta', {
       { id: 'other', say: 'prisoner_other', label: '"Put somebody else\'s."', fn: () => {
         brig(-15); note('Pasha wrote another name. He did not look at you while he wrote it.', true); afterNoon();
       } },
-    ], { frame: siteFrame(null), amb: 'amb_site', voice: ['pasha_percentage', 'pasha_name'] });
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site', voice: ['pasha_percentage', 'pasha_name'] });
   },
 });
 EV('wood_stick', {
-  cooldown: 9, max: 4, weight: 1.5, site: true, when: () => S.temp <= -20,
+  minor: true, cooldown: 9, max: 4, weight: 1.5, site: true, when: () => S.temp <= -20,
   run() {
     show(['At the end of the shift Pasha points at the scrap pile by the carpenters\' shed. "One stick each. Whoever carries nothing sits by the door tonight."'], [
       { id: 'carry', label: 'Carry a stick back.', hint: 'the gate may take it, and notice you', fn: () => { S.today.wood = true; afterNoon(); } },
       { id: 'none', def: true, label: 'Carry nothing.', fn: () => { brig(-3); note('You carried nothing. You will sit by the door.'); afterNoon(); } },
-    ], { frame: siteFrame(null), amb: 'amb_site', voice: 'pasha_stove' });
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site', voice: 'pasha_stove' });
   },
 });
 
@@ -265,11 +305,11 @@ EV('senka_frost', {
       'He walked out of a German camp in \'43. He is telling you he can walk out of this one.',
     ], [
       { id: 'nod', label: 'Nod.', hint: 'a man who has done it before', fn: () => {
-        S.flags.partner = true;
+        S.flags.partner = true; S.flags.metSenka = true;
         note('Senka. He walked out of a German camp in \'43. He does not talk. He draws.', true);
         afterNoon();
       } },
-      { id: 'away', def: true, label: 'Look away.', fn: () => { note('Senka rubbed the window clean and did not look at you again.'); afterNoon(); } },
+      { id: 'away', def: true, label: 'Look away.', fn: () => { S.flags.metSenka = true; note('Senka rubbed the window clean and did not look at you again.'); afterNoon(); } },
     ], noonFrame());
   },
 });
@@ -339,7 +379,7 @@ EV('urki_grudge', {
 // ---------- the boots, afterwards (the third night: arrival.js) ----------
 // tribute: Vaska's man comes for his share every ten days, until you stop paying
 EV('urki_tribute', {
-  force: () => S.flags.urki === 'tribute' && S.day >= (S.flags.tributeDay || 0) + 10,
+  minor: true, force: () => S.flags.urki === 'tribute' && S.day >= (S.flags.tributeDay || 0) + 10,
   setup: () => { S.flags.urki = 'tribute'; S.flags.tributeDay = S.day - 10; },
   run() {
     S.flags.tributeDay = S.day;
@@ -449,12 +489,12 @@ EV('frostbite', {
         note('The toes came back, screaming. The foreman wrote down a man sitting by the fire.');
         afterNoon();
       } },
-    ], { frame: siteFrame(null), amb: 'amb_site' });
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site' });
   },
 });
 // Nina's roubles, if they got through the gate and Vaska did not get them
 EV('free_driver', {
-  once: true, minDay: 5, weight: 2, site: true, when: () => S.flags.money,
+  minor: true, once: true, minDay: 5, weight: 2, site: true, when: () => S.flags.money,
   setup: () => { S.flags.money = true; },
   run() {
     show(['A free driver brings cement to the site: a man in a sheepskin with no number on it, who goes home at night. While they unload he stands by his lorry, smoking, and says to nobody that he has makhorka, for money.'], [
@@ -465,12 +505,12 @@ EV('free_driver', {
         note('Three pinches, in a twist of newspaper. The driver did not look at your face, which was a courtesy.');
         afterNoon();
       } },
-    ], { frame: siteFrame(null), amb: 'amb_site' });
+    ], { frame: siteFrame(todaySite()), amb: 'amb_site' });
   },
 });
 
 EV('cards', {
-  cooldown: 14, max: 3, weight: 1, minDay: 7, when: () => S.tobacco >= 1,
+  minor: true, cooldown: 14, max: 3, weight: 1, minDay: 7, when: () => S.tobacco >= 1,
   run() {
     show(['The urki are playing cards on a jacket spread on the snow: cards cut from a cement sack and painted with burnt sugar. Vaska deals. "A pinch to sit down," he says. "Two if you win."'], [
       { id: 'play', label: 'Stake a pinch.', hint: 'they cheat; the question is how much', fn: () => {
@@ -502,7 +542,7 @@ EV('brigade_help', {
 
 // ---------- other people ----------
 EV('baptist', {
-  once: true, minDay: 10, weight: 2,
+  once: true, minDay: 5, weight: 4,
   run() {
     show([
       'Alyoshka the Baptist works beside you, and prays while he works, under his breath, the way other men swear.',
@@ -518,7 +558,7 @@ EV('baptist', {
   },
 });
 EV('blade_trade', {
-  cooldown: 16, max: 3, weight: 2, minDay: 15, when: () => !S.flags.blade,
+  minor: true, cooldown: 16, max: 3, weight: 2, minDay: 15, when: () => !S.flags.blade,
   run() {
     const can = S.tobacco >= 3;
     show([
@@ -538,7 +578,7 @@ EV('blade_trade', {
   },
 });
 EV('medic_orderly', {
-  cooldown: 16, max: 4, weight: () => S.strength < 40 ? 4 : 1, when: () => S.strength < 55 && !S.until.infirmary,
+  minor: true, cooldown: 16, max: 4, weight: () => S.strength < 40 ? 4 : 1, when: () => S.strength < 55 && !S.until.infirmary,
   run() {
     const can = S.tobacco >= 2;
     show(['Somebody in the second brigade knows somebody: the medic is short an orderly. Three days washing floors in the infirmary, in the warm. The man who arranges these things wants two pinches of tobacco.'], [

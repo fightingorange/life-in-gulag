@@ -79,6 +79,7 @@ BEAT('others_escape', 68, 'morning', () => {
   const senka = !S.flags.partner && !S.flags.senkaGone;
   if (senka) { S.flags.senkaGone = true; S.flags.senkaGoneDay = S.day; }
   S.flags.othersEscaped = senka ? 'senka' : 'two';
+  S.flags.metSenka = true;   // either way, his name is said at the count
   S.until.searches = 76; S.until.cut = 71;
   stopRun('');
   show([

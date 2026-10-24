@@ -6,8 +6,14 @@ function blankToday() {
     startStrength: S.strength, startBread: S.bread, startTobacco: S.tobacco, startBrigade: S.brigade, startEye: S.eye,
     cells: false, bowl: false, quota: true, lost: false, tobaccoGain: false, warm: false, inside: false,
     wood: false, blizzard: false, gave: false, ate: 0, notes: [], mercies: [],
+    site: null,      // the day's work site key ('power' | 'settlement' | 'timber'), null when inside
+    causes: {},      // what the body gained and lost today, by cause (the account says it in words)
   };
 }
+// A change to the body, remembered by its cause for the night's account.
+function cost(d, why) { S.today.causes[why] = (S.today.causes[why] || 0) + d; adj(d); }
+// The day's work site, or null on a day inside (events.js and lines.js read it).
+function todaySite() { return SITES.find(s => s.key === (S.today && S.today.site)) || null; }
 
 function nextDay() {
   S.day++;
@@ -19,7 +25,8 @@ function nextDay() {
 function drain() {
   const cold = Math.max(0, -S.temp - 20) / 3.2;
   const feet = S.flags.rubber ? (S.temp <= -35 ? 2 : S.temp <= -15 ? 1 : 0) : 0;   // Vaska's tyre-rubber boots (arrival.js)
-  return Math.round(6.4 + cold + S.day / 40 + (S.until.nojacket ? 3 : 0) + feet);
+  const ribs = S.until.ribs ? 2 : 0;   // the boots fight (arrival.js)
+  return Math.round(6.4 + cold + S.day / 40 + (S.until.nojacket ? 3 : 0) + feet + ribs);
 }
 
 function startDay() {
@@ -29,7 +36,9 @@ function startDay() {
   if (S.day >= ICE_OUT_DAY) return spring();
   S.temp = S.day === 1 ? -27 : rollTemp(S.day);   // the first day always marches out
   const before = S.strength;
-  adj(-drain());
+  const ribs = S.until.ribs ? 2 : 0;
+  cost(-(drain() - ribs), 'the cold');
+  if (ribs) cost(-ribs, 'the ribs');
   eye(S.eye > 30 ? -2 : -1);   // the eye forgets, slowly
   if (S.brigade > 0) brig(-Math.round(S.brigade / 15));  // the brigade remembers what you did lately
   levDaily();
@@ -49,7 +58,8 @@ function startDay() {
 function levDaily() {
   if (!S.lev.alive) return;
   const was = levWord();
-  S.lev.health -= S.temp <= -35 ? 5 : 3;
+  if (S.flags.levOffice) { if (S.lev.health < 60) S.lev.health++; }   // the office: a stove, a kettle, a chair
+  else S.lev.health -= S.temp <= -35 ? 3 : 2;
   if (S.lev.health > 0 && levWord() !== was) note(`Lev is ${levWord()} now.`, S.lev.health <= 35);
 }
 function kuzmaDaily() {
@@ -80,11 +90,11 @@ function reveille() {
   if (t < 15) cue('drip');
   const paras = [`Reveille. Somebody hits the rail outside the staff hut with a hammer. ${tempWords()}. ${feel} ${L('light')}`.trim()];
   paras.push(S.day === 1
-    ? 'In the bunk above, Senka\'s boots hang by your face. Pasha the foreman is already up, which means the brigade is going somewhere it does not want to go.'
+    ? `${S.flags.metSenka ? 'In the bunk above, Senka\'s boots hang by your face.' : 'In the bunk above, a pair of boots hangs by your face. When their owner swings down you see whose they are: the big man from the march.'} Pasha the foreman is already up, which means the brigade is going somewhere it does not want to go.`
     : L('morning'));
   if (S.brigade <= -30 && chance(.3)) {
     paras.push('On the way to the latrine someone\'s shoulder takes you into the door frame, and then a knee. Nobody looks.');
-    adj(-10);
+    cost(-10, 'the brigade');
     note('The brigade has decided something about you.', true);
   }
   const ch = [
@@ -96,7 +106,7 @@ function reveille() {
 }
 function lieIn() {
   if (chance(.3)) return cellsDay('Warder Lubimov. He does not shout. He writes your number in a book, and that is worse than shouting. "Three days. With work." You get one of them today.', 'lubimov_cells');
-  adj(3);
+  cost(3, 'the warm');
   note('Five minutes. Nobody came.');
   mercy('Five minutes more under the jacket.', 0);
   go(count);
@@ -111,13 +121,26 @@ function cellsDay(why, voice) {
   S.today.cells = true;
   S.today.inside = true;
   S.stats.cells++;
-  adj(-22);
+  cost(-14, 'the cells');
   show([why,
     'The cells. A box of planks on bare ground, three hundred grams, hot food every third day. You sit on the edge of the bunk because the bunk is nailed up in daytime. You think about nothing, carefully, for a long time.',
-  ], [{ label: 'Let the day go.', fn: () => go(endDay) }], { frame: 'cells', amb: 'amb_cells', sfx: 'door', voice });
+  ], [{ label: 'Let the day go.', fn: () => go(cellsNight) }], { frame: 'cells', amb: 'amb_cells', sfx: 'door', voice });
+}
+// The night in the cells: no stove, no Kuzma, and the bread, if it came in with you.
+// Alyoshka's boards are a hut away, so bread he keeps for you stays there.
+function cellsNight() {
+  const kept = S.bread > 0 && !S.flags.baptist;
+  const bread = kept ? `Your ${S.bread} grams are still in the lining. Nobody looked, or nobody bothered.`
+    : S.bread > 0 ? 'Your bread is under Alyoshka\'s boards, a hut away, which is the only reason it is still yours.'
+    : 'There is nothing in the lining. You feel for it anyway.';
+  const ch = [{ id: 'sleep', def: true, label: 'Lie down on the plank.', fn: () => go(endDay) }];
+  if (kept) ch.push({ id: 'stash', habit: false, label: `Eat the ${S.bread} g you have kept.`, hint: 'bread in the stomach cannot be stolen',
+    fn: () => { cost(S.bread / 40, 'bread'); S.today.ate += S.bread; S.bread = 0; go(endDay); } });
+  show([`Night in the cells. The cold comes up through the planks of the floor and in through the planks of the wall, and meets in the middle, where you are. At lights out the warder lets the bunk down on its chain. It is a plank too. ${bread}`],
+    ch, { frame: 'cells', amb: 'amb_cells', routine: 'night' });
 }
 function sickDay() {
-  adj(14); brig(-4);
+  cost(14, 'the warm'); brig(-4);
   S.today.warm = true; S.today.inside = true;
   mercy('A whole day in the warm.', 0);
   show([
@@ -127,9 +150,13 @@ function sickDay() {
 }
 
 // ---------- the count, and searches ----------
-const FIRST_COUNT = 'Count. Four hundred and some men in fives, in the dark, in the wind off the river. They count twice because the first time comes out wrong. It always comes out wrong the first time.';
+const FIRST_COUNT = 'Count. The first count inside the wire: four hundred and some men in the dark, in the wind off the river. It comes out wrong the first time, as Kuzma said it would, and they count again.';
+// Lev in the office knows the warders' evenings (events.js, lev_warn and lev_quiet).
 function searchChance(where) {
-  let p = where === 'count' ? .18 : .3;
+  if (S.until.noSearch >= S.day) return 0;
+  if (where === 'gate' && S.flags.warnedDay === S.day) return .9;
+  let p = where === 'count' ? .12 : .22;
+  if (S.eye >= 20) p += .1;
   if (S.eye >= 45) p += .2;
   if (S.eye >= 70) p += .2;
   if (S.until.searches) p += .3;
@@ -138,18 +165,18 @@ function searchChance(where) {
 function search(lead) {
   const out = [lead];
   let found = false, hoard = false;
-  if (S.bread > 0 && !S.flags.baptist && chance(.5)) {
+  if (S.bread > 0 && !S.flags.baptist && chance(S.bread >= 300 ? .35 : .2)) {
     out.push(`Your ${S.bread} grams, from the lining. He weighs it in his hand and puts it in his pocket. "Hoarding."`);
     S.stats.lost += S.bread; S.bread = 0;
     eye(8); found = hoard = true; S.today.lost = true;
-    note('Lubimov took the bread from your lining.', true);
+    remember('Lubimov took the bread from your lining.', true);
   }
   if (S.flags.blade && chance(.25)) {
     out.push('The blade. He holds it up so the column can see what a blade looks like. Then he looks at you for a long time, so that he will know you tomorrow.');
     S.flags.blade = false; S.flags.pendingCells = true;
     S.flags.cellsWhy = 'Three days for the blade. They give you one of them now and owe you the others.';
     eye(30); found = true; S.today.lost = true;
-    note('They found the blade. The cells tomorrow.', true);
+    remember('They found the blade. The cells tomorrow.', true);
   }
   if (!found) out.push(L('searchNone'));
   return { out, found, hoard };
@@ -175,28 +202,30 @@ function breakfast() {
   const g = ration();
   S.flags.cutBread = false;
   const paras = [];
-  if (S.day === 1) paras.push('Breakfast: skilly. Hot water with a memory of cabbage, and the fish bones at the bottom, which you chew. And bread, your five hundred and fifty grams, under weight as always, still warm from the bakery sledge.');
+  if (S.day === 1) paras.push('Breakfast: the same skilly as last night, and this time bread with it. Your five hundred and fifty grams, under weight as always, still warm from the bakery sledge.');
   else paras.push(`${L('breakfast')} ${g === 400 ? 'Four hundred grams of bread today. Everyone knows why.' : g === 650 ? 'Six hundred and fifty grams of bread today, for the commission. Nobody trusts it, and everybody eats it.' : 'And the bread: five hundred and fifty grams, or so the bread-cutter says.'}`);
-  if (S.lev.alive) paras.push(S.lev.health > 60 ? 'Lev is at the end of the table. He has colour in his face, for once.'
+  const levAway = S.flags.levOffice && S.lev.alive;   // Lev works in the office now (events.js, lev_repay)
+  if (levAway) paras.push('Lev eats at the office table now, with the trusties. He looks across once, and nods, and does not look again.');
+  else if (S.lev.alive) paras.push(S.lev.health > 60 ? 'Lev is at the end of the table. He has colour in his face, for once.'
     : S.lev.health > 35 ? 'Lev is at the end of the table, not eating yet. His bread is in front of him. He is looking at it the way you look at something that belongs to someone else.'
     : 'Lev is at the end of the table. He has eaten his bread already, all of it, in the dark, and now he is looking at yours.');
   const keepLabel = S.flags.baptist ? 'Eat half. Give the other half to Alyoshka to keep.' : 'Eat half. Sew the other half into your jacket lining.';
   const ch = [
     { id: 'eat', label: 'Eat all of it. Now, while it is yours.', hint: 'warm for an hour', fn: () => {
-      adj(g / 45); S.today.ate += g; cue('bread'); go(afterBreakfast);
+      cost(g / 45, 'bread'); S.today.ate += g; cue('bread'); go(afterBreakfast);
     } },
     { id: 'half', label: keepLabel,
       hint: S.bread >= breadCap() ? 'there is no room left to hide it' : breadForPlan() >= 600 ? 'you already have enough for the ice' : 'bread for later, or for the wire',
       fn: () => {
         const keep = Math.min(Math.round(g / 2), Math.max(0, breadCap() - S.bread));
-        adj((g - keep) / 45); S.bread += keep; S.today.ate += g - keep; cue('bread');
+        cost((g - keep) / 45, 'bread'); S.bread += keep; S.today.ate += g - keep; cue('bread');
         if (keep < Math.round(g / 2)) note(S.flags.baptist ? 'Alyoshka\'s hiding place is full. You ate the rest.' : 'The lining is full. Any more would show. You ate the rest.');
         go(afterBreakfast);
       } },
   ];
-  if (S.lev.alive) ch.push({ id: 'lev', label: 'Break off a crust for Lev.', hint: `Lev is ${levWord()}`, fn: () => {
+  if (S.lev.alive && !levAway) ch.push({ id: 'lev', label: 'Break off a crust for Lev.', hint: `Lev is ${levWord()}`, fn: () => {
     const give = 120;
-    adj((g - give) / 45);
+    cost((g - give) / 45, 'bread');
     S.lev.health = Math.min(100, S.lev.health + 14); S.lev.helped++;
     S.stats.breadGiven += give; S.today.ate += g - give; S.today.gave = true;
     brig(2); cue('bread');
@@ -221,23 +250,25 @@ const SITES = [
 function work() {
   if (S.flags.bootmakers) {
     return show(['The bootmakers\' shop. Indoors, a stove, the smell of glue and wet felt. The work is nothing. The other men in the shop do not talk to you, and after a while you understand that they do not talk to each other either. Everyone in here paid for the chair.'],
-      [{ label: 'Work.', fn: () => { adj(-3); S.today.inside = true; S.today.warm = true; go(noon); } }],
+      [{ label: 'Work.', fn: () => { cost(-3, 'the work'); S.today.inside = true; S.today.warm = true; go(noon); } }],
       { frame: 'hut_night', amb: 'amb_cells', routine: true });
   }
   const site = pick(SITES);
+  S.today.site = site.key;
   const season = S.day === 1 ? '' : L('site');
   const paras = [season ? `${site.text} ${season}` : site.text, S.until.inspection
     ? 'The commission may come to the site. Pasha has the brigade working like a picture in a newspaper.'
     : (S.day === 1 ? 'Pasha counts heads and does not say anything. The quota is the quota.' : L('foreman'))];
   show(paras, [
     { id: 'proper', label: 'Work. Properly.', hint: S.temp <= -35 ? 'in this cold, sweat freezes in the clothes' : 'hard on the body; the brigade sees it', fn: () => {
-      adj(S.temp <= -35 ? -15 : -11); brig(4);
+      cost(S.temp <= -35 ? -15 : -11, 'the work'); brig(4);
+      if (S.until.ribs) cost(-2, 'the ribs');
       if (S.temp <= -35 && chance(.25)) note('Sweat froze in your shirt at the noon break. You will feel it in the night.');
       if (site.blade && !S.flags.blade && chance(.14)) return go(foundBlade);
       go(noon);
     } },
     { id: 'enough', label: 'Work enough to be seen working.', hint: 'easier; the quota may come up short', fn: () => {
-      adj(-7); brig(-4);
+      cost(-7, 'the work'); brig(-4);
       if (chance(S.until.inspection ? .5 : .3)) {
         S.today.quota = false; S.flags.cutBread = true; brig(-8);
         note('The brigade came up short. Tomorrow\'s bread is cut, and everyone knows whose it was.', true);
@@ -245,7 +276,7 @@ function work() {
       go(noon);
     } },
     { id: 'stove', label: 'Find the stove in the lean-to and stay by it.', hint: 'warm; someone is always watching', fn: () => {
-      adj(-2); brig(-8); S.today.warm = true;
+      cost(-2, 'the stove'); brig(-8); S.today.warm = true;
       if (chance(.35)) { eye(15); note('The site foreman found you by the stove. He has a notebook.', true); }
       else note('Nobody saw. Pasha knows anyway.');
       go(noon);
@@ -264,14 +295,14 @@ function barracksDay() {
   const paras = ['Too cold to march. The stove is allowed to be lit. Men mend boots, sew numbers, pick lice, lie with their eyes open.'];
   if (S.kuzma.here) paras.push('Kuzma tells the story about the priest and the tax collector again, and it is still funny, which is a kind of miracle.');
   show(paras, [
-    { id: 'sleep', label: 'Sleep all day. Store it up.', fn: () => { adj(8); go(noon); } },
-    { id: 'mend', label: 'Mend boots for the Latvians. They pay in tobacco.', fn: () => { adj(2); tob(1); S.stats.mended++; go(noon); } },
+    { id: 'sleep', label: 'Sleep all day. Store it up.', fn: () => { cost(8, 'the warm'); go(noon); } },
+    { id: 'mend', label: 'Mend boots for the Latvians. They pay in tobacco.', fn: () => { cost(2, 'the warm'); tob(1); S.stats.mended++; go(noon); } },
   ], { frame: 'stove', amb: 'amb_hut', sfx: S.kuzma.here ? 'humming' : null, routine: true });
 }
 function infirmary() {
   S.today.inside = true; S.today.warm = true;
   show(['Floors. The water is warm when you start and cold when you finish. Men die in the beds around you, politely, without much noise. The orderly gives you the end of somebody\'s soup.'],
-    [{ label: 'Work.', fn: () => { adj(6); mercy('Warm water, and the end of somebody\'s soup.', 0); go(noon); } }], { frame: morningFrame(), amb: 'amb_cells', routine: true });
+    [{ label: 'Work.', fn: () => { cost(6, 'the warm'); mercy('Warm water, and the end of somebody\'s soup.', 0); go(noon); } }], { frame: morningFrame(), amb: 'amb_cells', routine: true });
 }
 
 // ---------- noon ----------
@@ -296,10 +327,10 @@ function eveningGate() {
     if (chance(.35 + (S.eye >= 45 ? .2 : 0))) {
       paras.push('The warder at the gate takes your stick of wood without a word and throws it on the guards\' pile. Their stove is warmer than yours.');
       S.today.wood = false; eye(3);
-      note('The guards took your wood at the gate.');
+      remember('The guards took your wood at the gate.');
     } else {
       paras.push('The stick of wood goes through under your arm. Nobody looks at it. In the hut it goes into the stove, and the brigade remembers who brought it.');
-      brig(4); adj(3); S.today.warm = true;
+      brig(4); cost(3, 'the wood'); S.today.warm = true;
       mercy('Your stick of wood in the stove.', 0);
     }
   }
@@ -313,21 +344,21 @@ function eveningGate() {
 }
 function dinner() {
   const ch = [
-    { id: 'bowl', label: 'Eat your bowl and get out.', hint: 'one bowl, certain', fn: () => { adj(9); S.stats.bowls++; go(night); } },
+    { id: 'bowl', label: 'Eat your bowl and get out.', hint: 'one bowl, certain', fn: () => { cost(9, 'the bowl'); S.stats.bowls++; go(night); } },
     { id: 'queue', label: 'Work the queue for a second bowl.', hint: S.brigade >= 10 ? 'Pasha\'s man is on the ladle tonight' : 'nobody here owes you anything yet', fn: () => {
       if (S.brigade >= 10 && chance(.6)) {
-        adj(16); S.today.bowl = true; S.stats.bowls += 2;
+        cost(16, 'the bowl'); S.today.bowl = true; S.stats.bowls += 2;
         note('A second bowl slid across the counter. Nobody saw.');
         mercy('A second bowl.', 0);
       } else {
-        adj(5); cue('ladle'); S.stats.bowls++;
+        cost(5, 'the bowl'); cue('ladle'); S.stats.bowls++;
         note('The cook\'s ladle, flat, across the knuckles. The queue laughed. You still got your one bowl, colder.');
       }
       go(night);
     } },
   ];
   if (S.tobacco > 0) ch.push({ id: 'trade', label: 'A cigarette to the cook for a bowl from the bottom.', hint: 'the thick part, where the groats sink', fn: () => {
-    tob(-1); adj(14); S.today.bowl = true; S.stats.bowls++;
+    tob(-1); cost(14, 'the bowl'); S.today.bowl = true; S.stats.bowls++;
     mercy('The thick part, from the bottom of the pot.', 0);
     go(night);
   } });
@@ -348,11 +379,11 @@ function night() {
     note('The night search found the bread under Alyoshka\'s boards.', true);
   }
   const ch = [{ id: 'sleep', label: 'Sleep.', fn: () => go(endDay) }];
-  if (S.tobacco > 0) ch.push({ id: 'smoke', label: 'Smoke.', hint: 'a little warmth; one pinch less to trade', fn: () => { tob(-1); adj(3); mercy('A smoke, in the dark, slowly.'); go(endDay); } });
+  if (S.tobacco > 0) ch.push({ id: 'smoke', label: 'Smoke.', hint: 'a little warmth; one pinch less to trade', fn: () => { tob(-1); cost(3, 'the smoke'); mercy('A smoke, in the dark, slowly.'); go(endDay); } });
   ch.push({ id: 'mend', label: 'Mend boots for the Latvians.', hint: 'a pinch of tobacco, if the thread holds', fn: mend });
   if (S.bread > 0) ch.push({ id: 'stash', habit: false, label: `Eat the ${S.bread} g you have kept.`,
     hint: breadForPlan() >= 600 ? 'that is your three days on the ice' : 'bread in the stomach cannot be stolen',
-    fn: () => { adj(S.bread / 40); S.today.ate += S.bread; S.bread = 0; go(endDay); } });
+    fn: () => { cost(S.bread / 40, 'bread'); S.today.ate += S.bread; S.bread = 0; go(endDay); } });
   ch.push({ id: 'wire', habit: false, label: 'Think about the wire.', hint: planHint(), fn: plan });
   if (S.today.blizzard && (S.flags.blade || planItems() >= 2)) stopRun('A blizzard. From the window you cannot see the towers.');
   show(paras, ch, {
@@ -397,6 +428,8 @@ function ledgerLines() {
   if (t.ate) L.push(`Ate ${t.ate} g of bread${t.bowl ? ', and a second bowl' : ''}.`);
   const b0 = bodyWord(t.startStrength), b1 = bodyWord(), d = S.strength - t.startStrength;
   L.push(b0 !== b1 ? `Body: ${b0} → ${b1}.` : `Body: ${b1}, ${d > 2 ? 'a little better' : d < -2 ? 'a little worse' : 'no worse'}.`);
+  const why = causesLine();
+  if (why) L.push(why);
   const sign = (a, b) => `${a > b ? '+' : '−'}${Math.abs(a - b)}`;
   if (S.bread !== t.startBread) L.push(`Kept: ${S.bread} g of bread (${sign(S.bread, t.startBread)}).`);
   if (S.tobacco !== t.startTobacco) L.push(`Tobacco: ${S.tobacco} (${sign(S.tobacco, t.startTobacco)}).`);
@@ -405,6 +438,16 @@ function ledgerLines() {
   else if (S.brigade - t.startBrigade <= -8) L.push('The brigade thinks a little worse of you.');
   if (eyeWord(t.startEye) !== eyeWord()) L.push(`The eye: ${eyeWord(t.startEye)} → ${eyeWord()}.`);
   return L.slice(0, 8);
+}
+// What the day took out of the body and what it put back, in words: the two biggest losses, the biggest gain.
+function causesLine() {
+  const c = Object.entries((S.today && S.today.causes) || {});
+  const took = c.filter(([, v]) => v <= -1).sort((a, b) => a[1] - b[1]).slice(0, 2).map(([k]) => k);
+  const gave = c.filter(([, v]) => v >= 1).sort((a, b) => b[1] - a[1]).slice(0, 1).map(([k]) => k);
+  const out = [];
+  if (took.length) out.push(`What took: ${took.join(', then ')}.`);
+  if (gave.length) out.push(`What gave: ${gave[0]}.`);
+  return out.join(' ') || null;
 }
 // One line of advice, in the camp's own voice, when something is going wrong.
 function tipLine() {
@@ -441,6 +484,16 @@ function planNews() {
 function endDay() {
   if (S.dead) return die();
   const t = S.today;
+  // once, in the first fortnight, when a new man is going: Kuzma's half loaf (lines.js remembers it)
+  if (S.day <= 14 && S.strength < 18 && S.kuzma.here && !S.flags.kuzmaHalf && !t.cells) {   // not through the cell wall
+    S.flags.kuzmaHalf = S.day;
+    cost(12, 'Kuzma');
+    mercy('Kuzma\'s half loaf, in the dark.');
+    remember('Kuzma broke his bread and gave you half.', true);
+    t.notes.unshift(t.notes.pop());   // first in the account
+    t.kuzmaHalf = 'In the dark Kuzma breaks his bread in two and puts half of it in your hand without a word. When you try to say something he says, "Thin men are bad luck in a brigade. Eat." Then, while you eat, he tells the stove about the priest and the tax collector, the whole of it, to the end.';
+    stopRun('Kuzma\'s half loaf.');
+  }
   if (!t.mercies.length && chance(.4)) {
     const m = L('mercy');
     mercy(m);
@@ -456,6 +509,7 @@ function endDay() {
   if (FLOW.auto && S.day - FLOW.auto.from + 1 >= RUN_CAP) stopRun(`${numberWord(RUN_CAP, true)} days.`);
   const total = SENTENCE + S.extra, ice = ICE_OUT_DAY - S.day;
   const paras = [];
+  if (t.kuzmaHalf) paras.push(t.kuzmaHalf);   // the half loaf, as a paragraph above the account
   if (S.day === 1) {
     paras.push(`~ Day one of ${fmtInt(total)}. The three extra days are for the leap years.`);
     paras.push('~ From here the days can run on their own, the way you lived this one, until something happens.');

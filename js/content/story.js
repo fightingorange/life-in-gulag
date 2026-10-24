@@ -10,6 +10,7 @@ const QUOTES = {
   hell: ['What is hell? I maintain that it is the suffering of being unable to love.', 'Dostoevsky, The Brothers Karamazov'],
   own: ['To go wrong in one\'s own way is better than to go right in someone else\'s.', 'Dostoevsky, Crime and Punishment'],
 };
+// The title's epigraph; the endings end on their own words.
 const epigraph = q => `" ${q[0]} || ${q[1]}`;
 
 function title() {
@@ -27,7 +28,6 @@ const spoonHand = () => S.kuzma.here ? 'Kuzma takes your spoon' : 'somebody take
 const ENDINGS = {
   died: {
     stamp: 'УМЕР', outcome: 'Died in the barracks.', frame: 'dead', amb: 'amb_cells',
-    quote: () => S.flags.betrayed ? QUOTES.hell : QUOTES.heart,
     voice: () => S.kuzma.here ? 'kuzma_spoon' : null,
     text: () => [
       'You do not get up at reveille. Lubimov hits the bunk with his stick, which is what you do, and then he looks, and then he goes to get the orderly.',
@@ -36,7 +36,6 @@ const ENDINGS = {
   },
   shot: {
     stamp: 'УБИТ ПРИ ПОБЕГЕ', outcome: 'Shot while attempting to escape.', frame: 'wire', amb: null, sfx: 'shot',
-    quote: () => QUOTES.goal,
     text: () => {
       const r = S.esc && S.esc.cause;
       return [r === 'cut'
@@ -48,7 +47,6 @@ const ENDINGS = {
   },
   frozen: {
     stamp: 'УМЕР', outcome: 'Absconded. Found in the spring.', frame: 'river', amb: 'amb_wind',
-    quote: () => QUOTES.lie,
     text: () => {
       const c = S.esc && S.esc.cause;
       if (c === 'ice') return ['The ice is grey now, and soft at the edges, and in the middle of the river, where it looked as strong as anywhere, it opens without a sound.', 'In the summer a fisherman finds a felt boot in his net. He hangs it on the fence, in case somebody comes for it.'];
@@ -60,7 +58,6 @@ const ENDINGS = {
   },
   escaped: {
     stamp: 'В БЕГАХ', outcome: 'Absconded. Not found.', frame: 'river', amb: 'amb_wind',
-    quote: () => QUOTES.own,
     text: () => {
       const g = S.esc && S.esc.gave;
       const first = g === 'blade' ? 'He picks up the blade, weighs it, puts it in his pocket. He does not pick up the telephone.'
@@ -76,7 +73,6 @@ const ENDINGS = {
   },
   spring: {
     stamp: 'ЖИВ', outcome: 'Alive at the breaking of the ice.', frame: 'ice_out', amb: 'amb_spring', sfx: 'ice_break',
-    quote: () => QUOTES.creature,
     text: () => [
       'In the night the river makes a sound like artillery, a long way off. In the morning the ice is moving: grey plates the size of huts, turning, shouldering each other, going north to the sea.',
       'The whole column stops on the bank to watch, and the guards let it, because they are watching too.',
@@ -93,7 +89,7 @@ function finish(kind) {
   S.dead = kind !== 'escaped' && kind !== 'spring';
   FLOW.auto = null; FLOW.stop = null;
   if (STORE) STORE.clear();
-  show([...E.text(), epigraph(E.quote())], [{ id: 'again', label: 'Again.', fn: title }], {
+  show(E.text(), [{ id: 'again', label: 'Again.', fn: title }], {
     frame: E.frame, amb: E.amb, sfx: E.sfx || null, voice: E.voice ? E.voice() : null,
     record: recordFor(kind), ending: kind, story: true, cam: 'still',
   });
@@ -135,7 +131,7 @@ function unsaidLines() {
   }[S.flags.urki];
   if (boots) L.push(boots);
   if (S.flags.toes) L.push('Two toes went in the cold, in Vaska\'s rubbers.');
-  if (S.flags.photo) L.push('You kept the photograph of Nina and Tanya, under your heel, all winter.');
+  if (S.flags.photo) L.push(S.day >= 100 ? 'You kept the photograph of Nina and Tanya, under your heel, all winter.' : 'You kept the photograph of Nina and Tanya under your heel.');
   if (S.flags.spoke) L.push('You told a commission from Moscow the truth.');
   if (S.flags.signed) L.push('You signed the paper, so that Tanya could study.');
   if (st.lost) L.push(`${fmtInt(st.lost)} grams of your bread went into other men's pockets.`);

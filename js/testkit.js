@@ -25,7 +25,7 @@ const TESTKIT = (() => {
   // ---- every reachable scene
   function scenes() {
     const list = {};
-    const day = { reveille, count, breakfast, work, barracksDay, infirmary, foundBlade, noon, quietNoon, eveningGate, dinner, night, endDay, plan, escape, levDeath, sickDay };
+    const day = { reveille, count, breakfast, work, barracksDay, infirmary, foundBlade, noon, quietNoon, eveningGate, dinner, night, cellsNight, endDay, plan, escape, levDeath, sickDay };
     for (const k in day) list['day:' + k] = { run: day[k] };
     list['day:cells'] = { run: () => cellsDay('Test.') };
     list['day:bootmakers'] = { setup: () => { S.flags.bootmakers = true; }, run: work };

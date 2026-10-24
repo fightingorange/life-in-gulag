@@ -169,7 +169,8 @@ const ARR_HUT = { frame: 'arrival_hut', amb: 'amb_hut' };
 const KUZMA_ANSWERS = [
   { id: 'q_bread', label: '"How much do they feed us?"', voice: 'kuzma_bread', paras: [
     '"Five hundred and fifty grams of bread, if the brigade makes the norm. Four hundred if it does not. Eat it in the morning, all of it, or hide it where nobody looks."',
-    'He says it the way other men say the date.'] },
+    'He says it the way other men say the date.',
+    '"Alyoshka the Baptist keeps his under the boards by his bunk. He will keep yours, if you ask him."'] },
   { id: 'q_day', label: '"What happens in the morning?"', voice: 'kuzma_day', paras: [
     '"The rail at five. Then the count, in fives. They count until it comes out right. Stand in your five and look at nothing. A man they notice is a man they search."'] },
   { id: 'q_brigade', label: '"Who is the man by the stove?"', voice: 'kuzma_brigade', paras: [
@@ -264,7 +265,8 @@ BEAT('boots', 3, 'night', () => {
       ]);
     } },
     { id: 'fight', label: 'Put your feet on them. Hit him first.', hint: 'there are three of them', fn: () => {
-      adj(-16); brig(12); eye(6);
+      cost(-10, 'the fight'); brig(12); eye(6);
+      S.until.ribs = S.day + 6;   // six days of it: the cold and the work cost more (day.js)
       S.flags.urki = 'fought'; S.flags.urkiGrudge = S.day;
       if (chance(.35)) { S.flags.pendingCells = true; S.flags.cellsWhy = 'The hut orderly reported a fight. Lubimov does not ask who started it. Three days. They give you one of them now and owe you the others.'; }
       remember('You fought Vaska Kosoi for your boots, and kept them.', true);

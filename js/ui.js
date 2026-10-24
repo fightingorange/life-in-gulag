@@ -72,12 +72,12 @@ const UI = (() => {
       if (S.tobacco !== r.fromTobacco) lines.push(`Tobacco: ${r.fromTobacco} → ${S.tobacco}.`);
     }
     const notes = [...new Set(r.days.flatMap(d => d.notes))].slice(-5);
-    if (!n && !r.reason) return '';
+    const reason = r.reason || (n ? '' : 'The run stopped on its first day.');
     return `<div class="run" style="--i:0">`
       + (n ? `<div class="marks">${r.days.map(d => `<i class="d-${d.v}" title="${esc(fmtDate(d.day))}: ${esc(VERDICTS[d.v])}"></i>`).join('')}</div>` : '')
       + lines.map(l => `<p>${esc(l)}</p>`).join('')
       + (notes.length ? `<ul>${notes.map(t => `<li>${tx(t)}</li>`).join('')}</ul>` : '')
-      + (r.reason ? `<p class="reason">${tx(r.reason)}</p>` : '')
+      + (reason ? `<p class="reason">${tx(reason)}</p>` : '')
       + '</div>';
   }
   function ledgerHtml(l) {
@@ -138,6 +138,7 @@ const UI = (() => {
     if (story) setTimeout(release, minHold);
     setTimeout(() => { voiced = true; release(); }, 45000);   // never wait forever
     if (S) AUDIO.body(S.strength);
+    warmDay();
 
     // documents go under the picture: what the days that ran left behind, the record, the night's account, the wire
     const docs = [];
@@ -160,8 +161,10 @@ const UI = (() => {
     text.innerHTML = parts.join('');
 
     choicesEl.classList.toggle('held', held);
-    // the default choice (def: true, else the first) is shown first, as 1; the keys follow what is shown
-    const d = Math.max(0, scr.choices.findIndex(c => c.def));
+    // the default is shown first, as 1, and the clock takes it: on a routine screen the habit's choice,
+    // when it is offered; else the def choice; else the first. The keys follow what is shown.
+    const hk = typeof o.routine === 'string' && S && S.habits ? scr.choices.findIndex(c => c.id && c.id === S.habits[o.routine]) : -1;
+    const d = hk >= 0 ? hk : Math.max(0, scr.choices.findIndex(c => c.def));
     order = [d, ...scr.choices.map((c, k) => k).filter(k => k !== d)];
     const timed = clockOn && clocked(scr);
     choicesEl.innerHTML = order.map((k, n) => {
@@ -169,27 +172,50 @@ const UI = (() => {
       return `<button type="button" data-k="${k}" class="${c.id === 'go' ? 'danger' : ''}" style="--i:${n}"><span class="k">${n + 1}</span>`
         + `<span class="l">${tx(c.label)}${c.hint ? `<small>${tx(c.hint)}</small>` : ''}</span>${timed && n === 0 ? '<i class="clock"></i>' : ''}</button>`;
     }).join('');
-    clockSet(timed ? choicesEl.querySelector('.clock') : null, d);
+    clockSet(timed ? choicesEl.querySelector('.clock') : null, d, clockTime(scr));
     if (!held) clockGo();
     window.scrollTo(0, 0);
     fit();
   }
 
+  // ---------- the prints of the day, fetched before they are needed ----------
+  let warmedDay = null;
+  function warmDay() {
+    if (!S || !S.today || S.day === warmedDay) return;
+    warmedDay = S.day;
+    const later = window.requestIdleCallback ? f => requestIdleCallback(f, { timeout: 4000 }) : f => setTimeout(f, 300);
+    later(() => {
+      const names = ['reveille', 'count_camp'];
+      try {
+        if (typeof breakfastFrame === 'function' && typeof ration === 'function') names.push(breakfastFrame(ration()));
+        if (typeof siteFrame === 'function' && typeof SITES !== 'undefined') for (const s of SITES) names.push(siteFrame(s));
+      } catch (e) { /* the day's helpers are not ready: warm the rest */ }
+      names.push('noon', 'gate', 'supper', 'supper_b', 'hut_night_pano', 'stove', 'wire');
+      FRAME.warm(names);
+    });
+  }
+
   // ---------- the clock on a choice ----------
-  // A real choice has thirty seconds; then the default is taken, as if clicked (a spoken choice is still
+  // A real choice has thirty seconds or more (a long screen gets more, up to a minute); then the default
+  // is taken, as if clicked, without becoming a habit (a spoken choice is still
   // heard). A thin line along the bottom of the default drains while the time runs, and darkens a little
   // at the end. It runs only while the choices can be clicked, the page is visible and the dev panel is
   // closed. No clock on the title, the endings, the night's account, the wire, the camp record, or a
   // screen with only one way on. ?notimer turns it off; so does DEV.timer().
-  const TIME = 30000, LATE = 6000;
+  const LATE = 6000;
   let clockOn = !/[?&]notimer\b/.test(location.search);
-  const clk = { bar: null, k: -1, left: 0, last: 0, running: false, id: 0 };
+  const clk = { bar: null, k: -1, left: 0, time: 30000, last: 0, running: false, id: 0 };
+  // the reading the screen asks for: its paragraphs and every choice's label and hint
+  function clockTime(scr) {
+    const chars = scr.paras.join('').length + scr.choices.reduce((n, c) => n + String(c.label || '').length + String(c.hint || '').length, 0);
+    return clamp(20000 + chars * 25, 30000, 60000);
+  }
   function clocked(scr) {
     const o = scr.o;
     return scr.choices.length > 1 && !(o.title || o.ending || o.ledger || o.plan || o.record);
   }
-  function clockSet(bar, k) {
-    clk.bar = bar; clk.k = k; clk.left = TIME; clk.running = false; clk.id++;
+  function clockSet(bar, k, time) {
+    clk.bar = bar; clk.k = k; clk.time = clk.left = time; clk.running = false; clk.id++;
   }
   function clockGo() {
     if (!clk.bar || clk.running) return;
@@ -202,9 +228,9 @@ const UI = (() => {
     clk.last = now;
     if (document.hidden || devOpen() || !clk.bar.isConnected) return;
     clk.left -= dt;
-    clk.bar.style.transform = `scaleX(${Math.max(0, clk.left / TIME).toFixed(4)})`;
+    clk.bar.style.transform = `scaleX(${Math.max(0, clk.left / clk.time).toFixed(4)})`;
     clk.bar.classList.toggle('late', clk.left < LATE);
-    if (clk.left <= 0) { clk.running = false; clk.bar = null; pickChoice(clk.k); }
+    if (clk.left <= 0) { clk.running = false; clk.bar = null; pickChoice(clk.k, true); }
   }
   setInterval(clockTick, 100);
   document.addEventListener('visibilitychange', () => { clk.last = performance.now(); });
@@ -259,12 +285,13 @@ const UI = (() => {
   addEventListener('resize', () => { clearTimeout(fit.t); fit.t = setTimeout(fit, 80); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 
-  function pickChoice(k) {
+  function pickChoice(k, timed) {
     if (!current || held || performance.now() < lockUntil) return;
     const ch = current.choices[k];
     if (!ch) return;
     clk.running = false; clk.bar = null;
-    choose(ch);
+    if (timed) choose(ch, { timed: true });   // the clock ran out: taken, but not made a habit
+    else choose(ch);
   }
   choicesEl.addEventListener('click', e => {
     const b = e.target.closest('button[data-k]');
@@ -308,7 +335,7 @@ const UI = (() => {
   snd.addEventListener('click', () => { AUDIO.unlock(); AUDIO.toggle(); sndLabel(); });
   sndLabel();
 
-  return { present, keepLabel, fit, timer, clock: () => ({ on: clockOn, running: clk.running, left: Math.round(clk.left), k: clk.k }),
+  return { present, keepLabel, fit, timer, clock: () => ({ on: clockOn, running: clk.running, left: Math.round(clk.left), time: clk.time, k: clk.k }),
     refreshSound: sndLabel, refresh: () => current && present(current) };
 })();
 RENDER = UI.present;

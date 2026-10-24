@@ -15,6 +15,13 @@ const since = (day) => day ? S.day - day : null;
 const goodStreak = () => { let n = 0; for (let i = S.history.length - 1; i >= 0 && S.history[i].v === 'good'; i--) n++; return n; };
 const badStreak = () => { let n = 0; for (let i = S.history.length - 1; i >= 0 && (S.history[i].v === 'bad' || S.history[i].v === 'day'); i--) n++; return n; };
 const daysWord = n => `${numberWord(n)} ${plural(n, 'day', 'days')}`;
+// where the brigade is today: S.today.site is 'power' | 'settlement' | 'timber', or null inside (day.js)
+const onSite = key => !!S.today && S.today.site === key;
+const outdoors = () => !S.today || !S.today.inside;
+// Senka's name is learned on the march, at the frost window, or from the wire; until then he is the big man
+const knowsSenka = () => !!(S.flags.metSenka || S.flags.partner || S.seen.senka_frost);
+// Lev in the planning office (lev_repay, events.js)
+const levAtOffice = () => !!S.flags.levOffice && S.lev.alive;
 
 function L(pool) {
   const list = LINES[pool];
@@ -52,8 +59,10 @@ const LINES = {
     { t: 'The Latvians are already dressed. The Latvians are always already dressed.' },
     { t: 'The orderly carries the latrine tub out between two poles, and the cold comes in where it goes out.', when: cold(-15) },
     { t: 'Kuzma is telling the stove a story. The stove has heard it.', when: () => S.kuzma.here },
-    { t: 'In the bunk above, Senka\'s boots hang by your face, as they always do.', when: () => !S.flags.senkaGone },
-    { t: 'Senka sleeps with his hands inside his jacket, like a man guarding something.', when: () => !S.flags.senkaGone },
+    { t: 'In the bunk above, Senka\'s boots hang by your face, as they always do.', when: () => !S.flags.senkaGone && knowsSenka() },
+    { t: 'Senka sleeps with his hands inside his jacket, like a man guarding something.', when: () => !S.flags.senkaGone && knowsSenka() },
+    { t: 'In the bunk above, the big man\'s boots hang by your face, as they always do. Nobody has told you his name.', when: () => !S.flags.senkaGone && !knowsSenka() },
+    { t: 'The big man in the bunk above sleeps with his hands inside his jacket, like a man guarding something. You have not heard him say a word to anyone.', when: () => !S.flags.senkaGone && !knowsSenka() },
     { t: 'Someone has stolen someone\'s spoon. There is a short, quiet, terrible argument, and then the spoon is found.' },
     { t: 'Your felt boots are where you left them, under your head. You check twice anyway.' },
     { t: 'The hut smells of wet felt and smoke and two hundred men. You stopped smelling it in the second week. This morning, for some reason, you smell it.' },
@@ -86,6 +95,10 @@ const LINES = {
     { t: 'Pasha passes your bunk and looks at your boots and then at you, the way a man checks a tool he has lent.', when: () => S.flags.urki === 'brigade', w: 1.5 },
     { t: 'You look at the photograph before the rail, with your back to the hut. Nina, and Tanya at nine, in a coat that used to be yours.', when: () => S.flags.photo, w: 1.5 },
     { t: 'Lev\'s felt boots, on your feet now. You still put them under your head every night, the way he did.', when: () => S.flags.levBoots, w: 2 },
+    // Lev in the office, Kuzma after the cough, Kuzma's half loaf (day.js)
+    { t: 'Lev is up before the rail, brushing down the office jacket with the flat of his hand. It has no number on the knee. After the count he goes the other way from the column.', when: levAtOffice, w: 2 },
+    { t: 'Kuzma coughs once at reveille, out of habit, and listens to it the way a man taps a wheel. It sounds like anybody\'s cough now.', when: () => S.kuzma.here && S.kuzma.helped, w: 1.5 },
+    { t: 'Kuzma looks you over at reveille, the way he did in the first week, from the boots up. Then he goes back to the stove.', when: () => S.kuzma.here && S.flags.kuzmaHalf },
   ],
 
   // the count
@@ -127,13 +140,22 @@ const LINES = {
     { t: 'Pasha does not look at you. That is a decision, and you know it is.', when: () => S.brigade <= -20 },
   ],
   // what the season does to the work
+  // (the settlement digs, the power station lays brick, the timber bank hauls; S.today.site says which)
   site: [
-    { t: 'The ground does not want to be dug. It rings under the pick like iron.', when: inMonths('jan', 'feb') },
-    { t: 'Fires on the ground all night to soften it, and in the morning a hand\'s depth of mud on top of a mile of iron.', when: inMonths('feb', 'mar') },
-    { t: 'The top of the ground has gone soft. Under it, a spade\'s length down, it is January forever.', when: inMonths('apr') },
-    { t: 'Water stands in the pits you dug in March. You dig the same pits again, out of the water.', when: inMonths('may') },
+    { t: 'The ground does not want to be dug. It rings under the pick like iron.', when: () => onSite('settlement') && inMonths('jan', 'feb')() },
+    { t: 'Fires on the ground all night to soften it, and in the morning a hand\'s depth of mud on top of a mile of iron.', when: () => onSite('settlement') && inMonths('feb', 'mar')() },
+    { t: 'The top of the ground has gone soft. Under it, a spade\'s length down, it is January forever.', when: () => onSite('settlement') && inMonths('apr')() },
+    { t: 'Water stands in the pits you dug in March. You dig the same pits again, out of the water.', when: () => onSite('settlement') && inMonths('may')() },
     { t: 'The light lasts now. That means the work lasts too.', when: inMonths('apr', 'may') },
-    { t: 'It is so cold the mortar freezes in the bucket. Men warm the trowels in their armpits.', when: cold(-35) },
+    { t: 'It is so cold the mortar freezes in the bucket. Men warm the trowels in their armpits.', when: () => onSite('power') && cold(-35)() },
+    // the power station
+    { t: 'The scaffold is poles and planks and rope, and at the second storey the wind off the river comes through it as if the wall were not there. Men lay brick with one hand and hold the pole with the other. The norm is set for two hands.', when: () => onSite('power') && inMonths('jan', 'feb')() },
+    { t: 'The bricks are frozen to the stack and come away with a crowbar, one at a time. The mortar bucket stands on a fire of scrap until it steams, and has a crust on it by the time it reaches the scaffold.', when: () => onSite('power') && inMonths('jan', 'feb')() },
+    { t: 'The mortar stays soft in the bucket all morning now, and the second storey is wet to the touch. From the scaffold you can see the river, grey, still whole.', when: () => onSite('power') && inMonths('apr', 'may')() },
+    // the timber bank
+    { t: 'The logs are frozen to the bank and to each other, and the first hour goes on breaking them loose with a pole. Then the sledge road, glazed by the runners, where two men and a log go up a step at a time and come down all at once.', when: () => onSite('timber') && inMonths('jan', 'feb')() },
+    { t: 'Under the bank the river has started to talk under the ice: a knock, and a long creak, like a door in another house. The guards on the bank turn their heads to it, the same as the men.', when: () => onSite('timber') && inMonths('mar')() },
+    { t: 'The bank is mud to the knee. Every few steps it takes a boot, and you stand on one leg with the log on your shoulder while the man behind you digs for it with his hand.', when: () => onSite('timber') && inMonths('may')() },
   ],
 
   // noon, when nothing happens
@@ -144,7 +166,8 @@ const LINES = {
     { t: 'Noon. The Estonian with the good boots tells you, in careful Russian, about the sea at Pärnu. You have never seen the sea. You let him tell it twice.', m: 'The sea at Pärnu, told twice.' },
     { t: 'Noon. Two men argue about whether it is Tuesday. It matters to neither of them. They argue anyway, because it is something to own.' },
     { t: 'Noon. Kuzma sings half a song, stops, and says he has forgotten the rest. He has not. The rest is about a woman.', when: () => S.kuzma.here, m: 'Half of Kuzma\'s song.' },
-    { t: 'Noon. Lev explains to nobody in particular how a steam engine works. The brigade listens. It is better than thinking.', when: () => S.lev.alive, m: 'Lev and his steam engine.' },
+    { t: 'Noon. Lev explains to nobody in particular how a steam engine works. The brigade listens. It is better than thinking.', when: () => S.lev.alive && !S.flags.levOffice, m: 'Lev and his steam engine.' },
+    { t: 'Noon. Lev\'s place at the barrow is empty. Somebody says the office has a stove and a kettle, and says it again a little later, as if it were news.', when: () => levAtOffice() && outdoors(), w: 1.5 },
     { t: 'Noon. The soup comes, and there is a piece of potato in yours. You look at it for a while before you eat it.', m: 'A piece of potato in the soup.' },
     { t: 'Noon. The guard on the corner tower is a boy of about nineteen. He waves, then remembers, then looks away.' },
     { t: 'Noon. A man from the second brigade has frostbite in two fingers. He looks at them the way you look at a letter you do not want to open.', when: cold(-25) },
@@ -156,6 +179,13 @@ const LINES = {
     { t: 'Noon. Somebody says he heard geese in the night. Nobody believes him. Everybody listens.', when: inMonths('apr'), m: 'Geese, or the rumour of geese.' },
     { t: 'Noon. The snow by the wall has gone grey and rotten, full of the whole winter: ash, bones, a lost mitten.', when: inMonths('apr', 'may') },
     { t: 'Noon. A fly, of all things. The brigade watches it for the whole break as if it were a cinema.', when: inMonths('may'), m: 'A fly, in May.' },
+    // the late winter: fewer words than January
+    { t: 'Noon. Under the bank, where a spring comes in, there is open water: a hand\'s width of it, black, moving. Men go down to look at it one at a time, and come back up.', when: () => outdoors() && inMonths('mar', 'apr')() },
+    { t: 'Noon. An old man from the next brigade takes off his cap and sits with his face to the sun and his eyes shut. His head is white where the cap was, like a potato out of a cellar.', when: () => outdoors() && inMonths('mar', 'apr')() },
+    { t: 'Noon. The wind smells of earth. Not snow, not smoke: earth, from somewhere it has been uncovered. Men breathe through their noses for the first time since October.', when: () => outdoors() && inMonths('apr', 'may')() },
+    { t: 'Noon. The mud has a bottom somewhere, but nobody has found it. The barrows stand in it to the axle and the brigade stands in it to the shin, and eats standing.', when: () => outdoors() && inMonths('apr', 'may')() },
+    { t: 'Noon. The first mosquitoes, up out of the wet ground by the wall. Men slap their necks and curse them, and you can hear that they do not mean it.', when: () => outdoors() && inMonths('may')() },
+    { t: 'Noon. The guards on the towers are in their summer coats, all of them, on the same morning, as if by order. It was by order.', when: () => outdoors() && inMonths('may')() },
     { t: 'Noon. The men look at the gap in the wire by the latrine, mended now with new wire, bright as a coin. Then they stop looking.', when: () => S.flags.othersEscaped && S.day < 100 },
     { t: 'Noon. You look for Lev by the barrow, out of habit, and then remember.', when: () => !S.lev.alive && since(S.lev.diedDay) <= 15, w: 2 },
   ],
@@ -175,6 +205,9 @@ const LINES = {
     { t: 'The column back. Five abreast, as always, so that if one man falls, four men know.' },
     { t: 'The column back. "A step to the left or the right," the convoy says at the site, every evening, as if anyone had forgotten since the railhead.' },
     { t: 'The column back, in the dark. You walk in the rubber boots the way the old men walk: flat, not lifting, saving something.', when: () => S.flags.rubber && inMonths('jan', 'feb')() },
+    { t: 'The column back. The road is two ruts of water with a ridge of rotten ice between them, and the fives walk the ridge, slipping, so as not to wade.', when: inMonths('apr', 'may') },
+    { t: 'The column back with the sun behind it, so that its shadow reaches the gate first, five abreast, and is not searched.', when: inMonths('apr', 'may') },
+    { t: 'Back through the gate. The warders search with their mittens off now. They are quicker, and they find more.', when: inMonths('apr', 'may') },
   ],
   gateQuiet: [
     { t: 'The warders are cold too. The line goes through.', when: cold(-20) },
@@ -221,6 +254,7 @@ const LINES = {
     { t: 'You looked at the photograph by the light of the stove door, for as long as you wanted.', when: () => S.flags.photo },
     { t: 'Your own boots, dry inside, under your head.', when: () => !S.flags.rubber && S.flags.urki && S.flags.urki !== 'warder' },
     { t: 'Lev talked about Leningrad in the dark, in a whisper, without moving his lips, the way you both learned on the march.', when: () => S.lev.alive && S.flags.metLev },
+    { t: 'Lev came back from the office warm through, and sat on the end of your bunk, and the warm came off his jacket for a while.', when: levAtOffice },
   ],
   searchLead: [
     { t: 'Your turn. Jacket open, arms out.' },
@@ -265,5 +299,9 @@ const LINES = {
     { t: 'Night. Your boots under your head, and your head on them, the way Kuzma said. Twice in the night a hand tries them, gently, and goes away.', when: () => !S.flags.rubber && ['fought', 'tribute', 'paid', 'brigade'].includes(S.flags.urki), w: 1.5 },
     { t: 'Night. The urki are playing cards by the stove door. Once Vaska looks up, finds you in the dark, and goes back to his cards.', when: () => ['fought', 'warder'].includes(S.flags.urki), w: 1.5 },
     { t: 'Night. You hang the rubber boots on the stove pipe and they steam, and stink, and are wet again by morning.', when: () => S.flags.rubber },
+    { t: 'Night. Lev is back from the office with a stub of pencil behind his ear. He tells you about the planning officer, who cannot add, and signs what Lev adds for him, and gets the bonus.', when: levAtOffice, w: 1.5 },
+    { t: 'Night. Lev does not thank you for the bread any more. It has gone past that, the way a debt goes past the point where anyone writes it down.', when: () => S.lev.alive && S.lev.helped >= 3 },
+    { t: 'Night. Kuzma\'s cough has gone the way it came. He tells the stove about the priest and the tax collector, badly, and the hut corrects him from the bunks.', when: () => S.kuzma.here && S.kuzma.helped, w: 1.5 },
+    { t: 'Night. Somewhere in the dark a man breaks a crust in two, and you know the sound: Kuzma, the first fortnight, holding out the half without a word.', when: () => S.flags.kuzmaHalf },
   ],
 };

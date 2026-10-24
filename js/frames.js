@@ -86,6 +86,21 @@ const FRAME = (() => {
       probe.src = src;
     })(0));
   }
+  // warm(names): fetch, ahead of time, the file each name would show today (its stand-ins and its
+  // variant of the day resolved as set() does), so the print is in the cache before its screen comes.
+  // Only the latest call's images are held, so the browser does not drop them half-loaded.
+  let warmth = new Set();
+  function warm(names) {
+    const held = new Set();
+    warmth = held;
+    for (const name of new Set((names || []).filter(Boolean))) resolve(name).then(r => {
+      if (!r || warmth !== held) return;
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = r[1];
+      held.add(img);
+    });
+  }
   function put(key, src, fade) {
     if (shown === key) return;
     shown = key;
@@ -314,7 +329,7 @@ const FRAME = (() => {
   begin('still', null);
   requestAnimationFrame(tick);
   return {
-    set, screen, mood, room, moves: Object.keys(MOVES), camOf,
+    set, screen, warm, mood, room, moves: Object.keys(MOVES), camOf,
     aim: name => begin(name || (mv && mv.name) || 'still', shown),
     // step(now): move the camera (and any sequence) to this moment by hand; the page stops doing it itself
     step: now => { manual = true; step(now); }, auto: () => { manual = false; },

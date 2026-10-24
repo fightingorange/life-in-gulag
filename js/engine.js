@@ -68,7 +68,8 @@ function go(fn) { if (S.dead && !S.ended) return die(); fn(); }
 // FLOW.story: the screens being shown belong to the story (an event, a beat, the opening, an ending),
 // so the page holds their choices until the dialogue has been heard.
 // FLOW.say: what you said aloud with your last choice, heard at the start of the next screen.
-const FLOW = { auto: null, stop: null, pending: null, inline: [], cues: [], screen: null, story: false, say: null };
+// FLOW.event: the noon event being run (set by runEvent); only its first screen carries it.
+const FLOW = { auto: null, stop: null, pending: null, inline: [], cues: [], screen: null, story: false, say: null, event: null };
 
 // A line of consequence: shown at the top of the next screen, and kept for the night's account.
 function note(text, major) {
@@ -92,10 +93,13 @@ function cue(name) { FLOW.cues.push(name); }
 // ledger, plan, record; cam (a camera move, ASSETS.cams), seq (a picture sequence, ASSETS.sequences),
 // scape (the place's sound layers when not the ambience's own, js/soundscapes.js). Choices: { label, fn, id?, hint?, habit? }.
 function show(paras, choices, o = {}) {
+  const ev = FLOW.event;
+  FLOW.event = null;
   if (o.story === undefined && FLOW.story && !o.routine) o.story = true;
   const scr = { paras, choices, o, day: S ? S.day : 0 };
+  if (ev) { scr.event = ev.id; if (ev.minor) scr.minor = true; }
   if (FLOW.auto) {
-    const ch = autoChoice(scr);
+    const ch = autoChoice(scr) || eventHabit(scr);
     if (ch) { FLOW.inline.length = 0; FLOW.cues.length = 0; FLOW.pending = ch.fn; return; }
     scr.run = endRun();
   }
@@ -113,10 +117,21 @@ function autoChoice(scr) {
   const want = S.habits[r];
   return scr.choices.find(c => c.id === want) || scr.choices.find(c => c.id && c.habit !== false) || scr.choices[0];
 }
-// The player picked a choice. A routine choice made by hand becomes the habit.
-function choose(ch) {
+// A small event (minor: true, js/content/events.js) is answered the way you answered it last time,
+// so the days keep running. If that answer is not on offer today, the run stops.
+function eventHabit(scr) {
+  if (!scr.minor || FLOW.stop !== null || S.dead) return null;
+  const want = S.habits['ev:' + scr.event];
+  return (want && scr.choices.find(c => c.id === want)) || null;
+}
+// The player picked a choice. A routine choice made by hand becomes the habit, and so does
+// the answer to a small event. A choice the clock made (opts.timed) is not a habit.
+function choose(ch, opts = {}) {
   const scr = FLOW.screen;
-  if (scr && typeof scr.o.routine === 'string' && ch.id && ch.habit !== false) S.habits[scr.o.routine] = ch.id;
+  if (scr && !opts.timed && ch.id && ch.habit !== false) {
+    if (typeof scr.o.routine === 'string') S.habits[scr.o.routine] = ch.id;
+    if (scr.minor) S.habits['ev:' + scr.event] = ch.id;
+  }
   FLOW.say = ch.say ? [].concat(ch.say) : null;
   drive(ch.fn);
 }
@@ -135,9 +150,11 @@ function drive(fn) {
 function startRun() { FLOW.auto = { from: S.day + 1, strength: S.strength, bread: S.bread, tobacco: S.tobacco }; FLOW.stop = null; }
 function stopRun(reason) { if (FLOW.auto && FLOW.stop === null) FLOW.stop = reason || ''; }
 function endRun() {
-  const r = FLOW.auto, reason = FLOW.stop;
+  const r = FLOW.auto;
+  let reason = FLOW.stop;
   FLOW.auto = null; FLOW.stop = null;
   if (!r) return null;
   const days = S.history.filter(h => h.day >= r.from);
+  if (reason === null) reason = days.length ? 'Something happened.' : 'The run stopped on its first day.';
   return { days, from: r.from, fromStrength: r.strength, fromBread: r.bread, fromTobacco: r.tobacco, reason };
 }

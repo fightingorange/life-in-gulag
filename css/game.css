@@ -244,6 +244,9 @@ body.title #text .small { font: 15px/1.4 var(--display); letter-spacing: .3em; c
   .card { padding: 12px 13px 13px; }
   #months .end .long { display: none; }
   #months .end .short { display: inline; }
+  /* the id line keeps one line; the tools go under it, to the right */
+  #top .row { flex-wrap: wrap; row-gap: 2px; }
+  #top .tools { flex-basis: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   #text > *, #choices button, .stamp, .m em, .t b { animation: none !important; }
