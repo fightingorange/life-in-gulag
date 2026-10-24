@@ -192,14 +192,7 @@ function day2(how) {
   const E = attempt();
   E.day2 = how;
   E.days = 3;
-  if (how === 'hut') {
-    adj(16);
-    if (chance(E.partner ? .2 : .3)) return caught('The fisherman gives you fish soup, and a place by the stove, and while you sleep he walks two hours to the next post. He is not a bad man. There is a reward, and he has children.', 3);
-    const paras = ['The fisherman looks at your jacket and your boots and the number on your back, and says nothing at all. He gives you fish soup, and a place by the stove for the night, and in the morning a frozen fish wrapped in newspaper.',
-      '"I never saw you," he says. "Downstream. Keep to the left bank."'];
-    E.bread += 200; E.route = true;
-    return show(paras, [{ label: 'Go on.', fn: settlement }], { frame: 'stove', amb: 'amb_hut', story: true, escape: 'hut' });
-  }
+  if (how === 'hut') return hut();
   const left = breadLeft();
   let risk = left >= 200 ? .08 : .3;
   if (!E.route) risk += .25;
@@ -209,6 +202,38 @@ function day2(how) {
     ? 'You eat a little, walking. The bread is hard as wood and you hold it in your mouth until it is bread again. That night you sleep again in the snow, and in the morning you are still alive.'
     : 'There is no bread left. You eat snow, which does nothing, and walk, which is all there is. That night you sleep in the snow, and in the morning, for no reason you can name, you are still alive.'],
     [{ label: 'Go on.', fn: settlement }], { frame: 'river', amb: 'amb_wind', story: true, escape: 'river' });
+}
+// The fisherman's hut. He has a stove, a wife who does not come out, two children asleep behind the
+// curtain, and the knowledge that there is a reward. What you tell him decides what he does with it.
+function hut() {
+  const E = attempt();
+  adj(16);
+  show([
+    'The fisherman opens the door with a lamp in one hand and nothing in the other, which is a decision he has made before you knocked. Inside: a stove, a table, fish drying on a string, a curtain across the back with children asleep behind it. His wife does not come out.',
+    'He gives you soup without asking, and sits across the table with his hands flat on it, and looks at the number on your back, which he can see in the lamp, and waits.',
+  ], [
+    { id: 'nothing', def: true, label: 'Say nothing. Eat.', hint: 'he can read a number', fn: () => hutOutcome('nothing', E.partner ? .2 : .3) },
+    { id: 'truth', label: '"The camp. Four days ago. I will not tell anyone your name."', hint: 'the truth, to a man with children', fn: () => hutOutcome('truth', E.partner ? .2 : .28) },
+    { id: 'lie', label: '"A free settler. From upriver. Lost in the dark."', hint: 'upriver there is nothing; he knows that', fn: () => hutOutcome('lie', .45) },
+  ], { frame: 'stove', amb: 'amb_hut', story: true, escape: 'hut' });
+}
+function hutOutcome(said, pCaught) {
+  const E = attempt();
+  E.fisherman = said;
+  if (chance(pCaught)) return caught(said === 'lie'
+    ? 'He nods at the lie the way a man nods at weather, and gives you a place by the stove, and while you sleep he walks two hours to the next post. Upriver there is nothing; he has lived here all his life. There is a reward, and he has children.'
+    : 'The fisherman gives you a place by the stove, and while you sleep he walks two hours to the next post. He is not a bad man. There is a reward, and he has children.', 3);
+  const paras = said === 'truth'
+    ? ['He listens to the whole of it without moving his hands. Then he says, "My brother had ten years. Kolyma." Nothing else about that. A place by the stove, and in the morning a frozen fish wrapped in newspaper, and his wife, who has come out after all, puts a pair of dry foot cloths on the table and goes back behind the curtain.',
+       '"I never saw you," he says at the door. "Downstream. Keep to the left bank. At the settlement ask for Grigory, and say the fisherman sent you. He owes me a net."']
+    : said === 'lie'
+      ? ['He does not say that he knows. He gives you a place by the stove, and in the morning a frozen fish wrapped in newspaper, and does not look at your back when you put the jacket on.',
+         '"Downstream," he says. "Keep to the left bank." He does not say I never saw you, because you were never here.']
+      : ['The fisherman looks at your jacket and your boots and the number on your back, and says nothing at all. He gives you a place by the stove for the night, and in the morning a frozen fish wrapped in newspaper.',
+         '"I never saw you," he says. "Downstream. Keep to the left bank."'];
+  E.bread += 200; E.route = true;
+  if (said === 'truth') E.footcloths = true;
+  show(paras, [{ label: 'Go on.', fn: settlement }], { frame: 'stove', amb: 'amb_hut', story: true, escape: 'hut' });
 }
 function settlement() {
   const E = attempt();
@@ -221,6 +246,7 @@ function settlement() {
   if (S.tobacco >= 2) ch.push({ id: 'tobacco', label: 'Give him your tobacco.', hint: `${numberWord(S.tobacco)} pinches`, fn: () => give('tobacco', .58 + Math.min(.12, S.tobacco * .02)) });
   if (S.flags.money) ch.push({ id: 'money', label: 'Put Nina\'s roubles on the table.', hint: 'twenty-five roubles; out here money is money again', fn: () => give('money', .55) });
   if (breadLeft() > 0) ch.push({ id: 'bread', label: 'Give him what is left of the bread.', hint: `${breadLeft()} g`, fn: () => give('bread', .52) });
+  if (E.fisherman === 'truth') ch.push({ id: 'grigory', label: '"The fisherman sent me. He says you owe him a net."', hint: 'a name, from a man who trusted you with his', fn: () => give('grigory', .74) });
   ch.push({ id: 'nothing', def: true, label: 'Give him nothing. Eat the soup, and look at him.', hint: 'he was in a camp once too', fn: () => give('nothing', .36) });
   show(paras, ch, { frame: 'table', amb: 'amb_hut', story: true, escape: 'settlement' });
 }

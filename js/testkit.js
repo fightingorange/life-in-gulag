@@ -36,6 +36,7 @@ const TESTKIT = (() => {
     list['esc:firstNight'] = { setup: escSetup, run: firstNight };
     list['esc:settlement'] = { setup: () => { escSetup(); S.esc.days = 3; S.tobacco = 3; }, run: settlement };
     list['esc:day2hut'] = { setup: () => { escSetup(); S.esc.days = 2; }, run: () => day2('hut') };
+    list['esc:hutTruth'] = { setup: () => { escSetup(); S.esc.days = 3; }, run: () => hutOutcome('truth', 0) };
     list['day:intro'] = { run: intro };
     // the arrival (arrival.js): the wagon, the march, the gate, the guardhouse, the hut, the first supper
     const met = () => { S.flags.metLev = true; S.flags.metSenka = true; S.flags.struck = true; };
@@ -145,7 +146,9 @@ const TESTKIT = (() => {
     if (o.escape === 'fence') return byId(scr, 'cut', 'post', 'gap');
     if (o.escape === 'night') return byId(scr, S.esc.temp <= -30 && !S.esc.partner ? 'walk' : S.esc.temp <= -35 ? 'walk' : 'drift', 'walk');
     if (o.escape === 'day2') return byId(scr, breadLeft() >= 200 && S.esc.route ? 'river' : 'hut');
-    if (o.escape === 'settlement') return byId(scr, 'blade', 'senka', 'tobacco', 'bread', 'nothing');
+    if (o.escape === 'settlement') return byId(scr, 'blade', 'grigory', 'senka', 'tobacco', 'bread', 'nothing');
+    if (o.escape === 'hut' && scr.choices.some(c => c.id === 'truth')) return byId(scr, 'truth');
+    if (o.escape === 'bank') return byId(scr, S.esc.thaw ? 'near' : 'far', 'near');
     if (o.ledger) return byId(scr, 'run');
     // the arrival: hide the roubles; the third night: Pasha if he has seen you work, otherwise pay
     if (scr.choices.some(c => c.id === 'money') && scr.choices.some(c => c.id === 'hand')) return byId(scr, 'money');

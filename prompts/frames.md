@@ -16,7 +16,7 @@ are skipped, so record in any order.
 
 - `kuzma_half`, `kuzma_alyosha`, `kuzma_order` (Kuzma)
 - `lev_warn`, `lev_quiet` (Lev, from the planning office)
-- `lubimov_held` (Lubimov, at the count, reading a paper), `lubimov_what`, `lubimov_sums` (Lubimov)
+- `lubimov_held` (Lubimov, at the count, reading a paper), `lubimov_what`, `lubimov_sums`, `lubimov_moscow` (Lubimov)
 - `pasha_banya`, `pasha_door`, `pasha_back`, `pasha_count`, `pasha_letter`, `pasha_again` (Pasha)
 - `vaska_turn` (Vaska)
 

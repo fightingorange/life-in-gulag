@@ -740,6 +740,7 @@ EV('pasha_letter', {
     show([
       'At noon Pasha sits down beside you with a sheet of paper and a stub of pencil, and does not look at you. "You write. I\'ll say." He says it the way he says the norm.',
       'A daughter in Vologda, sixteen, at the technical school. He wants her told that the camp is a timber works and he is the foreman of it, which is true, and that he is well, which is the usual lie. He does not say the word camp once.',
+      ...(S.flags.spoke ? ['At the end he says, "Put that there is a man in my brigade who told Moscow the truth." Then: "No. Don\'t put that." You put it anyway, and he reads it, and lets it stand.'] : []),
     ], [
       { id: 'later', def: true, label: 'Tell him there is no light to write by. Tomorrow.', fn: () => {
         note('Pasha put the paper back inside his jacket. He did not ask again that day.');

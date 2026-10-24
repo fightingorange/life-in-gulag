@@ -395,6 +395,10 @@
     "lubimov_sums": {
       "voice": "lubimov",
       "text": "Add these. Correctly. Then go."
+    },
+    "lubimov_moscow": {
+      "voice": "lubimov",
+      "text": "Examined. Weighed in the presence of the commandant. Found correct."
     }
   },
   "sfx": {
@@ -733,4 +737,4 @@
     "title",
     "wire"
   ]
-}
+}\n

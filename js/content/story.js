@@ -63,6 +63,7 @@ const ENDINGS = {
       const first = g === 'blade' ? 'He picks up the blade, weighs it, puts it in his pocket. He does not pick up the telephone.'
         : g === 'senka' ? 'Senka talks to him with his hands, for a long time. The man watches the hands, not the face. At the end he nods, once, and does not pick up the telephone.'
         : g === 'tobacco' ? 'He takes the tobacco and rolls one, and smokes it all the way down, looking at you. He does not pick up the telephone.'
+        : g === 'grigory' ? 'He looks at you for a long time when you say the fisherman\'s name, and then at the telephone, and then he laughs, once, without any pleasure in it. "A net," he says. "He would." He does not pick up the telephone.'
         : g === 'money' ? 'He smooths the roubles out on the table, one by one, and folds them into his shirt. "Your wife\'s?" he asks. You nod, and he nods. He does not pick up the telephone.'
         : g === 'bread' ? 'He looks at the bread, hard and grey, and pushes it back across the table to you. "Keep it," he says. "You will need it more." He does not pick up the telephone.'
         : 'He looks at you while you eat. When you have finished he takes the bowl and fills it again. He does not pick up the telephone. Not today.';
@@ -137,7 +138,10 @@ function unsaidLines() {
   if (S.stats.measured) L.push(`You held the brigade\'s board ${numberWord(S.stats.measured)} ${plural(S.stats.measured, 'time', 'times')}${S.stats.tufta ? `, and wrote a hundred and twenty ${numberWord(S.stats.tufta)} of them` : ''}.`);
   if (S.stats.doorNights) L.push(`${numberWord(S.stats.doorNights, true)} ${plural(S.stats.doorNights, 'night', 'nights')} by the door.`);
   if (S.flags.photo) L.push(S.day >= 100 ? 'You kept the photograph of Nina and Tanya, under your heel, all winter.' : 'You kept the photograph of Nina and Tanya under your heel.');
-  if (S.flags.spoke) L.push('You told a commission from Moscow the truth.');
+  if (S.flags.spoke) L.push(S.flags.moscowAnswer ? 'You told a commission from Moscow the truth. Moscow examined it and found the bread correct.' : 'You told a commission from Moscow the truth.');
+  if (S.flags.levBreadPot) L.push('Lev\'s hundred grams went into the brigade\'s pot.');
+  if (S.flags.levPencil) L.push('You kept Lev\'s pencil in your boot, and wrote nothing with it.');
+  if (S.ended === 'escaped' && S.esc && S.esc.fisherman === 'truth') L.push('You told the fisherman the truth, and he kept it.');
   if (S.flags.signed) L.push('You signed the paper, so that Tanya could study.');
   if (st.lost) L.push(`${fmtInt(st.lost)} grams of your bread went into other men's pockets.`);
   if (st.cells) L.push(`${numberWord(st.cells, true)} ${plural(st.cells, 'day', 'days')} in the cells.`);
@@ -164,5 +168,13 @@ function levDeath() {
     S.flags.rubber = false; S.flags.levBoots = true;
     paras.push('His felt boots go to you, because yours are rubber and because you were nearest. They are dry inside. He kept them under his head every night, the way Kuzma said.');
   }
-  show(paras, [{ label: 'Keep it.', fn: () => go(count) }], { frame: 'dead', amb: 'amb_hut_morning', sfx: 'rail', story: true });
+  S.flags.levDied = S.day;
+  show(paras, [
+    { id: 'keep', def: true, label: 'Keep it.', fn: () => go(count) },
+    { id: 'pot', label: 'Put the hundred grams in the brigade\'s pot.', hint: 'the brigade carried him; let it eat him', fn: () => {
+      S.bread = Math.max(0, S.bread - 100); S.stats.breadGiven += 100; brig(6); S.flags.levBreadPot = true;
+      note('Lev\'s hundred grams went into the brigade\'s pot. Pasha watched you do it and said nothing, which was a receipt.');
+      go(count);
+    } },
+  ], { frame: 'dead', amb: 'amb_hut_morning', sfx: 'rail', story: true });
 }

@@ -124,7 +124,7 @@ BEAT('parcel', 80, 'noon', () => {
 
 // 11 April: a second letter
 BEAT('letter2', 100, 'noon', () => {
-  const pencil = S.lev.alive ? 'Lev\'s pencil' : 'a stub of pencil';
+  const pencil = S.lev.alive || S.flags.levPencil ? 'Lev\'s pencil' : 'a stub of pencil';
   show([
     'A second letter. The censor has left almost all of it, which tells you what kind of letter it is before you read it.',
     'Tanya has finished school. They will not take her at the institute with a father like hers. The man at the district office says that if your wife divorces you, it will be as if Tanya had no father, and then they will take her.',
@@ -227,3 +227,29 @@ BEAT('senka_back', 125, 'morning', () => {
     'On the first day you look. On the second you look at the top of the gate, like the others.',
   ], [{ label: 'Go on.', fn: () => go(count) }], { frame: 'gate', amb: 'amb_march', sfx: 'lorry' });
 }, { when: () => !!S.flags.senkaDate && S.flags.senkaGone && S.flags.senkaFree === false });
+
+// The night after Lev: his things. A night beat the day he died (story.js, levDeath).
+BEAT('lev_things', 1, 'night', () => {
+  S.flags.levThings = true;
+  show([
+    'Night. Lev\'s bunk has been stripped by the orderly, who is paid in what he finds. What he did not want is on the boards: a stub of pencil, the cap with the flaps, a page of somebody\'s production report folded small, with sums on the back in Lev\'s hand.',
+    'Nobody has taken the bunk. Nobody will, for a day or two. That is the custom, and it is the only one.',
+  ], [
+    { id: 'leave', def: true, label: 'Leave it for the orderly.', fn: () => { note('The orderly took the rest in the morning. By the count the bunk was anybody\'s.'); go(endDay); } },
+    { id: 'pencil', label: 'Take the pencil, and the page.', hint: 'a thing of his, in your boot', fn: () => {
+      S.flags.levPencil = true;
+      mercy('Lev\'s pencil, in your boot.');
+      note('Lev\'s pencil is in your boot with the foot cloth, and the page with his sums on it. You will not write anything with it. That is not what it is for.', true);
+      go(endDay);
+    } },
+  ], { frame: 'dead', amb: 'amb_hut', scape: 'hut_quiet' });
+}, { when: () => S.flags.levDied === S.day && !S.flags.levThings });
+
+// A month after the commission: Moscow answers the man who spoke.
+BEAT('moscow_answer', 75, 'noon', () => {
+  eye(5); S.flags.moscowAnswer = true;
+  show([
+    'A paper comes down from the office with the day\'s sheet, and Lubimov reads it to you at the noon break in front of the brigade, because that is what it is for. The complaint of prisoner Ю-81 concerning the weight of the bread ration was examined. The ration was weighed in the presence of the commandant. It was found correct.',
+    '"Found correct," Lubimov says again, and folds it, and puts it in the book. The brigade eats. The bread is four hundred and fifty grams today, as it was yesterday, and the bread-cutter says five hundred and fifty, as he did yesterday.',
+  ], onward('Eat.'), { frame: siteFrame(todaySite()), amb: 'amb_site', voice: 'lubimov_moscow' });
+}, { when: () => !!S.flags.spoke && !S.today.inside });
