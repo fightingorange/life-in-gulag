@@ -584,6 +584,12 @@
     "urka_rubber": {
       "voice": "urka",
       "text": "Vaska says hello. He says the rubber boots suit you. He says you still owe him for the trouble."
+    },
+    "lev_laugh": {
+      "voice": "lev",
+      "model": "eleven_v3",
+      "text": "[laughs] Hm. [coughs] [coughs]",
+      "note": "after lev_omsk: he laughs, and then he coughs, and then he is quiet"
     }
   },
   "sfx": {

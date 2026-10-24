@@ -260,7 +260,7 @@ const TESTKIT = (() => {
       const sc = typeof SCAPES !== 'undefined' && SCAPES[o.scape || o.amb];
       if (sc) for (const [f] of [...sc.beds, ...sc.spots]) for (const x of [].concat(f)) need.sfx.add(x);
       for (const c of scr.cues || []) need.sfx.add(c);
-      for (const v of [].concat(o.voice || [])) if (v) need.voice.add(v);
+      for (const v of [].concat(o.voice || [])) if (v) (v.startsWith('sfx:') ? need.sfx.add(v.slice(4)) : need.voice.add(v));
       for (const c of scr.choices || []) for (const v of [].concat(c.say || [])) need.voice.add(v);
     };
     for (const { scr } of walk().seen) take(scr);

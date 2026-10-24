@@ -300,7 +300,8 @@ const AUDIO = (() => {
     let id = queue.shift(), alt = null;
     const t = take(id);
     if (t) { alt = id; id = t; }   // if the take is missing, the plain line follows
-    const path = `assets/voice/${id}.mp3`;
+    // 'sfx:cough' in a voice list: a sound effect in its turn, after the words (the laugh, the cough)
+    const path = id.startsWith('sfx:') ? `assets/sfx/${id.slice(4)}.mp3` : `assets/voice/${id}.mp3`;
     if (missing[path]) { if (alt) queue.unshift(alt); return nextLine(); }
     const token = ++speakingId;
     voice._fade = (voice._fade || 0) + 1;

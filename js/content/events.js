@@ -140,7 +140,7 @@ EV('lev_quote', {
       '"Pain and suffering," he says, "are always inevitable for a large intelligence and a deep heart."',
       '"Who said that."',
       '"A man who did four years in Omsk. He wrote it afterwards, with a full stomach." He laughs, and then he coughs, and then he is quiet.',
-    ], onward(), { ...noonFrame(), voice: ['lev_quote', 'prisoner_who', 'lev_omsk'] });
+    ], onward(), { ...noonFrame(), voice: ['lev_quote', 'prisoner_who', 'lev_omsk', 'lev_laugh', 'sfx:cough'] });   // he laughs, and then he coughs, and then he is quiet
   },
 });
 EV('lev_repay', {

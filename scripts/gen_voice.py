@@ -145,7 +145,7 @@ def record_line(line_id, line, voices, settings):
         sys.exit(f"{line_id}: voice '{line['voice']}' has no id yet, run: gen_voice.py design")
     body = {
         "text": line["text"],
-        "model_id": "eleven_multilingual_v2",
+        "model_id": line.get("model", "eleven_multilingual_v2"),   # eleven_v3 for a line with [laughs] or [coughs] in it
         "voice_settings": {
             "stability": settings.get("stability", 0.6),
             "similarity_boost": settings.get("similarity_boost", 0.8),
